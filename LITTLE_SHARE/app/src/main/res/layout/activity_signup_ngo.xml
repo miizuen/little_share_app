@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.auth.signup_ngo">
+
+    <ImageView
+        android:id="@+id/btnBackToRoleScreen"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="28dp"
+        android:padding="12dp"
+        android:src="@drawable/icon_back"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="@color/primary_green" />
+
+    <ScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        android:scrollbars="vertical"
+        app:layout_constraintTop_toBottomOf="@id/btnBackToRoleScreen"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="32dp">
+
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="180dp"
+                android:layout_height="180dp"
+                android:layout_marginTop="24dp"
+                android:src="@mipmap/logo"
+                android:scaleType="centerInside"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent" />
+
+            <!-- Tiêu đề -->
+            <TextView
+                android:id="@+id/tvTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:fontFamily="@font/borel"
+                android:gravity="center"
+                android:text="ĐĂNG KÍ TÀI KHOẢN\nTỔ CHỨC THIỆN NGUYỆN"
+                android:textColor="@color/primary_pink"
+                android:textSize="24sp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/imgLogo" />
+
+            <!-- 🧍‍♀️ Họ tên -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Tên tổ chức thiện nguyện"
+                app:endIconMode="clear_text"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:layout_constraintTop_toBottomOf="@id/tvTitle"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="16dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNGOname"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter"
+                    android:inputType="textPersonName"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 📧 Email -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutEmail"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Email tổ chức thiện nguyện"
+                app:endIconMode="clear_text"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:layout_constraintTop_toBottomOf="@id/layoutName"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNGOemail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"
+                    android:fontFamily="@font/inter"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 🔒 Mật khẩu -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutPassword"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Mật khẩu"
+                app:endIconMode="password_toggle"
+                app:boxCornerRadiusTopStart="12dp"
+                app:boxCornerRadiusTopEnd="12dp"
+                app:boxCornerRadiusBottomStart="12dp"
+                app:boxCornerRadiusBottomEnd="12dp"
+                app:layout_constraintTop_toBottomOf="@id/layoutEmail"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNGOPassword"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword"
+                    android:fontFamily="@font/inter"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 🏠 Địa chỉ -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutAddress"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Địa chỉ tổ chức thiện nguyện"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/layoutPassword"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNGOAddress"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="@font/inter"
+                    android:inputType="textPostalAddress"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- ☎️ Số điện thoại -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/layoutPhone"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:hint="Số điện thoại tổ chức thiện nguyện"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/layoutAddress"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="12dp">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/edtNGOPhoneNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    android:fontFamily="@font/inter"
+                    android:textSize="16sp" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- 🔘 Nút đăng nhập -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnSignUpNGO"
+                android:layout_width="0dp"
+                android:layout_height="56dp"
+                android:layout_marginHorizontal="32dp"
+                android:layout_marginTop="24dp"
+                android:background="@drawable/gradient_ngo"
+                android:fontFamily="@font/inter"
+                android:text="Đăng kí"
+                android:textColor="@color/white"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                app:backgroundTint="@null"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/layoutPhone" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </ScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
