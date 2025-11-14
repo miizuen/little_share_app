@@ -273,7 +273,7 @@
                         android:id="@+id/tvDescription"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="NẤU ĂN CHO EM LÀ CHƯƠNG TRÌNH MẪU MÃ NHẰM ĐỂ GIỚI THIỆU VỚI NGƯỜI DÙNG MỘT SỐ TÍNH NĂNG NỔI BẬT CỦA HỆ THỐNG CHARITY FINDER ĐƯỢC PHÁT TRIỂN TRONG MỤC TIÊU LÀ GÂY QUỸ TRONG HỌC PHẦN ĐỒ ÁN CHUYÊN NGÀNH CỦA CÁC SINH VIÊN KHÓA 21 TRƯỜNG ĐẠI HỌC FPT. TUY NHIÊN, HỌC PHẦN ĐƯỢC XÁC ĐỊNH VỚI TỔNG SỐ TUẦN HỌC LÀ 13 ĐẾN 14 TUẦN, VÌ VẬY, TRONG LỘ TRÌNH CỦA NHÓM XÂY DỰNG LÊN CHÚNG EM KHÔNG THỂ CHO HỆ THỐNG VÀO CÔNG THỊ TỪ CÁ NHÂN ĐƯỢC, VÌ HỌC VIÊN TỐT NGHIỆP CHO RÀ SẼ LÀ THỜI GIAN CÓ THỂ LẮP ĐẶT CHO HỆ THỐNG NGHIỆP VỤ VÀ CÓ ĐỦNG NHƯNG ĐIỂM TRƯƠNG TRƯỜNG NHƯ THỨC THEO MANG NHƯNG ĐÃ CÔNG TRỢ HẬN VIỆN CỦA NHI VỊ VÀ GIAO ẤP LƯƠNG SỐ ĐỀ TRƯỚC THI TỪ ĐẬU ĐƯỢC QUỜ THỊ TỪ ĐÁ NÂNG KHOÁC THI ĐÌNH CỦ IU XỊ ẨN GIU QUÝ GUỘ."
+                        android:text="Nấu ăn cho em là một dự án thiện nguyện đầy ý nghĩa, được biết đến rộng rãi qua MV truyền cảm hứng của rapper Đen Vâu và tổ chức bởi Nhóm Tình nguyện Niềm tin. Dự án hướng tới mục tiêu đơn giản nhưng vô cùng thiết thực: mang những bữa cơm ấm bụng và xây dựng những điểm trường khang trang cho trẻ em vùng cao, giúp các em có điều kiện đến trường tốt hơn và một tương lai tươi sáng hơn. Toàn bộ doanh thu từ ca khúc Nấu ăn cho em của Đen Vâu được dùng để đóng góp trực tiếp vào quỹ này."
                         android:textSize="14sp"
                         android:textColor="#424242"
                         android:lineSpacingExtra="4dp"
@@ -303,16 +303,17 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Chi tiết"
+                        android:textColor="#000000"
                         android:textSize="16sp"
-                        android:textStyle="bold"
-                        android:textColor="#000000" />
+                        android:textStyle="bold" />
 
                     <!-- Thời gian -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
                         android:orientation="horizontal"
-                        android:layout_marginTop="12dp">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="20dp"
@@ -322,26 +323,26 @@
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="12dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Thời gian"
-                                android:textSize="12sp"
-                                android:textColor="#757575" />
+                                android:textColor="#757575"
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/tvDuration"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:text="12/10/2025 - 30/12/2025"
-                                android:textSize="14sp"
                                 android:textColor="#000000"
-                                android:textStyle="bold"
-                                android:layout_marginTop="2dp" />
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                         </LinearLayout>
 
@@ -351,37 +352,39 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:orientation="horizontal"
-                        android:layout_marginTop="16dp">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@drawable/ic_location" />
+                            android:src="@drawable/ic_location"
+                            android:backgroundTint="@color/primary_green"/>
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="12dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Địa điểm"
-                                android:textSize="12sp"
-                                android:textColor="#757575" />
+                                android:textColor="#757575"
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/tvLocation2"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:text="Trường Tiểu học Mường Nhé, Điện Biên"
-                                android:textSize="14sp"
                                 android:textColor="#000000"
-                                android:textStyle="bold"
-                                android:layout_marginTop="2dp" />
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                         </LinearLayout>
 
@@ -391,37 +394,39 @@
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
                         android:orientation="horizontal"
-                        android:layout_marginTop="16dp">
+                        android:gravity="center_vertical">
 
                         <ImageView
                             android:layout_width="20dp"
                             android:layout_height="20dp"
-                            android:src="@drawable/ic_activity" />
+                            android:src="@drawable/ic_activity"
+                            android:backgroundTint="@color/primary_green"/>
 
                         <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
+                            android:layout_marginStart="12dp"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:layout_marginStart="12dp">
+                            android:orientation="vertical">
 
                             <TextView
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Hoạt động"
-                                android:textSize="12sp"
-                                android:textColor="#757575" />
+                                android:textColor="#757575"
+                                android:textSize="12sp" />
 
                             <TextView
                                 android:id="@+id/tvActivity"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
+                                android:layout_marginTop="2dp"
                                 android:text="Cung cấp bữa ăn thức 200 suất cơm"
-                                android:textSize="14sp"
                                 android:textColor="#000000"
-                                android:textStyle="bold"
-                                android:layout_marginTop="2dp" />
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
 
                         </LinearLayout>
 
@@ -455,19 +460,22 @@
                         android:textStyle="bold"
                         android:textColor="#000000" />
 
-                    <!-- Button Gọi điện -->
+
+
+                    <!-- Button Gửi Email -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnCall"
                         android:layout_width="match_parent"
                         android:layout_height="48dp"
+                        android:layout_marginTop="12dp"
                         android:text="📞 Gọi điện"
-                        android:textSize="14sp"
                         android:textColor="#FFFFFF"
-                        app:backgroundTint="#4CAF50"
-                        app:cornerRadius="12dp"
-                        android:layout_marginTop="12dp" />
+                        android:textSize="14sp"
+                        app:backgroundTint="@null"
+                        android:background="@drawable/gradient_sponsor"
+                        app:cornerRadius="12dp" />
 
-                    <!-- Button Gửi Email -->
+                    <!-- Button Gọi điện -->
                     <com.google.android.material.button.MaterialButton
                         android:id="@+id/btnEmail"
                         android:layout_width="match_parent"
@@ -475,7 +483,8 @@
                         android:text="✉️ Gửi Email"
                         android:textSize="14sp"
                         android:textColor="#FFFFFF"
-                        app:backgroundTint="#81C784"
+                        app:backgroundTint="@null"
+                        android:background="@drawable/gradient_sponsor"
                         app:cornerRadius="12dp"
                         android:layout_marginTop="8dp" />
 

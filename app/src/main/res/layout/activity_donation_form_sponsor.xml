@@ -183,7 +183,8 @@
                     android:textSize="16sp"
                     android:textStyle="bold"
                     app:cornerRadius="12dp"
-                    app:backgroundTint="@color/primary_green"
+                    app:backgroundTint="@null"
+                    android:background="@drawable/gradient_sponsor"
                     android:layout_marginStart="8dp" />
 
             </LinearLayout>

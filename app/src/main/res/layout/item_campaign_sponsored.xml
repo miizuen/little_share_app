@@ -21,19 +21,19 @@
             android:layout_height="200dp"
             android:scaleType="centerCrop"
             android:src="@drawable/img_nauanchoem"
-            android:background="@drawable/bg_top_rounded" />
+            android:background="@drawable/bg_top_rounded"
+            android:clipToOutline="true" />
 
         <!-- Nội dung -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="10dp">
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:layout_marginTop="8dp"
                 android:gravity="center_vertical">
 
             <!-- Loại chiến dịch -->
@@ -55,7 +55,7 @@
                     android:layout_weight="1" />
 
                 <TextView
-                    android:id="@+id/tvdangchay"
+                    android:id="@+id/tvStatus"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:background="@drawable/bg_tag_run"
@@ -75,16 +75,28 @@
                 android:textSize="16sp"
                 android:textStyle="bold" />
             <!-- Nhóm -->
-            <TextView
-                android:id="@+id/tvGroup"
-                android:layout_width="wrap_content"
+            <!-- Địa điểm -->
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:drawablePadding="6dp"
-                android:text="Nhóm tình nguyện Niềm Tin"
-                android:textColor="#757575"
-                android:textSize="13sp"
-                android:drawableStart="@drawable/ic_group" />
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_people" />
+
+                <TextView
+                    android:id="@+id/tvOrganization"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="Nhóm tình nguyện niềm tin"
+                    android:textColor="#757575"
+                    android:textSize="13sp" />
+            </LinearLayout>
 
             <!-- Địa điểm -->
             <LinearLayout
@@ -97,8 +109,7 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_location"
-                    android:contentDescription="Location Icon" />
+                    android:src="@drawable/ic_location" />
 
                 <TextView
                     android:id="@+id/tvLocation"
@@ -121,8 +132,7 @@
                 <ImageView
                     android:layout_width="16dp"
                     android:layout_height="16dp"
-                    android:src="@drawable/ic_calendar_sponsor"
-                    android:contentDescription="Calendar Icon" />
+                    android:src="@drawable/ic_calendar_sponsor" />
 
                 <TextView
                     android:id="@+id/tvDate"
@@ -155,6 +165,7 @@
                     android:layout_weight="1" />
 
                 <TextView
+                    android:id="@+id/tvProgressNumber"
                     android:text="73%"
                     android:textColor="#616161"
                     android:textSize="12sp"
@@ -172,7 +183,7 @@
 
             <!-- Tiền tài trợ -->
             <TextView
-                android:id="@+id/tvdataitro"
+                android:id="@+id/tvDaTaiTro"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -182,7 +193,7 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvmoney"
+                android:id="@+id/tvMoney"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -193,11 +204,12 @@
 
             <!-- Nút -->
             <Button
-                android:id="@+id/btnDonate"
+                android:id="@+id/btnDetail"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:background="@drawable/bg_button_green"
+                app:backgroundTint="@null"
+                android:background="@drawable/gradient_sponsor"
                 android:text="Chi tiết"
                 android:textColor="#FFFFFF"
                 android:textSize="15sp"
