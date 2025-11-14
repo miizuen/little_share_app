@@ -31,6 +31,7 @@
     <!-- RIPPLE & HOVER -->
     <color name="ripple_green">#804CAF50</color>      <!-- Nhấn nút xanh -->
     <color name="ripple_pink">#80EE0979</color>        <!-- Nhấn nút hồng -->
-    <color name="ripple_white">#30FFFFFF</color>      <!-- Nhấn nút trắng -->
+    <color name="ripple_white">#30FFFFFF</color>
+    <color name="ff6f00">#FF6F00</color>      <!-- Nhấn nút trắng -->
 
 </resources>

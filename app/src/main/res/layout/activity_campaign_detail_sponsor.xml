@@ -1,6 +1,490 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Banner Image -->
+            <ImageView
+                android:id="@+id/imgBanner"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_nauanchoem" />
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_tag_education"
+                android:paddingHorizontal="12dp"
+                android:paddingVertical="4dp"
+                android:text="Nấu ăn và dinh dưỡng"
+                android:layout_marginTop="-75dp"
+                android:layout_marginStart="10dp"
+                android:textColor="#FF6F00"
+                android:textSize="12sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/tvCampaignName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Nấu ăn cho em"
+                android:layout_marginTop="-2dp"
+                android:textSize="30sp"
+                android:layout_marginStart="10dp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:fontFamily="sans-serif-medium" />
+            <!-- Title Card -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="30dp"
+                android:layout_marginHorizontal="16dp"
+                app:cardCornerRadius="16dp"
+                app:cardElevation="4dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+                    <!-- Stats Row -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp">
+
+                        <!-- Đã tài trợ -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_money" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Đã tài trợ"
+                                android:textSize="12sp"
+                                android:textColor="#757575"
+                                android:layout_marginTop="4dp" />
+
+                            <TextView
+                                android:id="@+id/tvSponsorAmount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="5.000.000"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#4CAF50"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                        <View
+                            android:layout_width="1dp"
+                            android:layout_height="match_parent"
+                            android:background="#E0E0E0" />
+
+                        <!-- Người hưởng -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:gravity="center">
+
+                            <ImageView
+                                android:layout_width="32dp"
+                                android:layout_height="32dp"
+                                android:src="@drawable/ic_people" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Người hưởng"
+                                android:textSize="12sp"
+                                android:textColor="#757575"
+                                android:layout_marginTop="4dp" />
+
+                            <TextView
+                                android:id="@+id/tvBeneficiaries"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="200"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#2196F3"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Progress Bar -->
+                    <!-- Hàng: Tiến độ + % -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:text="Tiến độ"
+                            android:textColor="#616161"
+                            android:textSize="12sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="0dp"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:text="73%"
+                            android:textColor="#616161"
+                            android:textSize="12sp"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content" />
+                    </LinearLayout>
+
+                    <!-- Thanh tiến độ -->
+                    <ProgressBar
+                        style="?android:attr/progressBarStyleHorizontal"
+                        android:layout_width="match_parent"
+                        android:layout_height="8dp"
+                        android:progress="73"
+                        android:progressDrawable="@drawable/bg_progress_custom" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Thông tin tổ chức -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_margin="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="12dp">
+
+                    <!-- Tiêu đề -->
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="🏢 Thông tin tổ chức"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <!-- Dòng thông tin -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:id="@+id/tvOrganization"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Tổ chức:"
+                            android:textSize="14sp"
+                            android:textColor="#424242"
+                            android:layout_marginStart="10dp" />
+
+                        <View
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1" />
+
+                        <TextView
+                            android:id="@+id/tvLocation"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Nhóm tình nguyện Ánh Sáng"
+                            android:textSize="14sp"
+                            android:textColor="#212121"
+                            android:layout_marginEnd="10dp"
+                            android:maxLines="2"
+                            android:ellipsize="none" />
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Mô tả chiến dịch -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Mô tả chiến dịch"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <TextView
+                        android:id="@+id/tvDescription"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="NẤU ĂN CHO EM LÀ CHƯƠNG TRÌNH MẪU MÃ NHẰM ĐỂ GIỚI THIỆU VỚI NGƯỜI DÙNG MỘT SỐ TÍNH NĂNG NỔI BẬT CỦA HỆ THỐNG CHARITY FINDER ĐƯỢC PHÁT TRIỂN TRONG MỤC TIÊU LÀ GÂY QUỸ TRONG HỌC PHẦN ĐỒ ÁN CHUYÊN NGÀNH CỦA CÁC SINH VIÊN KHÓA 21 TRƯỜNG ĐẠI HỌC FPT. TUY NHIÊN, HỌC PHẦN ĐƯỢC XÁC ĐỊNH VỚI TỔNG SỐ TUẦN HỌC LÀ 13 ĐẾN 14 TUẦN, VÌ VẬY, TRONG LỘ TRÌNH CỦA NHÓM XÂY DỰNG LÊN CHÚNG EM KHÔNG THỂ CHO HỆ THỐNG VÀO CÔNG THỊ TỪ CÁ NHÂN ĐƯỢC, VÌ HỌC VIÊN TỐT NGHIỆP CHO RÀ SẼ LÀ THỜI GIAN CÓ THỂ LẮP ĐẶT CHO HỆ THỐNG NGHIỆP VỤ VÀ CÓ ĐỦNG NHƯNG ĐIỂM TRƯƠNG TRƯỜNG NHƯ THỨC THEO MANG NHƯNG ĐÃ CÔNG TRỢ HẬN VIỆN CỦA NHI VỊ VÀ GIAO ẤP LƯƠNG SỐ ĐỀ TRƯỚC THI TỪ ĐẬU ĐƯỢC QUỜ THỊ TỪ ĐÁ NÂNG KHOÁC THI ĐÌNH CỦ IU XỊ ẨN GIU QUÝ GUỘ."
+                        android:textSize="14sp"
+                        android:textColor="#424242"
+                        android:lineSpacingExtra="4dp"
+                        android:layout_marginTop="8dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Chi tiết -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:backgroundTint="#D2FFCD">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Chi tiết"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <!-- Thời gian -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_calendar_sponsor" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Thời gian"
+                                android:textSize="12sp"
+                                android:textColor="#757575" />
+
+                            <TextView
+                                android:id="@+id/tvDuration"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="12/10/2025 - 30/12/2025"
+                                android:textSize="14sp"
+                                android:textColor="#000000"
+                                android:textStyle="bold"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Địa điểm -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_location" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Địa điểm"
+                                android:textSize="12sp"
+                                android:textColor="#757575" />
+
+                            <TextView
+                                android:id="@+id/tvLocation2"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Trường Tiểu học Mường Nhé, Điện Biên"
+                                android:textSize="14sp"
+                                android:textColor="#000000"
+                                android:textStyle="bold"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Hoạt động -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp">
+
+                        <ImageView
+                            android:layout_width="20dp"
+                            android:layout_height="20dp"
+                            android:src="@drawable/ic_activity" />
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical"
+                            android:layout_marginStart="12dp">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Hoạt động"
+                                android:textSize="12sp"
+                                android:textColor="#757575" />
+
+                            <TextView
+                                android:id="@+id/tvActivity"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Cung cấp bữa ăn thức 200 suất cơm"
+                                android:textSize="14sp"
+                                android:textColor="#000000"
+                                android:textStyle="bold"
+                                android:layout_marginTop="2dp" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+            <!-- Liên hệ tổ chức -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginHorizontal="16dp"
+                android:layout_marginBottom="80dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="2dp"
+                android:backgroundTint="@android:color/white">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Liên hệ tổ chức"
+                        android:textSize="16sp"
+                        android:textStyle="bold"
+                        android:textColor="#000000" />
+
+                    <!-- Button Gọi điện -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnCall"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="📞 Gọi điện"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        app:backgroundTint="#4CAF50"
+                        app:cornerRadius="12dp"
+                        android:layout_marginTop="12dp" />
+
+                    <!-- Button Gửi Email -->
+                    <com.google.android.material.button.MaterialButton
+                        android:id="@+id/btnEmail"
+                        android:layout_width="match_parent"
+                        android:layout_height="48dp"
+                        android:text="✉️ Gửi Email"
+                        android:textSize="14sp"
+                        android:textColor="#FFFFFF"
+                        app:backgroundTint="#81C784"
+                        app:cornerRadius="12dp"
+                        android:layout_marginTop="8dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
+
+        </LinearLayout>
+
+    </androidx.core.widget.NestedScrollView>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>
