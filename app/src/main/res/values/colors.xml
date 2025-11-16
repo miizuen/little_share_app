@@ -34,4 +34,6 @@
     <color name="ripple_white">#30FFFFFF</color>
     <color name="ff6f00">#FF6F00</color>      <!-- Nhấn nút trắng -->
 
+    <color name="light_yellow">#FDE68A</color>
+
 </resources>

@@ -12,6 +12,8 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
+
+        <!-- Activity của PHÚ -->
         <activity
             android:name=".CampaignSharingSponsorActivity"
             android:exported="false" />
@@ -24,6 +26,28 @@
         <activity
             android:name=".ActivitySponsorNotification"
             android:exported="false" />
+
+        <!-- Activity của BẠN (Trường) -->
+        <activity
+            android:name=".review_campaign"
+            android:exported="false" />
+        <activity
+            android:name=".volunteer_with_role"
+            android:exported="false" />
+        <activity
+            android:name=".volunteer_no_role"
+            android:exported="false" />
+        <activity
+            android:name=".create_volunteer_simple"
+            android:exported="false" />
+        <activity
+            android:name=".activity_create_donation_campaign"
+            android:exported="false" />
+        <activity
+            android:name=".activity_create_campaign"
+            android:exported="false" />
+
+        <!-- Activity chung -->
         <activity
             android:name=".activity_sponsor_main"
             android:exported="false" />
@@ -44,12 +68,13 @@
         <activity
             android:name=".ui.auth.logInAndSignUp"
             android:exported="false" />
+
+        <!-- Splash screen -->
         <activity
             android:name=".spash_screen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -57,6 +82,7 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
     </application>
 
 </manifest>
