@@ -13,6 +13,18 @@
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
         <activity
+            android:name=".CampaignSharingSponsorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".BioDataSponsorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ProfileSponsorActivity"
+            android:exported="false" />
+        <activity
+            android:name=".ActivitySponsorNotification"
+            android:exported="false" />
+        <activity
             android:name=".activity_sponsor_main"
             android:exported="false" />
         <activity
