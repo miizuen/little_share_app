@@ -34,4 +34,10 @@
     <color name="ripple_white">#30FFFFFF</color>
     <color name="ff6f00">#FF6F00</color>      <!-- Nhấn nút trắng -->
 
+    <!-- BOTTOM NAVIGATION COLORS -->
+    <color name="bottom_nav_active">#FF6A00</color>    <!-- Màu cam khi active -->
+    <color name="bottom_nav_inactive">#757575</color>  <!-- Màu xám khi inactive -->
+    <!--BOTTOM BACKGROUND -->
+    <color name="bg_nav_menu">#FFF3E0</color>            <!-- Màu background của thanh navbar -->
+
 </resources>
