@@ -1,6 +1,305 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<!-- Màn hình đăng ký vai trò tình nguyện viên - Chọn ngày và ca -->
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#F5F5F5"
+    android:fillViewport="true">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="24dp">
+
+        <!-- Header Background với Gradient -->
+        <View
+            android:id="@+id/viewHeaderBackground"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:background="@drawable/bg_header_gradient"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Back Button -->
+        <ImageButton
+            android:id="@+id/btnBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="44dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Quay lại"
+            android:padding="12dp"
+            android:src="@drawable/icon_back"
+            app:tint="@android:color/white"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Title -->
+        <TextView
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="72dp"
+            android:fontFamily="sans-serif-medium"
+            android:text="Đăng kí: Đầu bếp"
+            android:textColor="@android:color/white"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Subtitle - Campaign Name -->
+        <TextView
+            android:id="@+id/tvCampaignName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="6dp"
+            android:fontFamily="sans-serif"
+            android:letterSpacing="0.05"
+            android:text="NẤU ĂN CHO EM"
+            android:textColor="@android:color/white"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+
+        <!-- Card Container cho Date và Shift Selection -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardMainContent"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="24dp"
+            app:cardCornerRadius="24dp"
+            app:cardElevation="4dp"
+            app:cardUseCompatPadding="true"
+            app:layout_constraintTop_toBottomOf="@id/viewHeaderBackground">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="24dp">
+
+                <!-- Section Title: Chọn ngày tham gia -->
+                <TextView
+                    android:id="@+id/tvDateSectionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Chọn ngày tham gia"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Date Chips Container -->
+                <com.google.android.material.chip.ChipGroup
+                    android:id="@+id/chipGroupDates"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    app:chipSpacingHorizontal="8dp"
+                    app:chipSpacingVertical="8dp"
+                    app:selectionRequired="true"
+                    app:singleSelection="true">
+
+                    <!-- Chip 18/10 - Được chọn (màu cam) -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate1"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:checked="true"
+                        android:text="18/10"
+                        app:chipBackgroundColor="#FF8C42"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="@android:color/white" />
+
+                    <!-- Các ngày khác (màu xám nhạt) -->
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate2"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="19/10"
+                        app:chipBackgroundColor="#EEEEEE"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="#666666" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate3"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="20/10"
+                        app:chipBackgroundColor="#EEEEEE"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="#666666" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate4"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="21/10"
+                        app:chipBackgroundColor="#EEEEEE"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="#666666" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate5"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="22/10"
+                        app:chipBackgroundColor="#EEEEEE"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="#666666" />
+
+                    <com.google.android.material.chip.Chip
+                        android:id="@+id/chipDate6"
+                        style="@style/Widget.MaterialComponents.Chip.Choice"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="23/10"
+                        app:chipBackgroundColor="#EEEEEE"
+                        app:chipCornerRadius="20dp"
+                        app:chipMinHeight="44dp"
+                        android:textColor="#666666" />
+                </com.google.android.material.chip.ChipGroup>
+
+                <!-- Section Title: Chọn ca làm việc -->
+                <TextView
+                    android:id="@+id/tvShiftSectionTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="28dp"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Chọn ca làm việc"
+                    android:textColor="#1A1A1A"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <!-- Ghi chú -->
+                <!-- Trong activity_register_shift.xml -->
+                <RadioGroup
+                    android:id="@+id/radioGroupShifts"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp">
+
+                    <!-- CA 1 -->
+                    <include
+                        android:id="@+id/includeShift1"
+                        layout="@layout/item_shift"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"/>
+
+                    <!-- CA 2 -->
+                    <include
+                        android:id="@+id/includeShift2"
+                        layout="@layout/item_shift"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"/>
+
+                    <!-- CA 3 -->
+                    <include
+                        android:id="@+id/includeShift3"
+                        layout="@layout/item_shift"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="20dp"/>
+                </RadioGroup>
+
+                <EditText
+                    android:id="@+id/etNote"
+                    android:layout_width="match_parent"
+                    android:layout_height="120dp"
+                    android:background="@drawable/bg_input_note"
+                    android:fontFamily="sans-serif"
+                    android:gravity="start|top"
+                    android:hint="Ghi chú..."
+                    android:inputType="textMultiLine"
+                    android:maxLines="5"
+                    android:padding="16dp"
+                    android:textColor="#1A1A1A"
+                    android:textColorHint="#BDBDBD"
+                    android:textSize="15sp" />
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Summary Card -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardSummary"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="16dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="3dp"
+            app:cardUseCompatPadding="true"
+            app:layout_constraintTop_toBottomOf="@id/cardMainContent">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_summary_card"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="sans-serif-medium"
+                    android:text="Xác nhận thông tin"
+                    android:textColor="@color/black"
+                    android:textSize="16sp"
+                    android:textStyle="bold" />
+
+                <LinearLayout
+                    android:id="@+id/containerSummary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:orientation="vertical">
+
+                    <!-- Các dòng sẽ được thêm bằng code -->
+                    <include layout="@layout/item_summary_row" />
+                    <include layout="@layout/item_summary_row" />
+                    <include layout="@layout/item_summary_row" />
+                    <include layout="@layout/item_summary_row" />
+                </LinearLayout>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <!-- Nút Xác nhận -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnConfirm"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginHorizontal="20dp"
+            android:layout_marginTop="20dp"
+            android:background="@drawable/bg_button_gradient"
+            android:fontFamily="sans-serif-medium"
+            android:text="Xác nhận đăng kí"
+            android:textAllCaps="false"
+            android:textColor="@android:color/white"
+            android:textSize="16sp"
+            app:backgroundTint="@null"
+            app:cornerRadius="26dp"
+            app:rippleColor="#33FFFFFF"
+            android:stateListAnimator="@null"
+            app:layout_constraintTop_toBottomOf="@id/cardSummary" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

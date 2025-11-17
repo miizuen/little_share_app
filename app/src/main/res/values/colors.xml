@@ -34,4 +34,30 @@
     <color name="ripple_white">#30FFFFFF</color>
     <color name="ff6f00">#FF6F00</color>      <!-- Nhấn nút trắng -->
 
+    <!-- Gradient Colors -->
+    <color name="gradient_orange_start">#FF8C42</color>
+    <color name="gradient_pink_end">#FF6B9D</color>
+
+    <!-- Background Colors -->
+
+    <color name="note_background">#E3F2FD</color>
+
+    <!-- Text Colors -->
+
+    <color name="text_white">#FFFFFF</color>
+    <color name="text_note">#1565C0</color>
+
+    <!-- Button Colors -->
+    <color name="button_gradient_start">#FF8C42</color>
+    <color name="button_gradient_end">#FF6B9D</color>
+
+    <!-- Status Colors -->
+    <color name="status_success">#4CAF50</color>
+    <color name="status_warning">#FF9800</color>
+    <color name="status_error">#F44336</color>
+
+    <!-- Border Colors -->
+    <color name="border_light">#E0E0E0</color>
+    <color name="border_medium">#BDBDBD</color>
+
 </resources>

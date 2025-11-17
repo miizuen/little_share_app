@@ -48,4 +48,76 @@
     </string>
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <!-- Thêm vào file res/values/strings.xml hiện có -->
+
+    <!-- Campaign Role Selection -->
+    <string name="back">Quay lại</string>
+    <string name="role_selection_title">Chọn vai trò</string>
+    <string name="role_section_title">Các vai trò đang cần</string>
+    <string name="register_role_button">Đăng kí với vai trò này</string>
+
+    <!-- Campaign Name -->
+    <string name="campaign_name_cooking">NẤU ĂN CHO EM</string>
+
+    <!-- Roles -->
+    <string name="role_chef">Đầu bếp</string>
+    <string name="role_assistant">Phụ bếp</string>
+    <string name="role_distributor">Phân phát</string>
+
+    <!-- Role Descriptions -->
+    <string name="role_chef_desc">Nấu các món ăn cho trẻ em, đảm bảo dinh dưỡng</string>
+    <string name="role_assistant_desc">Hỗ trợ sơ chế và chuẩn bị nguyên liệu</string>
+    <string name="role_distributor_desc">Chia suất ăn cho các em</string>
+
+    <!-- Participants -->
+    <string name="participants_format">%1$d/%2$d người</string>
+    <string name="participants_chef">2/3 người</string>
+    <string name="participants_assistant">5/8 người</string>
+    <string name="participants_distributor">4/5 người</string>
+
+    <!-- Note Section -->
+    <string name="note_title">Lưu ý</string>
+    <string name="note_message">Sau khi đăng ký, bạn sẽ nhận được mã QR để điểm danh. Vui lòng đến đúng giờ và mang theo giấy tờ tuỳ thân.</string>
+
+    <!-- Toast Messages -->
+    <string name="role_selected">Đã chọn vai trò: %s</string>
+    <string name="role_full">Vai trò này đã đủ người đăng ký</string>
+    <string name="loading_roles">Đang tải thông tin vai trò...</string>
+    <string name="error_loading_roles">Không thể tải thông tin vai trò</string>
+
+    <!-- Role Registration -->
+    <string name="registration_title_format">Đăng kí: %s</string>
+    <string name="select_date_title">Chọn ngày tham gia</string>
+    <string name="select_shift_title">Chọn ca làm việc</string>
+    <string name="note_hint">Ghi chú...</string>
+    <string name="confirm_info_title">Xác nhận thông tin</string>
+    <string name="confirm_registration">Xác nhận đăng kí</string>
+
+    <!-- Summary Labels -->
+    <string name="label_role">Vai trò</string>
+    <string name="label_date">Ngày</string>
+    <string name="label_shift">Ca</string>
+    <string name="label_points">Điểm nhận</string>
+    <string name="label_duration">Thời gian</string>
+
+    <!-- Shift Times -->
+    <string name="shift_morning">8:00 - 12:00</string>
+    <string name="shift_afternoon">12:00 - 16:00</string>
+    <string name="shift_evening">16:00 - 20:00</string>
+
+    <!-- Slots -->
+    <string name="slots_remaining_format">Còn %1$d/%2$d chỗ</string>
+    <string name="slots_full">Đã đầy</string>
+
+    <!-- Duration -->
+    <string name="duration_hours">%dh</string>
+
+    <!-- Validation -->
+    <string name="error_no_date_selected">Vui lòng chọn ngày tham gia</string>
+    <string name="error_no_shift_selected">Vui lòng chọn ca làm việc</string>
+    <string name="error_shift_full">Ca này đã đầy, vui lòng chọn ca khác</string>
+
+    <!-- Success -->
+    <string name="registration_success">Đăng ký thành công!</string>
+    <string name="registration_error">Đăng ký thất bại, vui lòng thử lại</string>
 </resources>
