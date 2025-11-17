@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+
+    app:cardCornerRadius="16dp"
+    app:cardElevation="4dp"
+
+    app:strokeColor="#FFAD00"
+    app:strokeWidth="2dp">
+
+    <!-- Gradient Background Container -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp"
+        android:background="#FFF">
+
+        <!-- Left Content -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/tv_campaign_title"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tổ chức từ thiện Ánh Sáng - Đà Nẵng"
+                android:textColor="#000000"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp"/>
+
+            <TextView
+                android:id="@+id/tv_campaign_address"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="123 Nguyễn Tất Thành, thành phố Đà Nẵng"
+                android:textColor="#555555"
+                android:textSize="13sp"
+                android:layout_marginBottom="8dp"/>
+
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:padding="5dp">
+
+                <ImageView
+                    android:layout_width="16dp"
+                    android:layout_height="16dp"
+                    android:src="@drawable/ic_clock"
+                    app:tint="#666666"
+                    android:layout_marginEnd="6dp"/>
+
+                <TextView
+                    android:id="@+id/tv_campaign_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="8:00 - 17:00 (T2-T7)"
+                    android:textColor="#666666"
+                    android:textSize="12sp"/>
+            </LinearLayout>
+        </LinearLayout>
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top"
+            android:src="@drawable/ic_location" />
+    </LinearLayout>
+
+</com.google.android.material.card.MaterialCardView>
