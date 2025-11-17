@@ -1,6 +1,150 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-             android:layout_width="match_parent"
-             android:layout_height="match_parent">
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="8dp"
+    android:layout_marginEnd="8dp"
+    android:layout_marginBottom="16dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="6dp"
+    app:cardBackgroundColor="#FFFFFF">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- HOT Badge (ẩn) -->
+        <TextView
+            android:id="@+id/tvHotBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_badge_hot"
+            android:fontFamily="sans-serif-medium"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:text="HOT"
+            android:textColor="#FFFFFF"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:visibility="gone"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Gift Image -->
+        <ImageView
+            android:id="@+id/ivGift"
+            android:layout_width="0dp"
+            android:layout_height="140dp"
+            android:scaleType="centerCrop"
+            android:src="@drawable/gift_movie_ticket"
+            android:contentDescription="Vé xem phim Suzz..."
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- Out of Stock (ẩn) -->
+        <View
+            android:id="@+id/viewOutOfStockOverlay"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:background="#CCCCCC"
+            android:alpha="0.7"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/ivGift"
+            app:layout_constraintBottom_toBottomOf="@id/ivGift"
+            app:layout_constraintStart_toStartOf="@id/ivGift"
+            app:layout_constraintEnd_toEndOf="@id/ivGift" />
+
+        <TextView
+            android:id="@+id/tvOutOfStock"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_out_of_stock"
+            android:text="Hết hàng"
+            android:textColor="#FFFFFF"
+            android:textSize="12sp"
+            android:fontFamily="sans-serif-medium"
+            android:textStyle="bold"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="@id/ivGift"
+            app:layout_constraintStart_toStartOf="@id/ivGift"
+            app:layout_constraintEnd_toEndOf="@id/ivGift" />
+
+        <!-- Gift Name -->
+        <TextView
+            android:id="@+id/tvGiftName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Vé xem phim Suzz..."
+            android:textColor="#333333"
+            android:textSize="14sp"
+            android:fontFamily="sans-serif-medium"
+            android:maxLines="2"
+            android:ellipsize="end"
+            android:layout_marginTop="12dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/ivGift" />
+
+        <!-- Points -->
+        <TextView
+            android:id="@+id/tvPoints"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🌟 +900"
+            android:textColor="#FF6B35"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvGiftName" />
+
+        <!-- Exchange Button -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnExchange"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:text="Đổi ngay"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:background="@drawable/bg_button_gradient"
+            app:backgroundTint="@null"
+            app:cornerRadius="20dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPoints" />
+
+        <!-- Out of Stock Button (ẩn) -->
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnOutOfStock"
+            android:layout_width="0dp"
+            android:layout_height="40dp"
+            android:text="Hết hàng"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="sans-serif-medium"
+            android:backgroundTint="#999999"
+            android:enabled="false"
+            app:cornerRadius="20dp"
+            android:insetTop="0dp"
+            android:insetBottom="0dp"
+            android:visibility="gone"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvPoints" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView>
