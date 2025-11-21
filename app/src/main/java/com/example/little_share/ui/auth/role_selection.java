@@ -16,7 +16,6 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
-import com.example.little_share.ui.ngo.activity_ngo_campaign_detail;
 import com.example.little_share.ui.sponsor.activity_sponsor_main;
 import com.example.little_share.ui.volunteer.activity_volunteer_main;
 

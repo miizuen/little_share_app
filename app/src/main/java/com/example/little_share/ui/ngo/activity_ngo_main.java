@@ -36,9 +36,9 @@ public class activity_ngo_main extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
                 if(item.getItemId() == R.id.nav_home){
-                    selectedFragment = new NgoHome();
+                    selectedFragment = new frm_ngo_home();
                 } else if (item.getItemId() == R.id.nav_calendar) {
-                    selectedFragment = new NgoCampaignList();
+                    selectedFragment = new frm_ngo_campaign_list();
                 } else if (item.getItemId() == R.id.nav_notification) {
                     selectedFragment = new SponsorNotification();
                 } else if (item.getItemId() == R.id.nav_profile) {
