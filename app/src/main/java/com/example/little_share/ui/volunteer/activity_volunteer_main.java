@@ -1,7 +1,10 @@
 package com.example.little_share.ui.volunteer;
 
 import android.os.Bundle;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -12,10 +15,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.little_share.R;
-import com.example.little_share.ui.sponsor.SponsorCampaignSharing;
-import com.example.little_share.ui.sponsor.SponsorHome;
-import com.example.little_share.ui.sponsor.SponsorNotification;
-import com.example.little_share.ui.sponsor.SponsorProfile;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -28,22 +27,22 @@ public class activity_volunteer_main extends AppCompatActivity {
         setContentView(R.layout.activity_volunteer_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new VolunteerHome());
+        replaceFragment(new frm_volunteer_home());
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
                 if(item.getItemId() == R.id.nav_home){
-                    selectedFragment = new VolunteerHome();
+                    selectedFragment = new frm_volunteer_home();
                 } else if (item.getItemId() == R.id.nav_calendar) {
-                    selectedFragment = new VolunteerCalendar();
+                    selectedFragment = new frm_volunteer_calendar();
                 } else if (item.getItemId() == R.id.nav_volunteer) {
-                    selectedFragment = new VolunteerDonation();
+                    selectedFragment = new frm_volunteer_donation();
                 }else if (item.getItemId() == R.id.nav_notification) {
-                    selectedFragment = new VolunteerNotification();
+                    selectedFragment = new frm_volunteer_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new VolunteerProfile();
+                    selectedFragment = new frm_profile_volunteer();
                 }
 
                 if (selectedFragment != null) {
@@ -67,4 +66,6 @@ public class activity_volunteer_main extends AppCompatActivity {
                 .replace(R.id.fragmentContainer, fragment)
                 .commit();
     }
+
+
 }
