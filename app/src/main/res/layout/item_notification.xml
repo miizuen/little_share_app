@@ -14,18 +14,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
+        android:gravity="center"
         android:padding="16dp">
 
         <!-- Icon bên trái -->
         <FrameLayout
-            android:layout_width="56dp"
-            android:layout_height="56dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:background="@drawable/circle_bg_light">
 
             <ImageView
                 android:id="@+id/iconImage"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_gravity="center"
                 android:src="@drawable/ic_megaphone" />
         </FrameLayout>
@@ -69,7 +70,6 @@
                 android:layout_marginTop="6dp" />
         </LinearLayout>
 
-        <!-- Nút đóng (dấu X đỏ) -->
         <ImageView
             android:id="@+id/deleteBtn"
             android:layout_width="20dp"

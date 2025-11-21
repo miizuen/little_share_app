@@ -38,12 +38,12 @@
 
         <!-- Title -->
         <TextView
-            android:id="@+id/tvTitle"
+            android:id="@+id/tvRoleName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="72dp"
             android:fontFamily="sans-serif-medium"
-            android:text="Đăng kí: Đầu bếp"
+            android:text="Đầu bếp"
             android:textColor="@android:color/white"
             android:textSize="24sp"
             android:textStyle="bold"
@@ -64,7 +64,7 @@
             android:textSize="14sp"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tvTitle" />
+            app:layout_constraintTop_toBottomOf="@id/tvRoleName" />
 
         <!-- Card Container cho Date và Shift Selection -->
         <androidx.cardview.widget.CardView

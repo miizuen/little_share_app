@@ -12,27 +12,19 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
-
-        <!-- Activity của PHÚ -->
         <activity
-            android:name=".CampaignSharingSponsorActivity"
+            android:name=".ui.ngo.activity_ngo_main"
             android:exported="false" />
-        <activity
-            android:name=".BioDataSponsorActivity"
-            android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_campaign_detail"
+            android:exported="false"/>
         <activity
             android:name=".ProfileSponsorActivity"
             android:exported="false" />
         <activity
-            android:name=".ActivitySponsorNotification"
-            android:exported="false" />
-
-        <!-- Activity của BẠN (Trường) -->
+            android:name=".ui.volunteer.activity_volunteer_main"
+            android:exported="false" /> <!-- Activity của BẠN (Trường) -->
         <activity
             android:name=".review_campaign"
-            android:exported="false" />
-        <activity
-            android:name=".volunteer_with_role"
             android:exported="false" />
         <activity
             android:name=".volunteer_no_role"
@@ -45,11 +37,9 @@
             android:exported="false" />
         <activity
             android:name=".activity_create_campaign"
-            android:exported="false" />
-
-        <!-- Activity chung -->
+            android:exported="false" /> <!-- Activity chung -->
         <activity
-            android:name=".activity_sponsor_main"
+            android:name=".ui.sponsor.activity_sponsor_main"
             android:exported="false" />
         <activity
             android:name=".ui.auth.signup_ngo"
@@ -67,14 +57,13 @@
             android:exported="false" />
         <activity
             android:name=".ui.auth.logInAndSignUp"
-            android:exported="false" />
-
-        <!-- Splash screen -->
+            android:exported="false" /> <!-- Splash screen -->
         <activity
             android:name=".spash_screen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -82,7 +71,6 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
     </application>
 
 </manifest>

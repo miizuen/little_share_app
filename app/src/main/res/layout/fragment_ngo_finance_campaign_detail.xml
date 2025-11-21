@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Tiến độ gây quỹ -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tiến độ gây quỹ"
+                android:textColor="#757575"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/tvProgressNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="80%"
+                android:textColor="#757575"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter" />
+        </LinearLayout>
+
+        <!-- Progress bar -->
+        <ProgressBar
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="10dp"
+            android:progress="80"
+            android:layout_marginTop="6dp"
+            android:progressDrawable="@drawable/bg_progress_custom" />
+
+        <!-- Mức tiền hiện tại / mục tiêu -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <TextView
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Đã gây:"
+                android:textColor="#666"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter" />
+
+            <TextView
+                android:id="@+id/tvCurrentAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="12.000.000vnd"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/inter" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="20dp"
+                android:text="Mục tiêu:"
+                android:textColor="#666"
+                android:textSize="13sp"
+                android:fontFamily="@font/inter" />
+
+            <TextView
+                android:id="@+id/tvTargetAmount"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="150.000.000vnd"
+                android:textColor="@color/black"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:fontFamily="@font/inter" />
+
+        </LinearLayout>
+
+        <!-- Tiêu đề -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp"
+            android:text="Thông tin tài trợ"
+            android:textColor="@color/black"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:fontFamily="@font/inter" />
+
+        <!-- Danh sách nhà tài trợ -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rcvSponsor"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="12dp"
+            tools:listitem="@layout/item_sponsor" />
+
+    </LinearLayout>
+
+</FrameLayout>

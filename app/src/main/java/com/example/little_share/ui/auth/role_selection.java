@@ -16,6 +16,9 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
+import com.example.little_share.ui.ngo.activity_ngo_campaign_detail;
+import com.example.little_share.ui.sponsor.activity_sponsor_main;
+import com.example.little_share.ui.volunteer.activity_volunteer_main;
 
 public class role_selection extends AppCompatActivity {
     TextView tvVolunteer, tvSponsor, tvNGO;
@@ -72,7 +75,7 @@ public class role_selection extends AppCompatActivity {
         card_volunteer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, signup_volunteer.class);
+                Intent intent = new Intent(role_selection.this, activity_volunteer_main.class);
                 startActivity(intent);
             }
         });
@@ -80,7 +83,7 @@ public class role_selection extends AppCompatActivity {
         card_sponsor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, signup_volunteer.class);
+                Intent intent = new Intent(role_selection.this, activity_sponsor_main.class);
                 startActivity(intent);
             }
         });
@@ -88,7 +91,7 @@ public class role_selection extends AppCompatActivity {
         card_NGO.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, signup_ngo.class);
+                Intent intent = new Intent(role_selection.this, activity_ngo_campaign_detail.class);
                 startActivity(intent);
             }
         });

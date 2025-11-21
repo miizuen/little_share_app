@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activity_sponsor_main">
+    tools:context=".ui.sponsor.activity_sponsor_main">
     <!-- Fragment Container -->
 
     <!-- Bottom Navigation -->

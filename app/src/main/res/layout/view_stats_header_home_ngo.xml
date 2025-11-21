@@ -37,7 +37,7 @@
                     android:textStyle="bold" />
 
                 <TextView
-                    android:id="@+id/textView3"
+                    android:id="@+id/tvOrganization"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:fontFamily="@font/baloo_da_2"
@@ -48,7 +48,7 @@
             </LinearLayout>
 
             <ImageView
-                android:id="@+id/imageView5"
+                android:id="@+id/imageLogo"
                 android:layout_width="48dp"
                 android:layout_height="48dp"
                 app:srcCompat="@drawable/logo_thelight" />
@@ -78,10 +78,9 @@
                     android:paddingVertical="16dp">
 
                     <ImageView
-                        android:id="@+id/imageView6"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        app:srcCompat="@drawable/ic_group" />
+                        app:srcCompat="@drawable/ic_group_volunteer" />
 
                     <TextView
                         android:id="@+id/tvTotalMoney"
@@ -120,7 +119,7 @@
                         android:id="@+id/imageView7"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        app:srcCompat="@drawable/ic_calendar_sponsor" />
+                        app:srcCompat="@drawable/ic_campaign" />
 
                     <TextView
                         android:id="@+id/tvTotalCampaigns"
@@ -163,10 +162,9 @@
                     android:paddingVertical="16dp">
 
                     <ImageView
-                        android:id="@+id/imageView8"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        app:srcCompat="@drawable/ic_people" />
+                        app:srcCompat="@drawable/ic_love_3d" />
 
                     <TextView
                         android:id="@+id/tvngo"
@@ -205,7 +203,7 @@
                         android:id="@+id/imageView9"
                         android:layout_width="50dp"
                         android:layout_height="50dp"
-                        app:srcCompat="@drawable/ic_journey" />
+                        app:srcCompat="@drawable/ic_star" />
 
                     <TextView
                         android:id="@+id/tvdiem"
