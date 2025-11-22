@@ -25,20 +25,20 @@ public class activity_sponsor_main extends AppCompatActivity {
         setContentView(R.layout.activity_sponsor_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new SponsorHome());
+        replaceFragment(new frm_sponsor_home());
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
                 if(item.getItemId() == R.id.nav_home){
-                    selectedFragment = new SponsorHome();
+                    selectedFragment = new frm_sponsor_home();
                 } else if (item.getItemId() == R.id.nav_journey) {
-                    selectedFragment = new SponsorCampaignSharing();
+                    selectedFragment = new frm_campaign_sharing_sponsor();
                 } else if (item.getItemId() == R.id.nav_notification) {
-                    selectedFragment = new SponsorNotification();
+                    selectedFragment = new frm_sponsor_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new SponsorProfile();
+                    selectedFragment = new frm_profile_sponsor();
                 }
 
                 if (selectedFragment != null) {

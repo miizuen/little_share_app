@@ -1,0 +1,299 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ui.sponsor.frm_campaign_sharing_sponsor">
+
+    <LinearLayout
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:background="#F5F5F5">
+
+        <!-- Header với gradient -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/gradient_sponsor"
+            android:orientation="vertical"
+            android:padding="20dp"
+            android:gravity="center">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="CHẶNG ĐƯỜNG SẺ CHIA"
+                android:textColor="#000000"
+                android:fontFamily="@font/baloo_da_2_bold"
+                android:textSize="24sp"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hành trình góp điều nhỏ bé"
+                android:textColor="#FF5252"
+                android:fontFamily="@font/baloo_da_2"
+                android:textSize="12sp"
+                android:layout_marginTop="4dp"
+                android:gravity="center" />
+        </LinearLayout>
+
+        <!-- ScrollView chứa danh sách chiến dịch -->
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToPadding="false"
+            android:padding="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- Label "Bạn đã tham gia" -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Bạn đã tham gia"
+                    android:textColor="#000000"
+                    android:fontFamily="@font/baloo_da_2_bold"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="12dp" />
+
+                <!-- Card Chiến dịch 1 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Nội dung card -->
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="102dp"
+                            android:adjustViewBounds="true"
+                            android:src="@drawable/logo_buacomnghiatinh" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="vertical"
+                            android:padding="16dp"
+                            android:background="#E8F5E9">
+
+                            <!-- Tiêu đề -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Bữa cơm Nghĩa Tình"
+                                android:textColor="#000000"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <!-- Địa điểm -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_location"
+                                    app:tint="#FF0000" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:text="Bệnh Viện K, Cơ sở 3 -Đống Đa,Hà Nội - Bếp Từ Tâm"
+                                    android:textColor="#666666"
+                                    android:fontFamily="@font/baloo_da_2"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <!-- Thời gian -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center_vertical">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_journey"
+                                    app:tint="#666666" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:text="15/10 - 20/10"
+                                    android:textColor="#666666"
+                                    android:fontFamily="@font/baloo_da_2"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <!-- Đóng góp -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="Đóng góp 20 triệu VND"
+                                android:textColor="#000000"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <!-- Button -->
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginTop="12dp"
+                                android:text="Nâu ấn và dinh dưỡng"
+                                android:textColor="#FFFFFF"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:textSize="12sp"
+                                android:backgroundTint="#4CAF50"
+                                android:textAllCaps="false" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+                <!-- Card Chiến dịch 2 -->
+                <androidx.cardview.widget.CardView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="2dp"
+                    app:cardBackgroundColor="#FFFFFF">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <!-- Nội dung card -->
+
+                        <ImageView
+                            android:layout_width="match_parent"
+                            android:layout_height="94dp"
+                            android:scaleType="centerCrop"
+                            android:src="@drawable/img_nauanchoem" />
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:background="#E8F5E9"
+                            android:orientation="vertical"
+                            android:padding="16dp">
+
+                            <!-- Tiêu đề -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:text="Nấu Ăn Cho Em"
+                                android:textColor="#000000"
+                                android:textSize="14sp"
+                                android:textStyle="bold" />
+
+                            <!-- Địa điểm -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_location"
+                                    app:tint="#FF0000" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:fontFamily="@font/baloo_da_2"
+                                    android:text="Sa Pa - Niềm Tin"
+                                    android:textColor="#666666"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <!-- Thời gian -->
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:gravity="center_vertical"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:layout_width="16dp"
+                                    android:layout_height="16dp"
+                                    android:src="@drawable/ic_journey"
+                                    app:tint="#666666" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginStart="4dp"
+                                    android:fontFamily="@font/baloo_da_2"
+                                    android:text="15/10 - 20/10"
+                                    android:textColor="#666666"
+                                    android:textSize="11sp" />
+                            </LinearLayout>
+
+                            <!-- Đóng góp -->
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:text="Đóng góp 20 triệu VND"
+                                android:textColor="#000000"
+                                android:textSize="12sp"
+                                android:textStyle="bold" />
+
+                            <!-- Button -->
+                            <androidx.appcompat.widget.AppCompatButton
+                                android:layout_width="match_parent"
+                                android:layout_height="40dp"
+                                android:layout_marginTop="12dp"
+                                android:backgroundTint="#4CAF50"
+                                android:fontFamily="@font/baloo_da_2_bold"
+                                android:text="Nâu ấn và dinh dưỡng"
+                                android:textAllCaps="false"
+                                android:textColor="#FFFFFF"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+                </androidx.cardview.widget.CardView>
+
+            </LinearLayout>
+        </ScrollView>
+
+    </LinearLayout>
+
+</FrameLayout>

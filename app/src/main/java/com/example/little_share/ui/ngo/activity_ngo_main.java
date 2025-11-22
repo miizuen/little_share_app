@@ -12,10 +12,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.little_share.R;
-import com.example.little_share.ui.sponsor.SponsorCampaignSharing;
-import com.example.little_share.ui.sponsor.SponsorHome;
-import com.example.little_share.ui.sponsor.SponsorNotification;
-import com.example.little_share.ui.sponsor.SponsorProfile;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
