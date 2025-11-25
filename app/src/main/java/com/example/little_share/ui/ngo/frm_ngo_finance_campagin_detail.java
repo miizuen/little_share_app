@@ -61,6 +61,6 @@ public class frm_ngo_finance_campagin_detail extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.frm_ngo_finance_campagin_detail, container, false);
+        return inflater.inflate(R.layout.frm_ngo_finance_campaign_detail, container, false);
     }
 }

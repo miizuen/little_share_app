@@ -12,7 +12,7 @@ import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
-import com.example.little_share.spash_screen;
+import com.example.little_share.ui.spash_screen;
 
 public class logInAndSignUp extends AppCompatActivity {
     Button btnToLoginScreen, btnRoleSeletionScreen;

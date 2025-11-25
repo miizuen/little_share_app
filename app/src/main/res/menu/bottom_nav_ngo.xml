@@ -6,9 +6,9 @@
         android:title="Trang chủ" />
 
     <item
-        android:id="@+id/nav_calendar"
-        android:icon="@drawable/ic_calendar"
-        android:title="Lịch" />
+        android:id="@+id/nav_campaign"
+        android:icon="@drawable/ic_activity"
+        android:title="Chiến dịch" />
 
     <item
         android:id="@+id/nav_volunteer"

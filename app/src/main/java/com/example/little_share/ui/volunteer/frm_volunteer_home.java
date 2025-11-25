@@ -1,5 +1,6 @@
 package com.example.little_share.ui.volunteer;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -14,7 +15,7 @@ import android.widget.LinearLayout;
 import com.example.little_share.R;
 
 public class frm_volunteer_home extends Fragment {
-    LinearLayout btnDonation, btnSchedule, btnHistory,btnGifts ;
+    LinearLayout btnDonation, btnSchedule, btnHistory, btnGifts ;
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
@@ -51,22 +52,16 @@ public class frm_volunteer_home extends Fragment {
         btnHistory.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Fragment historyFrm = new frm_volunteer_history();
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragmentContainer, historyFrm)
-                        .commit();
+                Intent intent = new Intent(getActivity(), activity_volunteer_campagin_history.class);
+                startActivity(intent);
             }
         });
 
         btnGifts.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Fragment giftFrm = new frm_volunteer_gift_shop();
-                requireActivity().getSupportFragmentManager()
-                        .beginTransaction()
-                        .replace(R.id.fragmentContainer, giftFrm)
-                        .commit();
+                Intent intent = new Intent(getActivity(), activity_volunteer_gift_shop.class);
+                startActivity(intent);
             }
         });
     }

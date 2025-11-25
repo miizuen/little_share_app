@@ -13,31 +13,77 @@
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
         <activity
+            android:name=".ui.volunteer.activity_volunteer_campagin_history"
+            android:exported="false" />
+        <activity
+            android:name=".ui.sponsor.activity_sponsor_payment_confirm"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_campagin_create_review"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_role_selection"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_donation_confirm"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_donation_form"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_gift_detail"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_gift_shop"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_volunteer_edit_profile"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_donation"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_gift"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_finance_report"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.acitivity_ngo_export_report"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_create_campaign_form"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_create_donation"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_create_campagin"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_campaign_detail"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_voluteer_campaign_detail"
+            android:exported="false" />
+        <activity
+            android:name=".ui.volunteer.activity_sponsor_campaign_detail"
+            android:exported="false" />
+        <activity
+            android:name=".ui.sponsor.activity_bio_profile_sponsor"
+            android:exported="false" />
+        <activity
             android:name=".ui.ngo.activity_ngo_main"
             android:exported="false" />
-        <activity android:name=".ui.ngo.activity_ngo_campaign_detail"
-            android:exported="false"/>
         <activity
-            android:name=".ProfileSponsorActivity"
+            android:name=".ui.ProfileSponsorActivity"
             android:exported="false" />
         <activity
             android:name=".ui.volunteer.activity_volunteer_main"
             android:exported="false" /> <!-- Activity của BẠN (Trường) -->
         <activity
-            android:name=".review_campaign"
+            android:name=".ui.volunteer_no_role"
             android:exported="false" />
-        <activity
-            android:name=".volunteer_no_role"
-            android:exported="false" />
-        <activity
-            android:name=".create_volunteer_simple"
-            android:exported="false" />
-        <activity
-            android:name=".activity_create_donation_campaign"
-            android:exported="false" />
-        <activity
-            android:name=".activity_create_campaign"
-            android:exported="false" /> <!-- Activity chung -->
         <activity
             android:name=".ui.sponsor.activity_sponsor_main"
             android:exported="false" />
@@ -59,7 +105,7 @@
             android:name=".ui.auth.logInAndSignUp"
             android:exported="false" /> <!-- Splash screen -->
         <activity
-            android:name=".spash_screen"
+            android:name=".ui.spash_screen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

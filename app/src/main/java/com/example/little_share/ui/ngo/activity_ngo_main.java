@@ -2,6 +2,7 @@ package com.example.little_share.ui.ngo;
 
 import android.os.Bundle;
 import android.view.MenuItem;
+import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -12,10 +13,9 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.little_share.R;
-import com.example.little_share.ui.sponsor.SponsorCampaignSharing;
-import com.example.little_share.ui.sponsor.SponsorHome;
-import com.example.little_share.ui.sponsor.SponsorNotification;
-import com.example.little_share.ui.sponsor.SponsorProfile;
+import com.example.little_share.ui.sponsor.frm_sponsor_home;
+import com.example.little_share.ui.sponsor.frm_sponsor_notification;
+import com.example.little_share.ui.sponsor.frm_sponsor_profile;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -29,7 +29,7 @@ public class activity_ngo_main extends AppCompatActivity {
         setContentView(R.layout.activity_ngo_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new SponsorHome());
+        replaceFragment(new frm_sponsor_home());
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -37,12 +37,14 @@ public class activity_ngo_main extends AppCompatActivity {
                 Fragment selectedFragment = null;
                 if(item.getItemId() == R.id.nav_home){
                     selectedFragment = new frm_ngo_home();
-                } else if (item.getItemId() == R.id.nav_calendar) {
+                } else if (item.getItemId() == R.id.nav_campaign) {
                     selectedFragment = new frm_ngo_campaign_list();
+                } else if (item.getItemId() == R.id.nav_volunteer) {
+                    selectedFragment = new frm_ngo_volunteer_list();
                 } else if (item.getItemId() == R.id.nav_notification) {
-                    selectedFragment = new SponsorNotification();
+                    selectedFragment = new frm_sponsor_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new SponsorProfile();
+                    selectedFragment = new frm_sponsor_profile();
                 }
 
                 if (selectedFragment != null) {
