@@ -13,6 +13,9 @@
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
         <activity
+            android:name=".ui.auth.activity_signup_sponsor"
+            android:exported="false" />
+        <activity
             android:name=".ui.volunteer.activity_volunteer_campagin_history"
             android:exported="false" />
         <activity
