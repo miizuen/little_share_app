@@ -16,6 +16,9 @@
         android:orientation="vertical">
 
         <!-- Toolbar -->
+
+        <!-- Content -->
+
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -25,7 +28,6 @@
             app:title="Kiểm tra lại chiến dịch"
             app:titleTextColor="@color/text_primary" />
 
-        <!-- Content -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
