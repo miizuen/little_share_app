@@ -41,4 +41,6 @@
     <color name="bg_nav_menu">#FFF3E0</color>   <!-- Màu background của thanh navbar -->
     <color name="light_yellow">#F2E582</color>
 
+    <color name="notification_accent">#FF6200EE</color>
+
 </resources>

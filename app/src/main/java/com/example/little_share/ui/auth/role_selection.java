@@ -75,7 +75,7 @@ public class role_selection extends AppCompatActivity {
         card_volunteer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, activity_volunteer_main.class);
+                Intent intent = new Intent(role_selection.this, signup_volunteer.class);
                 startActivity(intent);
             }
         });

@@ -12,111 +12,67 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_campagin_history"
-            android:exported="false" />
-        <activity
-            android:name=".ui.sponsor.activity_sponsor_payment_confirm"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_campagin_create_review"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_role_selection"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_donation_confirm"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_donation_form"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_gift_detail"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_gift_shop"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_edit_profile"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_donation"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_gift"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_finance_report"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.acitivity_ngo_export_report"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_create_campaign_form"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_create_donation"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_create_campagin"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_campaign_detail"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_voluteer_campaign_detail"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_sponsor_campaign_detail"
-            android:exported="false" />
-        <activity
-            android:name=".ui.sponsor.activity_bio_profile_sponsor"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ngo.activity_ngo_main"
-            android:exported="false" />
-        <activity
-            android:name=".ui.ProfileSponsorActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.volunteer.activity_volunteer_main"
-            android:exported="false" /> <!-- Activity của BẠN (Trường) -->
-        <activity
-            android:name=".ui.volunteer_no_role"
-            android:exported="false" />
-        <activity
-            android:name=".ui.sponsor.activity_sponsor_main"
-            android:exported="false" />
-        <activity
-            android:name=".ui.auth.signup_ngo"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".ui.auth.role_selection"
-            android:exported="false" />
-        <activity
-            android:name=".ui.auth.signup_volunteer"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
-            android:name=".ui.auth.login"
-            android:exported="false" />
-        <activity
-            android:name=".ui.auth.logInAndSignUp"
-            android:exported="false" /> <!-- Splash screen -->
+
+        <activity android:name=".ui.ngo.acitivity_ngo_campaign_shift_list" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_campaign_add_shift" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_campagin_add_role" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_create_campagin_with_role" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_create_campaign_no_role" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_campagin_history" android:exported="false" />
+        <activity android:name=".ui.sponsor.activity_sponsor_payment_confirm" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_campagin_create_review" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_role_selection" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_donation_confirm" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_donation_form" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_gift_detail" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_gift_shop" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_edit_profile" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_donation" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_gift" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_finance_report" android:exported="false" />
+        <activity android:name=".ui.ngo.acitivity_ngo_export_report" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_create_campaign_form" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_create_donation" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_create_campagin" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_campaign_detail" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_voluteer_campaign_detail" android:exported="false" />
+        <activity android:name=".ui.sponsor.activity_sponsor_campaign_detail" android:exported="false" />
+        <activity android:name=".ui.sponsor.activity_bio_profile_sponsor" android:exported="false" />
+        <activity android:name=".ui.ngo.activity_ngo_main" android:exported="false" />
+        <activity android:name=".ui.ProfileSponsorActivity" android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_main" android:exported="false" />
+        <activity android:name=".ui.sponsor.activity_sponsor_main" android:exported="false" />
+        <activity android:name=".ui.auth.signup_ngo" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.auth.role_selection" android:exported="false" />
+        <activity android:name=".ui.auth.signup_volunteer" android:exported="false" android:windowSoftInputMode="adjustResize" />
+        <activity android:name=".ui.auth.login" android:exported="false" />
+        <activity android:name=".ui.auth.logInAndSignUp" android:exported="false" />
+
+        <!-- Splash Screen - Launcher -->
         <activity
             android:name=".ui.spash_screen"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
+
+        <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
     </application>
 
 </manifest>

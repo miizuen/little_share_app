@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Item card cho danh sách vai trò -->
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="2dp"
+    app:cardBackgroundColor="@android:color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="16dp">
+
+        <!-- Header Row -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="12dp">
+
+            <ImageView
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@drawable/ic_group"
+                app:tint="@color/primary_green"
+                android:layout_marginEnd="8dp" />
+
+            <TextView
+                android:id="@+id/tvRoleName"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Đầu bếp"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                tools:text="Đầu bếp" />
+
+            <!-- Action Buttons -->
+            <ImageView
+                android:id="@+id/btnEdit"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_edit"
+                android:padding="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="@color/text_secondary" />
+
+            <ImageView
+                android:id="@+id/btnDelete"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:src="@drawable/ic_close_red"
+                android:padding="6dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                app:tint="#F44336" />
+        </LinearLayout>
+
+        <!-- Description -->
+        <TextView
+            android:id="@+id/tvRoleDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nấu ăn chính, chuẩn bị món ăn"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            android:layout_marginBottom="12dp"
+            android:maxLines="2"
+            android:ellipsize="end"
+            tools:text="Nấu ăn chính, chuẩn bị món ăn" />
+
+        <!-- Points Badge -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="6dp">
+
+            <ImageView
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/ic_star"
+                app:tint="#FF6F00"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvRolePoints"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="25 điểm"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FF6F00"
+                tools:text="25 điểm" />
+        </LinearLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

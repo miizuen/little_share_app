@@ -1,117 +1,119 @@
 package com.example.little_share.data.models;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.PrimaryKey;
 
-import com.google.gson.annotations.SerializedName;
+import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.IgnoreExtraProperties;
+import com.google.firebase.firestore.PropertyName;
+import com.google.firebase.firestore.ServerTimestamp;
 
+import java.io.Serializable;
 import java.util.Date;
 
-@Entity(tableName = "users")
-public class User {
-    @PrimaryKey
-    @SerializedName("id")
+@IgnoreExtraProperties
+public class User implements Serializable {
+    @DocumentId
     private String id;
-
-    @ColumnInfo(name="email")
-    @SerializedName("email")
     private String email;
-
-    @ColumnInfo(name = "password")
-    private String password;
-
-    @ColumnInfo(name = "full_name")
-    @SerializedName("full_name")
     private String fullName;
-
-    @ColumnInfo(name = "phone")
-    @SerializedName("phone")
     private String phone;
-
-    @ColumnInfo(name = "address")
-    @SerializedName("address")
+    private String avatar;
     private String address;
-
-    @ColumnInfo(name = "avatar_url")
-    @SerializedName("avatar_url")
-    private String avatarUrl;
-
-    @ColumnInfo(name = "user_type")
-    @SerializedName("user_type")
-    private String userType;
-
-    @ColumnInfo(name = "total_points")
-    @SerializedName("total_points")
+    @PropertyName("role")
+    private UserRole role;// "VOLUNTEER", "SPONSOR", "ORGANIZATION"
     private int totalPoints;
 
-    @ColumnInfo(name = "total_donations")
-    @SerializedName("total_donations")
     private int totalDonations;
 
-    @ColumnInfo(name = "total_campaigns")
-    @SerializedName("total_campaigns")
     private int totalCampaigns;
 
-    @ColumnInfo(name = "created_at")
-    @SerializedName("created_at")
+    @ServerTimestamp
     private Date createdAt;
 
-    @ColumnInfo(name = "updated_at")
-    @SerializedName("updated_at")
+    @ServerTimestamp
     private Date updatedAt;
 
-    public User() {}
+    private boolean isActive;
 
-    public User(String id, String email, String fullName, String userType) {
-        this.id = id;
+    // Firebase requires no-argument constructor
+    public User() {
+        this.isActive = true;
+    }
+
+    public User(String email, String fullName, UserRole role) {
         this.email = email;
         this.fullName = fullName;
-        this.userType = userType;
+        this.role = role;
         this.totalPoints = 0;
         this.totalDonations = 0;
         this.totalCampaigns = 0;
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
+        this.isActive = true;
     }
 
-    // Getters and Setters
+    public enum UserRole {
+        VOLUNTEER("Tình nguyện viên"),
+        SPONSOR("Nhà tài trợ"),
+        ORGANIZATION("Tổ chức");
+
+        private String displayName;
+
+        UserRole(String displayName) {
+            this.displayName = displayName;
+        }
+
+        public String getDisplayName() { return displayName; }
+    }
+
+    // Getters and Setters (Firebase requires these)
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
     public String getEmail() { return email; }
     public void setEmail(String email) { this.email = email; }
 
-    public String getPassword() { return password; }
-    public void setPassword(String password) { this.password = password; }
-
     public String getFullName() { return fullName; }
-    public void setFullName(String fullName) { this.fullName = fullName; }
 
+    public void setFullName(String fullName) { this.fullName = fullName; }
     public String getPhone() { return phone; }
     public void setPhone(String phone) { this.phone = phone; }
+
+    public String getAvatar() { return avatar; }
+    public void setAvatar(String avatar) { this.avatar = avatar; }
 
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
 
-    public String getAvatarUrl() { return avatarUrl; }
-    public void setAvatarUrl(String avatarUrl) { this.avatarUrl = avatarUrl; }
-
-    public String getUserType() { return userType; }
-    public void setUserType(String userType) { this.userType = userType; }
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
 
     public int getTotalPoints() { return totalPoints; }
+
     public void setTotalPoints(int totalPoints) { this.totalPoints = totalPoints; }
 
+
     public int getTotalDonations() { return totalDonations; }
+
     public void setTotalDonations(int totalDonations) { this.totalDonations = totalDonations; }
 
+
     public int getTotalCampaigns() { return totalCampaigns; }
+
     public void setTotalCampaigns(int totalCampaigns) { this.totalCampaigns = totalCampaigns; }
 
+
     public Date getCreatedAt() { return createdAt; }
+
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
+
     public Date getUpdatedAt() { return updatedAt; }
+
     public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+
+
+    public boolean isActive() { return isActive; }
+
+    public void setActive(boolean active) { isActive = active; }
+    public void touchUpdatedAt() {
+        this.updatedAt = new Date();
+    }
 }
