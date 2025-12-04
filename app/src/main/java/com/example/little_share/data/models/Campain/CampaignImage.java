@@ -11,9 +11,7 @@ import com.google.firebase.firestore.ServerTimestamp;
 public class CampaignImage implements Serializable {
     @DocumentId
     private String id;
-
     private String campaignId;
-
     private String imageUrl;
     private String caption;
     @ServerTimestamp

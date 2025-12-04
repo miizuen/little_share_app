@@ -24,7 +24,6 @@ public class Attendance implements Serializable {
         PRESENT("Có mặt"),
         LATE("Đến trễ"),
         ABSENT("Vắng mặt");
-
         private String displayName;
 
         AttendanceStatus(String displayName) {

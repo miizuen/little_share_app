@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -36,6 +40,7 @@
         <activity android:name=".ui.ngo.activity_ngo_create_campagin" android:exported="false" />
         <activity android:name=".ui.ngo.activity_ngo_campaign_detail" android:exported="false" />
         <activity android:name=".ui.volunteer.activity_voluteer_campaign_detail" android:exported="false" />
+        <activity android:name=".ui.auth.activity_signup_sponsor" android:exported="false" />
         <activity android:name=".ui.sponsor.activity_sponsor_campaign_detail" android:exported="false" />
         <activity android:name=".ui.sponsor.activity_bio_profile_sponsor" android:exported="false" />
         <activity android:name=".ui.ngo.activity_ngo_main" android:exported="false" />

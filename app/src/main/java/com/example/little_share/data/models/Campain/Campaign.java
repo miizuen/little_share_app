@@ -11,21 +11,14 @@ import java.util.Date;
 public class Campaign implements Serializable {
     @DocumentId
     private String id;
-
     private String name;
     private String description;
     private String category;
     private String imageUrl;
     private String organizationId;
-
     private String organizationName;
-
     private String location;
-
-
     private String specificLocation;
-
-
     private Date startDate;
 
 
@@ -84,6 +77,12 @@ public class Campaign implements Serializable {
         private String displayName;
         CampaignCategory(String displayName) { this.displayName = displayName; }
         public String getDisplayName() { return displayName; }
+    }
+
+    public void setCategoryCampaign(CampaignCategory categoryEnum) {
+        if (categoryEnum != null) {
+            this.category = categoryEnum.name();
+        }
     }
 
     public enum CampaignStatus {

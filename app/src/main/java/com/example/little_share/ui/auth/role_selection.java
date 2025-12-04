@@ -83,7 +83,7 @@ public class role_selection extends AppCompatActivity {
         card_sponsor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, activity_sponsor_main.class);
+                Intent intent = new Intent(role_selection.this, activity_signup_sponsor.class);
                 startActivity(intent);
             }
         });
@@ -91,7 +91,7 @@ public class role_selection extends AppCompatActivity {
         card_NGO.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(role_selection.this, activity_ngo_main.class);
+                Intent intent = new Intent(role_selection.this, signup_ngo.class);
                 startActivity(intent);
             }
         });

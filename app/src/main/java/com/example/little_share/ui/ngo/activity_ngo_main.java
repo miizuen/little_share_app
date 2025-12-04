@@ -29,7 +29,7 @@ public class activity_ngo_main extends AppCompatActivity {
         setContentView(R.layout.activity_ngo_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new frm_sponsor_home());
+        replaceFragment(new frm_ngo_home());
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override

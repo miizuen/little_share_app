@@ -6,9 +6,11 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.little_share.data.models.Campain.Campaign;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.Date;
@@ -18,9 +20,55 @@ public class CampaignRepository {
     private static final String TAG = "CampaignRepository";
     private static final String COLLECTION = "campaigns";
     private final FirebaseFirestore db;
+    private final String currentUserId;
+
 
     public CampaignRepository() {
         this.db = FirebaseFirestore.getInstance();
+        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
+                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+    }
+
+
+    public LiveData<List<Campaign>> getCampaignsByCurrentNgo() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        db.collection(COLLECTION)
+                .whereEqualTo("organizationId", currentUserId)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, e) -> {
+                    if (e != null) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Campaign> campaigns = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        Campaign campaign = doc.toObject(Campaign.class);
+                        campaign.setId(doc.getId());
+                        campaigns.add(campaign);
+                    }
+                    liveData.setValue(campaigns);
+                });
+
+        return liveData;
+    }
+
+    // Tạo chiến dịch mới
+    public void createCampaign(Campaign campaign, OnCampaignListener listener) {
+        campaign.setOrganizationId(currentUserId);
+
+        db.collection(COLLECTION)
+                .add(campaign)
+                .addOnSuccessListener(ref -> {
+                    campaign.setId(ref.getId());
+                    listener.onSuccess("Tạo thành công!");
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
     public LiveData<List<Campaign>> getAllCampaigns() {

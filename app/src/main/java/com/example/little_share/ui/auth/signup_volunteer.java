@@ -26,9 +26,7 @@ public class signup_volunteer extends AppCompatActivity {
 
     ImageView btnBackToRoleScreen;
     MaterialButton btnSignUp;
-
     TextInputEditText edtName, edtEmail, edtPassword, edtAddress, edtPhone;
-
     private AuthRepository authRepository;
     private UserRepository userRepository;
 

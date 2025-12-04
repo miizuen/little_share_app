@@ -138,6 +138,25 @@ public class frm_volunteer_home extends Fragment {
 
     private void filterByCategory(String category) {
         selectedCategory = category;
+
+        // Bỏ chọn tất cả chip
+        chipAll.setChecked(false);
+        chipEducation.setChecked(false);
+        chipFood.setChecked(false);
+        chipEnvironment.setChecked(false);
+        chipHealth.setChecked(false);
+        chipUrgent.setChecked(false);
+
+
+        switch (category) {
+            case "ALL": chipAll.setChecked(true); break;
+            case "EDUCATION": chipEducation.setChecked(true); break;
+            case "FOOD": chipFood.setChecked(true); break;
+            case "ENVIRONMENT": chipEnvironment.setChecked(true); break;
+            case "HEALTH": chipHealth.setChecked(true); break;
+            case "URGENT": chipUrgent.setChecked(true); break;
+        }
+
         loadCampaigns();
     }
 
@@ -146,23 +165,23 @@ public class frm_volunteer_home extends Fragment {
                 new CampaignAdapter.OnCampaignClickListener() {
                     @Override
                     public void onCampaignClick(Campaign campaign) {
-                        Toast.makeText(getContext(),
-                                "Clicked: " + campaign.getName(),
-                                Toast.LENGTH_SHORT).show();
-                        // TODO: Navigate to detail
+                        openCampaignDetail(campaign);
                     }
 
                     @Override
                     public void onDetailClick(Campaign campaign) {
-                        Toast.makeText(getContext(),
-                                "Detail: " + campaign.getName(),
-                                Toast.LENGTH_SHORT).show();
-                        // TODO: Navigate to detail activity
+                       openCampaignDetail(campaign);
                     }
                 });
 
         rvCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
         rvCampaigns.setAdapter(adapter);
+    }
+
+    private void openCampaignDetail(Campaign campaign) {
+        Intent intent = new Intent(getContext(), activity_voluteer_campaign_detail.class);
+        intent.putExtra("campaign", campaign);
+        startActivity(intent);
     }
 
     private void setupQuickActions() {

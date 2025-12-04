@@ -68,6 +68,9 @@ dependencies {
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.common.java8)
 
+    //Ảnh
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // Navigation
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
