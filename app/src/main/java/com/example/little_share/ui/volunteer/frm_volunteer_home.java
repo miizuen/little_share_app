@@ -195,14 +195,13 @@ public class frm_volunteer_home extends Fragment {
         userRepository.getCurrentUserData(new UserRepository.OnUserDataListener() {
             @Override
             public void onSuccess(User user) {
-                if (user != null && isAdded()) { // isAdded() tránh crash khi fragment đã detach
+                if (user != null && isAdded()) {
                     tvUserName.setText(user.getFullName());
 
                     tvTotalPoints.setText(String.valueOf(user.getTotalPoints()));
                     tvTotalDonations.setText(String.valueOf(user.getTotalDonations()));
                     tvTotalCampaigns.setText(String.valueOf(user.getTotalCampaigns()));
 
-                    // Load avatar (nếu có link ảnh thật thì hiện, không thì dùng placeholder)
                     String avatarUrl = user.getAvatar();
                     if (avatarUrl != null && !avatarUrl.isEmpty()) {
                         Glide.with(frm_volunteer_home.this)

@@ -9,16 +9,11 @@ import java.io.Serializable;
 public class CampaignRole implements Serializable {
     @DocumentId
     private String id;
-
     private String campaignId;
-
     private String roleName;
     private String description;
-
     private int maxVolunteers;
-
     private int currentVolunteers;
-
     private int pointsReward;
 
     public CampaignRole() {

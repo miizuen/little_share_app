@@ -26,9 +26,17 @@ public class UserRepository {
         userData.put("phone", user.getPhone());
         userData.put("avatar", user.getAvatar());
         userData.put("address", user.getAddress());
-        userData.put("totalPoints", 0);
-        userData.put("totalDonations", 0);
-        userData.put("totalCampaigns", 0);
+
+        if (user.getOrganizationId() != null && !user.getOrganizationId().isEmpty()) {
+            userData.put("organizationId", user.getOrganizationId());
+            android.util.Log.d(TAG, "Creating user with organizationId: " + user.getOrganizationId());
+        } else {
+            android.util.Log.w(TAG, "Creating user WITHOUT organizationId");
+        }
+
+        userData.put("totalPoints", user.getTotalPoints());
+        userData.put("totalDonations", user.getTotalDonations());
+        userData.put("totalCampaigns", user.getTotalCampaigns());
         userData.put("isActive", true);
         userData.put("createdAt", FieldValue.serverTimestamp());
         userData.put("updatedAt", FieldValue.serverTimestamp());
@@ -36,8 +44,14 @@ public class UserRepository {
         db.collection(USER_COLLECTION)
                 .document(userId)
                 .set(userData)
-                .addOnSuccessListener(a -> listener.onSuccess())
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                .addOnSuccessListener(a -> {
+                    android.util.Log.d(TAG, "User created successfully");
+                    listener.onSuccess();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e(TAG, "Failed to create user: " + e.getMessage());
+                    listener.onFailure(e.getMessage());
+                });
     }
 
     // ========== GET USER ROLE ===========
@@ -96,6 +110,12 @@ public class UserRepository {
                             String roleString = documentSnapshot.getString("role");
                             if (roleString != null) {
                                 user.setRole(User.UserRole.valueOf(roleString));
+                            }
+
+                            // Đảm bảo organizationId được set đúng
+                            String orgId = documentSnapshot.getString("organizationId");
+                            if (orgId != null) {
+                                user.setOrganizationId(orgId);
                             }
                         }
                         listener.onSuccess(user);

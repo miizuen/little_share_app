@@ -5,7 +5,9 @@ import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 @IgnoreExtraProperties
 public class Campaign implements Serializable {
@@ -20,39 +22,20 @@ public class Campaign implements Serializable {
     private String location;
     private String specificLocation;
     private Date startDate;
-
-
     private Date endDate;
-
     private String status;
-
-
     private int maxVolunteers;
-
-
     private int currentVolunteers;
-
-
     private int pointsReward;
-
     private String requirements;
     private String activities;
-
-
     private boolean needsSponsor;
-
-
     private double targetBudget;
-
-
     private double currentBudget;
-
 
     private String budgetPurpose;
 
-
     private String accountNumber;
-
 
     private String contactPhone;
 
@@ -60,6 +43,8 @@ public class Campaign implements Serializable {
     private String contactEmail;
 
     private String materials;
+
+    private List<CampaignRole> roles;
 
     @ServerTimestamp
     private Date createdAt;
@@ -100,6 +85,7 @@ public class Campaign implements Serializable {
         this.status = CampaignStatus.UPCOMING.name();
         this.currentVolunteers = 0;
         this.currentBudget = 0;
+        this.roles = new ArrayList<>();
     }
 
     public Campaign(String name, CampaignCategory category, String organizationName, String location) {
@@ -253,6 +239,14 @@ public class Campaign implements Serializable {
         } catch (Exception e) {
             return CampaignStatus.UPCOMING;
         }
+    }
+
+    public List<CampaignRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<CampaignRole> roles) {
+        this.roles = roles;
     }
 }
 

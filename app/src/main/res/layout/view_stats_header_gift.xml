@@ -31,13 +31,13 @@
 
             <Button
                 android:id="@+id/button"
-                android:layout_width="106dp"
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:background="@drawable/bg_rounded_corners_white"
+                android:background="@drawable/bg_rounded_corners"
                 android:backgroundTint="#FFFFFF"
                 android:backgroundTintMode="screen"
-                android:text="🎁Thêm quà"
+                android:text="🎁 Thêm quà"
                 android:textColor="@color/black" />
 
 

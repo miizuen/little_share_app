@@ -12,6 +12,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 
@@ -48,7 +49,7 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
     @Override
     public void onBindViewHolder(@NonNull CampaignViewHolder holder, int position) {
         Campaign campaign = campaignList.get(position);
-        holder.bind(campaign, listener);
+        holder.bind(campaign, listener, context);
     }
 
     @Override
@@ -83,21 +84,47 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             btnDetail = itemView.findViewById(R.id.btnDetail);
         }
 
-        public void bind(Campaign campaign, OnCampaignClickListener listener) {
+        public void bind(Campaign campaign, OnCampaignClickListener listener, Context context) {
             // Set name
             tvCampaignName.setText(campaign.getName());
 
+            String imageUrl = campaign.getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(context)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.img_nauanchoem)
+                        .error(R.drawable.img_nauanchoem)
+                        .centerCrop()
+                        .into(imgCampaign);
+            } else {
+                imgCampaign.setImageResource(R.drawable.img_nauanchoem);
+            }
+
             // Set category
             try {
-                Campaign.CampaignCategory category = campaign.getCategoryEnum();
+                String categoryStr = campaign.getCategory();
+                Campaign.CampaignCategory category;
+
+                // Nếu là string thô từ Firestore
+                if (categoryStr != null) {
+                    category = Campaign.CampaignCategory.valueOf(categoryStr);
+                } else {
+                    category = campaign.getCategoryEnum();
+                }
+
                 tvCategory.setText(category.getDisplayName());
                 setCategoryColor(category);
             } catch (Exception e) {
-                tvCategory.setText(campaign.getCategory());
+                // Fallback nếu có lỗi
+                String cat = campaign.getCategory();
+                tvCategory.setText(cat != null ? cat : "Khác");
+                tvCategory.setTextColor(0xFF757575);
             }
 
-            // Set organization
-            tvOrganization.setText(campaign.getOrganizationName());
+            String orgName = campaign.getOrganizationName();
+            tvOrganization.setText(orgName != null && !orgName.isEmpty()
+                    ? orgName
+                    : "Tổ chức từ thiện");
 
             // Set location
             tvLocation.setText(campaign.getLocation());

@@ -3,6 +3,7 @@ package com.example.little_share.ui.ngo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.SeekBar;
 import android.widget.TextView;
@@ -17,11 +18,11 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.helper.ImgBBUploader;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
+
 
 public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
 
@@ -59,28 +60,24 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
         findViewById(R.id.btnNext).setOnClickListener(v -> {
             if (!validateForm()) return;
 
-            // 1. Cập nhật dữ liệu cơ bản
+            // Cập nhật dữ liệu cơ bản
             int pointReward = seekBarPoints.getProgress() + 5;
             tempCampaign.setMaxVolunteers(Integer.parseInt(etVolunteerCount.getText().toString().trim()));
             tempCampaign.setRequirements(etRequirements.getText().toString().trim());
             tempCampaign.setContactPhone(etContact.getText().toString().trim());
             tempCampaign.setPointsReward(pointReward);
 
-            // 2. Cập nhật tên tổ chức (LUÔN LUÔN TRƯỚC KHI TẠO)
-            String orgName = FirebaseAuth.getInstance().getCurrentUser() != null
-                    ? FirebaseAuth.getInstance().getCurrentUser().getDisplayName()
-                    : "Tổ chức từ thiện";
-            if (TextUtils.isEmpty(orgName)) orgName = "Tổ chức từ thiện Little Share";
-            tempCampaign.setOrganizationName(orgName);
+            // XÓA ĐOẠN SET ORGANIZATION NAME Ở ĐÂY
 
-            // 3. QUAN TRỌNG: Chỉ gọi 1 lần duy nhất, đúng luồng
+            // Upload ảnh nếu cần
             if (tempCampaign.getImageUrl() != null && tempCampaign.getImageUrl().startsWith("content://")) {
-                uploadImageAndCreateCampaign(); // Có upload → chờ xong mới tạo
+                uploadImageAndCreateCampaign();
             } else {
                 createCampaignDirectly();
             }
         });
     }
+
 
     private void setupSeekBar() {
         seekBarPoints.setMax(45);
@@ -137,61 +134,49 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
 
         Uri imageUriToUpload = Uri.parse(tempCampaign.getImageUrl());
 
-        // Log để debug
-        android.util.Log.d("UploadImage", "URI: " + imageUriToUpload.toString());
+        ImgBBUploader.uploadImage(this, imageUriToUpload, new ImgBBUploader.UploadListener() {
+            @Override
+            public void onSuccess(String imageUrl) {
+                runOnUiThread(() -> {
+                    Log.d("Upload", "Success: " + imageUrl);
+                    tempCampaign.setImageUrl(imageUrl);
+                    createCampaignDirectly();
+                });
+            }
 
-        try {
-            String fileName = "campaigns/" + System.currentTimeMillis() + ".jpg";
-            StorageReference storageRef = FirebaseStorage.getInstance().getReference();
-            StorageReference imageRef = storageRef.child(fileName);
+            @Override
+            public void onFailure(String error) {
+                runOnUiThread(() -> {
+                    Log.e("Upload", "Failed: " + error);
+                    Toast.makeText(activity_ngo_create_campaign_no_role.this,
+                            "Upload thất bại: " + error, Toast.LENGTH_LONG).show();
 
-            android.util.Log.d("UploadImage", "Upload path: " + fileName);
+                    // Hỏi có muốn tạo campaign không ảnh
+                    new androidx.appcompat.app.AlertDialog.Builder(activity_ngo_create_campaign_no_role.this)
+                            .setTitle("Upload ảnh thất bại")
+                            .setMessage("Bạn có muốn tạo chiến dịch không có ảnh?")
+                            .setPositiveButton("Có", (dialog, which) -> {
+                                tempCampaign.setImageUrl("");
+                                createCampaignDirectly();
+                            })
+                            .setNegativeButton("Hủy", null)
+                            .show();
+                });
+            }
 
-            imageRef.putFile(imageUriToUpload)
-                    .addOnProgressListener(snapshot -> {
-                        double progress = (100.0 * snapshot.getBytesTransferred()) / snapshot.getTotalByteCount();
-                        android.util.Log.d("UploadImage", "Progress: " + progress + "%");
-                    })
-                    .addOnSuccessListener(taskSnapshot -> {
-                        android.util.Log.d("UploadImage", "Upload thành công!");
-                        imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                            android.util.Log.d("UploadImage", "Download URL: " + uri.toString());
-                            tempCampaign.setImageUrl(uri.toString());
-                            createCampaignDirectly();
-                        }).addOnFailureListener(e -> {
-                            android.util.Log.e("UploadImage", "Lỗi lấy URL: " + e.getMessage());
-                            Toast.makeText(this, "Lỗi lấy URL ảnh: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                            tempCampaign.setImageUrl("");
-                            createCampaignDirectly();
-                        });
-                    })
-                    .addOnFailureListener(e -> {
-                        android.util.Log.e("UploadImage", "Upload thất bại: " + e.getMessage(), e);
-                        Toast.makeText(this, "Upload thất bại: " + e.getMessage(), Toast.LENGTH_LONG).show();
-
-                        // Hỏi user có muốn tiếp tục không
-                        new androidx.appcompat.app.AlertDialog.Builder(this)
-                                .setTitle("Upload ảnh thất bại")
-                                .setMessage("Không thể tải ảnh lên. Bạn có muốn tạo chiến dịch không có ảnh?")
-                                .setPositiveButton("Có", (dialog, which) -> {
-                                    tempCampaign.setImageUrl("");
-                                    createCampaignDirectly();
-                                })
-                                .setNegativeButton("Hủy", null)
-                                .show();
-                    });
-
-        } catch (Exception e) {
-            android.util.Log.e("UploadImage", "Exception: " + e.getMessage(), e);
-            Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_LONG).show();
-            tempCampaign.setImageUrl("");
-            createCampaignDirectly();
-        }
+            @Override
+            public void onProgress(int progress) {
+                runOnUiThread(() -> {
+                    Log.d("Upload", "Progress: " + progress + "%");
+                });
+            }
+        });
     }
 
     // TẠO CHIẾN DỊCH SAU KHI ĐÃ CÓ LINK ẢNH CHUẨN
     private void createCampaignDirectly() {
-        new CampaignRepository().createCampaign(tempCampaign, new CampaignRepository.OnCampaignListener() {
+        // Dùng method mới để lấy tên tổ chức và tạo campaign
+        new CampaignRepository().getOrganizationNameAndCreate(tempCampaign, new CampaignRepository.OnCampaignListener() {
             @Override
             public void onSuccess(String result) {
                 Toast.makeText(activity_ngo_create_campaign_no_role.this, "Tạo chiến dịch thành công!", Toast.LENGTH_LONG).show();
