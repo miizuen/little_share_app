@@ -45,7 +45,8 @@
                 android:id="@+id/rvSponsoredCampaigns"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_campaign_sponsored"/>
 
             <TextView
                 android:id="@+id/tvEmptySponsored"
@@ -72,7 +73,8 @@
                 android:id="@+id/rvNeedSponsorCampaigns"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                tools:listitem="@layout/item_campaign_need_sponsor"/>
 
         </LinearLayout>
 
