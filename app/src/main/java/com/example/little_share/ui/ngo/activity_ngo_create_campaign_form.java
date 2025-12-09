@@ -31,6 +31,7 @@ import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Locale;
 
 public class activity_ngo_create_campaign_form extends AppCompatActivity {
     private TextInputEditText etCampaignName, etDescription, etStartDate, etEndDate;
@@ -46,7 +47,6 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
     private final Calendar startCalendar = Calendar.getInstance();
     private final Calendar endCalendar = Calendar.getInstance();
 
-    // ĐÃ THÊM DÒNG NÀY – QUAN TRỌNG NHẤT!
     private final ActivityResultLauncher<Intent> imagePicker = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             result -> {
@@ -88,71 +88,105 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         findViewById(R.id.btnNext).setOnClickListener(v -> {
             if (!validateBasicInfo()) return;
 
-            // KIỂM TRA RADIO BUTTON BẮT BUỘC
             int checkedId = radioGroupRoleType.getCheckedRadioButtonId();
             if (checkedId == -1) {
                 Toast.makeText(this, "Vui lòng chọn hình thức phân vai trò!", Toast.LENGTH_LONG).show();
                 return;
             }
 
-            Campaign temp = new Campaign();
-
+            // Lấy dữ liệu từ form
             String name = etCampaignName.getText() != null ? etCampaignName.getText().toString().trim() : "";
             String desc = etDescription.getText() != null ? etDescription.getText().toString().trim() : "";
             String category = actvCategory.getText() != null ? actvCategory.getText().toString().trim() : "";
-
-            switch (category) {
-                case "Môi trường":
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.ENVIRONMENT);
-                    break;
-                case "Giáo dục":
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
-                    break;
-                case "Y tế":
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.HEALTH);
-                    break;
-                case "Nấu ăn và dinh dưỡng":
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.FOOD);
-                    break;
-                case "Khẩn cấp":
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.URGENT);
-                    break;
-                default:
-                    temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
-                    break;
-            }
             String location = etLocation.getText() != null ? etLocation.getText().toString().trim() : "";
             String specificLoc = etSpecificLocation.getText() != null ? etSpecificLocation.getText().toString().trim() : "";
 
-            temp.setName(name);
-            temp.setDescription(desc);
-            temp.setImageUrl(imageUri != null ? imageUri.toString() : "");
-            temp.setStartDate(startCalendar.getTime());
-            temp.setEndDate(endCalendar.getTime());
-            temp.setLocation(location);
-            temp.setSpecificLocation(specificLoc);
-            temp.setNeedsSponsor(switchNeedSponsor.isChecked());
+            // Format dates thành String
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String startDateStr = sdf.format(startCalendar.getTime());
+            String endDateStr = sdf.format(endCalendar.getTime());
 
+            // Xử lý sponsor
+            String budgetStr = "";
+            String purposeStr = "";
             if (switchNeedSponsor.isChecked()) {
-                String budgetStr = etBudget.getText() != null ? etBudget.getText().toString().replace(".", "").trim() : "0";
-                double budget = 0;
-                try {
-                    budget = TextUtils.isEmpty(budgetStr) ? 0 : Double.parseDouble(budgetStr);
-                } catch (Exception e) {
-                    budget = 0;
-                }
-                temp.setTargetBudget(budget);
-                temp.setBudgetPurpose(etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "");
+                budgetStr = etBudget.getText() != null ? etBudget.getText().toString().replace(".", "").trim() : "0";
+                purposeStr = etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "";
             }
 
-            // SỬA LẠI ĐIỀU KIỆN CHO CHUẨN
-            boolean isNoRole = checkedId == R.id.rbWithRoleAssignment;
+            // Kiểm tra loại role
+            boolean isWithRole = checkedId == R.id.rbWithRoleAssignment;
 
-            Intent intent = new Intent(this, isNoRole ?
-                    activity_ngo_create_campaign_no_role.class :
-                    activity_ngo_create_campagin_with_role.class);
+            Intent intent;
+            if (isWithRole) {
+                // Có phân vai trò -> đi màn hình thêm role
+                intent = new Intent(this, activity_ngo_create_campagin_with_role.class);
+            } else {
+                // Không phân vai trò -> đi màn hình no role
+                intent = new Intent(this, activity_ngo_create_campaign_no_role.class);
 
-            intent.putExtra("temp_campaign", temp);
+                // No role vẫn cần Campaign object
+                Campaign temp = new Campaign();
+                temp.setName(name);
+                temp.setDescription(desc);
+
+                // Set category enum
+                switch (category) {
+                    case "Môi trường":
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.ENVIRONMENT);
+                        break;
+                    case "Giáo dục":
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
+                        break;
+                    case "Y tế":
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.HEALTH);
+                        break;
+                    case "Nấu ăn và dinh dưỡng":
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.FOOD);
+                        break;
+                    case "Khẩn cấp":
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.URGENT);
+                        break;
+                    default:
+                        temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
+                        break;
+                }
+
+                temp.setImageUrl(imageUri != null ? imageUri.toString() : "");
+                temp.setStartDate(startCalendar.getTime());
+                temp.setEndDate(endCalendar.getTime());
+                temp.setLocation(location);
+                temp.setSpecificLocation(specificLoc);
+                temp.setNeedsSponsor(switchNeedSponsor.isChecked());
+
+                if (switchNeedSponsor.isChecked()) {
+                    try {
+                        double budget = TextUtils.isEmpty(budgetStr) ? 0 : Double.parseDouble(budgetStr);
+                        temp.setTargetBudget(budget);
+                    } catch (Exception e) {
+                        temp.setTargetBudget(0);
+                    }
+                    temp.setBudgetPurpose(purposeStr);
+                }
+
+                intent.putExtra("temp_campaign", temp);
+                startActivity(intent);
+                return;
+            }
+
+            // Truyền dữ liệu dưới dạng String cho màn hình có role
+            intent.putExtra("campaignName", name);
+            intent.putExtra("campaignDescription", desc);
+            intent.putExtra("category", category);
+            intent.putExtra("imageUrl", imageUri != null ? imageUri.toString() : "");
+            intent.putExtra("location", location);
+            intent.putExtra("specificLocation", specificLoc);
+            intent.putExtra("startDate", startDateStr);
+            intent.putExtra("endDate", endDateStr);
+            intent.putExtra("needsSponsor", switchNeedSponsor.isChecked());
+            intent.putExtra("targetBudget", budgetStr);
+            intent.putExtra("budgetPurpose", purposeStr);
+
             startActivity(intent);
         });
     }

@@ -117,6 +117,8 @@ dependencies {
     testImplementation(libs.arch.core.testing)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 }
 
 // Apply Google Services plugin at the end

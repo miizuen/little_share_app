@@ -62,13 +62,36 @@ public class CampaignRepository {
     public void createCampaign(Campaign campaign, OnCampaignListener listener) {
         campaign.setOrganizationId(currentUserId);
 
-        db.collection(COLLECTION)
-                .add(campaign)
-                .addOnSuccessListener(ref -> {
-                    campaign.setId(ref.getId());
-                    listener.onSuccess("Tạo thành công!");
+        // Lấy tên tổ chức từ Firestore trước khi tạo
+        db.collection("users").document(currentUserId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String orgName = doc.getString("name");
+                        if (orgName != null && !orgName.isEmpty()) {
+                            campaign.setOrganizationName(orgName);
+                        }
+                    }
+
+                    // Sau đó mới tạo campaign
+                    db.collection(COLLECTION)
+                            .add(campaign)
+                            .addOnSuccessListener(ref -> {
+                                campaign.setId(ref.getId());
+                                listener.onSuccess("Tạo thành công!");
+                            })
+                            .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
                 })
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                .addOnFailureListener(e -> {
+                    // Nếu lỗi vẫn tạo campaign với tên mặc định
+                    db.collection(COLLECTION)
+                            .add(campaign)
+                            .addOnSuccessListener(ref -> {
+                                campaign.setId(ref.getId());
+                                listener.onSuccess("Tạo thành công!");
+                            })
+                            .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
+                });
     }
 
     public LiveData<List<Campaign>> getAllCampaigns() {
@@ -300,5 +323,54 @@ public class CampaignRepository {
     public interface OnCampaignListener {
         void onSuccess(String result);
         void onFailure(String error);
+    }
+
+    public void getOrganizationNameAndCreate(Campaign campaign, OnCampaignListener listener) {
+        if (currentUserId == null) {
+            listener.onFailure("Chưa đăng nhập");
+            return;
+        }
+
+        // Lấy tên tổ chức từ collection "organization"
+        db.collection("organization")
+                .document(currentUserId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    String orgName = "Tổ chức từ thiện";
+
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+                        if (name != null && !name.isEmpty()) {
+                            orgName = name;
+                        }
+                    }
+
+                    // Set tên tổ chức
+                    campaign.setOrganizationName(orgName);
+                    campaign.setOrganizationId(currentUserId);
+
+                    // Tạo campaign
+                    db.collection(COLLECTION)
+                            .add(campaign)
+                            .addOnSuccessListener(ref -> {
+                                campaign.setId(ref.getId());
+                                listener.onSuccess("Tạo thành công!");
+                            })
+                            .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting org name: " + e.getMessage());
+                    // Nếu lỗi vẫn tạo với tên mặc định
+                    campaign.setOrganizationName("Tổ chức từ thiện");
+                    campaign.setOrganizationId(currentUserId);
+
+                    db.collection(COLLECTION)
+                            .add(campaign)
+                            .addOnSuccessListener(ref -> {
+                                campaign.setId(ref.getId());
+                                listener.onSuccess("Tạo thành công!");
+                            })
+                            .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
+                });
     }
 }

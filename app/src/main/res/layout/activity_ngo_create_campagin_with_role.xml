@@ -112,9 +112,9 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:visibility="gone"
-                tools:visibility="visible"
                 tools:itemCount="3"
-                tools:listitem="@layout/item_campagin_role_card" />
+                tools:listitem="@layout/item_campagin_role_card"
+                tools:visibility="visible" />
         </LinearLayout>
     </ScrollView>
 

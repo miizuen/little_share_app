@@ -42,5 +42,6 @@
     <color name="light_yellow">#F2E582</color>
 
     <color name="notification_accent">#FF6200EE</color>
+    <color name="primary">@color/notification_accent</color>
 
 </resources>

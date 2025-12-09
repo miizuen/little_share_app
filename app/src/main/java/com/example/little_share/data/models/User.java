@@ -1,6 +1,5 @@
 package com.example.little_share.data.models;
 
-
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
@@ -18,12 +17,14 @@ public class User implements Serializable {
     private String phone;
     private String avatar;
     private String address;
+
     @PropertyName("role")
-    private UserRole role;// "VOLUNTEER", "SPONSOR", "ORGANIZATION"
+    private UserRole role; // "VOLUNTEER", "SPONSOR", "ORGANIZATION"
+
+    private String organizationId;
+
     private int totalPoints;
-
     private int totalDonations;
-
     private int totalCampaigns;
 
     @ServerTimestamp
@@ -60,59 +61,125 @@ public class User implements Serializable {
             this.displayName = displayName;
         }
 
-        public String getDisplayName() { return displayName; }
+        public String getDisplayName() {
+            return displayName;
+        }
     }
 
-    // Getters and Setters (Firebase requires these)
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
+    // Getters and Setters
+    public String getId() {
+        return id;
+    }
 
-    public String getEmail() { return email; }
-    public void setEmail(String email) { this.email = email; }
+    public void setId(String id) {
+        this.id = id;
+    }
 
-    public String getFullName() { return fullName; }
+    public String getEmail() {
+        return email;
+    }
 
-    public void setFullName(String fullName) { this.fullName = fullName; }
-    public String getPhone() { return phone; }
-    public void setPhone(String phone) { this.phone = phone; }
+    public void setEmail(String email) {
+        this.email = email;
+    }
 
-    public String getAvatar() { return avatar; }
-    public void setAvatar(String avatar) { this.avatar = avatar; }
+    public String getFullName() {
+        return fullName;
+    }
 
-    public String getAddress() { return address; }
-    public void setAddress(String address) { this.address = address; }
+    public void setFullName(String fullName) {
+        this.fullName = fullName;
+    }
 
-    public UserRole getRole() { return role; }
-    public void setRole(UserRole role) { this.role = role; }
+    public String getPhone() {
+        return phone;
+    }
 
-    public int getTotalPoints() { return totalPoints; }
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
 
-    public void setTotalPoints(int totalPoints) { this.totalPoints = totalPoints; }
+    public String getAvatar() {
+        return avatar;
+    }
 
+    public void setAvatar(String avatar) {
+        this.avatar = avatar;
+    }
 
-    public int getTotalDonations() { return totalDonations; }
+    public String getAddress() {
+        return address;
+    }
 
-    public void setTotalDonations(int totalDonations) { this.totalDonations = totalDonations; }
+    public void setAddress(String address) {
+        this.address = address;
+    }
 
+    public UserRole getRole() {
+        return role;
+    }
 
-    public int getTotalCampaigns() { return totalCampaigns; }
+    public void setRole(UserRole role) {
+        this.role = role;
+    }
 
-    public void setTotalCampaigns(int totalCampaigns) { this.totalCampaigns = totalCampaigns; }
+    // ← GETTER/SETTER CHO organizationId
+    public String getOrganizationId() {
+        return organizationId;
+    }
 
+    public void setOrganizationId(String organizationId) {
+        this.organizationId = organizationId;
+    }
 
-    public Date getCreatedAt() { return createdAt; }
+    public int getTotalPoints() {
+        return totalPoints;
+    }
 
-    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+    public void setTotalPoints(int totalPoints) {
+        this.totalPoints = totalPoints;
+    }
 
+    public int getTotalDonations() {
+        return totalDonations;
+    }
 
-    public Date getUpdatedAt() { return updatedAt; }
+    public void setTotalDonations(int totalDonations) {
+        this.totalDonations = totalDonations;
+    }
 
-    public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
+    public int getTotalCampaigns() {
+        return totalCampaigns;
+    }
 
+    public void setTotalCampaigns(int totalCampaigns) {
+        this.totalCampaigns = totalCampaigns;
+    }
 
-    public boolean isActive() { return isActive; }
+    public Date getCreatedAt() {
+        return createdAt;
+    }
 
-    public void setActive(boolean active) { isActive = active; }
+    public void setCreatedAt(Date createdAt) {
+        this.createdAt = createdAt;
+    }
+
+    public Date getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(Date updatedAt) {
+        this.updatedAt = updatedAt;
+    }
+
+    public boolean isActive() {
+        return isActive;
+    }
+
+    public void setActive(boolean active) {
+        isActive = active;
+    }
+
     public void touchUpdatedAt() {
         this.updatedAt = new Date();
     }
