@@ -60,7 +60,7 @@ public class frm_ngo_home extends Fragment {
 
     private void setupQuickActions() {
         btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
-        btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_gift.class)));
+        btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
         btnReport.setOnClickListener(v -> Toast.makeText(getContext(), "Báo cáo", Toast.LENGTH_SHORT).show());
         btnReward.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_gift.class)));
         btnDonation.setOnClickListener(v -> Toast.makeText(getContext(), "Quyên góp", Toast.LENGTH_SHORT).show());
@@ -72,7 +72,6 @@ public class frm_ngo_home extends Fragment {
         String currentUserId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
         Log.d(TAG, "Loading data for userId: " + currentUserId);
 
-        // Giống như cách volunteer load data
         organizationRepository.getCurrentOrganization(new OrganizationRepository.OnOrganizationListener() {
             @Override
             public void onSuccess(com.example.little_share.data.models.Organization organization) {

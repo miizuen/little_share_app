@@ -25,10 +25,12 @@ import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.models.Campain.CampaignRole;
 import com.example.little_share.data.models.Shift;
 import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.example.little_share.helper.ImgBBUploader;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.SimpleDateFormat;
@@ -251,6 +253,8 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         btnCreateCampaign.setOnClickListener(v -> createCampaign());
     }
 
+
+
     private void createCampaign() {
         btnCreateCampaign.setEnabled(false);
         btnCreateCampaign.setText("Đang tạo....");
@@ -363,7 +367,17 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
                 if (roleList != null && !roleList.isEmpty()) {
                     saveRolesAndShifts(campaignId);
                 } else {
-                    onCampaignCreatedSuccess();
+                    String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                    db.collection("organization").document(currentUserId)
+                            .get()
+                            .addOnSuccessListener(doc -> {
+                                String orgName = doc.exists() && doc.getString("name") != null ?
+                                        doc.getString("name") : "Tổ chức từ thiện";
+                                onCampaignCreatedSuccess(campaignId, campaignName, orgName);
+                            })
+                            .addOnFailureListener(e -> {
+                                onCampaignCreatedSuccess(campaignId, campaignName, "Tổ chức từ thiện");
+                            });
                 }
             }
 
@@ -400,8 +414,17 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
                         });
             }
         }
-
-        onCampaignCreatedSuccess();
+        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        db.collection("organization").document(currentUserId)
+                        .get()
+                                .addOnSuccessListener(doc -> {
+                                    String orgName = doc.exists() && doc.getString("name") != null ?
+                                            doc.getString("name") : "Tổ chức từ thiện";
+                                    onCampaignCreatedSuccess(campaignId, campaignName, orgName);
+                                })
+                                .addOnFailureListener(e -> {
+                                    onCampaignCreatedSuccess(campaignId, campaignName, "Tổ chức từ thiện");
+                                });
     }
 
     private void saveShiftRoleAssignments(String shiftId, Map<String, Integer> assignments) {
@@ -415,7 +438,24 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         }
     }
 
-    private void onCampaignCreatedSuccess() {
+    private void onCampaignCreatedSuccess(String campaignId, String campaginName, String orgName) {
+
+        new NotificationRepository().notifyVolunteerAboutNewCampaign(
+                campaignId,
+                campaginName,
+                orgName,
+                new NotificationRepository.OnNotificationListener() {
+                    @Override
+                    public void onSuccess(String result) {
+                        android.util.Log.d("Notification", "Gửi thành công: " + result);
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        android.util.Log.e("Notification", "Lỗi gửi thông báo: " + error);
+                    }
+                }
+        );
         progressDialog.dismiss();
         Toast.makeText(this, "Tạo chiến dịch thành công!", Toast.LENGTH_SHORT).show();
         finish();

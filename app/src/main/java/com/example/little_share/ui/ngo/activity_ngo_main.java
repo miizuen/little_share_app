@@ -44,7 +44,7 @@ public class activity_ngo_main extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.nav_notification) {
                     selectedFragment = new frm_ngo_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new frm_sponsor_profile();
+                    selectedFragment = new frm_ngo_profile();
                 }
 
                 if (selectedFragment != null) {

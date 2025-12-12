@@ -8,6 +8,7 @@ coroutines = "1.7.3"
 work = "2.9.0"
 material = "1.11.0"
 play-services = "21.2.0"
+material-version = "1.13.0"
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
@@ -74,3 +75,4 @@ mockito = { module = "org.mockito:mockito-core", version = "5.5.0" }
 arch-core-testing = { module = "androidx.arch.core:core-testing", version = "2.2.0" }
 ext-junit = { module = "androidx.test.ext:junit", version = "1.1.5" }
 espresso-core = { module = "androidx.test.espresso:espresso-core", version = "3.5.1" }
+google-material = { group = "com.google.android.material", name = "material", version.ref = "material-version" }
