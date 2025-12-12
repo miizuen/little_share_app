@@ -1,5 +1,7 @@
 package com.example.little_share.ui.ngo;
 
+import static android.app.Activity.RESULT_OK;
+
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
@@ -12,6 +14,8 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.content.ContextCompat;
@@ -56,6 +60,17 @@ public class frm_ngo_campaign_list extends Fragment {
         return view;
     }
 
+    private final ActivityResultLauncher<Intent> editCampaignLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            result -> {
+                if (result.getResultCode() == RESULT_OK) {
+                    // Campaign đã được cập nhật hoặc xóa, refresh list
+                    Toast.makeText(getContext(), "Đã cập nhật thành công", Toast.LENGTH_SHORT).show();
+                    loadCampaigns();
+                }
+            }
+    );
+
     private void initViews(View view) {
         rvCampaigns = view.findViewById(R.id.rvCampaigns);
         etSearch = view.findViewById(R.id.etSearch);
@@ -76,15 +91,9 @@ public class frm_ngo_campaign_list extends Fragment {
                 new NGOCampaignAdapter.OnCampaignActionListener() {
                     @Override
                     public void onEditClick(Campaign campaign) {
-                        // TODO: Implement edit campaign
-                        Toast.makeText(getContext(),
-                                "Chỉnh sửa: " + campaign.getName(),
-                                Toast.LENGTH_SHORT).show();
-
-                        // Example:
-                        // Intent intent = new Intent(getContext(), activity_ngo_edit_campaign.class);
-                        // intent.putExtra("campaignId", campaign.getId());
-                        // startActivity(intent);
+                        Intent intent = new Intent(getContext(), activity_ngo_edit_campaign.class);
+                        intent.putExtra("campaign", campaign);
+                        editCampaignLauncher.launch(intent);
                     }
 
                     @Override

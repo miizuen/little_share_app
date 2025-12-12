@@ -1,13 +1,7 @@
 package com.example.little_share.ui.volunteer;
 
+import android.content.Intent;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,24 +9,32 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.little_share.R;
-import com.example.little_share.adapter.NotificationAdapter;
-import com.example.little_share.data.models.NotificationModel;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.Observer;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import java.util.ArrayList;
+import com.example.little_share.R;
+import com.example.little_share.data.models.Notification;
+import com.example.little_share.data.repositories.NotificationRepository;
+import com.example.little_share.ui.volunteer.adapter.NotificationAdapter;
+
 import java.util.List;
 
-public class frm_volunteer_notification extends Fragment {
+public class frm_volunteer_notification extends Fragment implements NotificationAdapter.OnNotificationClickListener {
 
     private RecyclerView rvNotification;
-    private NotificationAdapter adapter;
-    private List<NotificationModel> notificationList;
     private TextView tvNumberNotify;
     private LinearLayout markAllRead;
 
+    private NotificationAdapter adapter;
+    private NotificationRepository repository;
+
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         return inflater.inflate(R.layout.frm_volunteer_notification, container, false);
     }
 
@@ -40,132 +42,143 @@ public class frm_volunteer_notification extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Khởi tạo views
         initViews(view);
-
-        // Tạo dữ liệu mẫu
-        createSampleData();
-
-        // Setup RecyclerView
         setupRecyclerView();
-
-        // Setup listeners
-        setupListeners();
-
-        // Cập nhật số lượng thông báo
-        updateNotificationCount();
+        setupClickListeners();
+        loadNotifications();
+        observeUnreadCount();
     }
 
     private void initViews(View view) {
         rvNotification = view.findViewById(R.id.rvNotification);
         tvNumberNotify = view.findViewById(R.id.tvNumberNotify);
         markAllRead = view.findViewById(R.id.markAllRead);
-    }
 
-    private void createSampleData() {
-        notificationList = new ArrayList<>();
-
-        // Thêm dữ liệu mẫu
-        NotificationModel notification1 = new NotificationModel(
-                "Chiến dịch mới: Mùa đông ấm áp",
-                "Tham gia ngay để giúp đỡ bà con vùng cao",
-                "2 giờ trước",
-                R.drawable.ic_megaphone
-        );
-        notification1.setRead(false);
-        notificationList.add(notification1);
-
-        NotificationModel notification2 = new NotificationModel(
-                "Hoạt động được duyệt",
-                "Hoạt động 'Tặng sách cho trẻ em' đã được duyệt",
-                "5 giờ trước",
-                R.drawable.ic_megaphone
-        );
-        notification2.setRead(false);
-        notificationList.add(notification2);
-
-        NotificationModel notification3 = new NotificationModel(
-                "Lời mời tham gia",
-                "Bạn được mời tham gia chiến dịch 'Trồng cây xanh'",
-                "1 ngày trước",
-                R.drawable.ic_megaphone
-        );
-        notification3.setRead(true);
-        notificationList.add(notification3);
-
-        NotificationModel notification4 = new NotificationModel(
-                "Cảm ơn đóng góp",
-                "Cảm ơn bạn đã tham gia chiến dịch vừa qua",
-                "2 ngày trước",
-                R.drawable.ic_megaphone
-        );
-        notification4.setRead(true);
-        notificationList.add(notification4);
-
-        NotificationModel notification5 = new NotificationModel(
-                "Nhắc nhở sự kiện",
-                "Sự kiện 'Ngày hội tình nguyện' sẽ diễn ra vào cuối tuần này",
-                "3 ngày trước",
-                R.drawable.ic_megaphone
-        );
-        notification5.setRead(true);
-        notificationList.add(notification5);
+        repository = new NotificationRepository();
     }
 
     private void setupRecyclerView() {
-        // Khởi tạo adapter với constructor có sẵn
-        adapter = new NotificationAdapter(notificationList);
-
-        // Setup RecyclerView
-        rvNotification.setLayoutManager(new LinearLayoutManager(getContext()));
+        adapter = new NotificationAdapter(requireContext(), this);
+        rvNotification.setLayoutManager(new LinearLayoutManager(requireContext()));
         rvNotification.setAdapter(adapter);
+    }
 
-        // Set delete listener
-        adapter.setDeleteListener(new NotificationAdapter.OnNotificationDeleteListener() {
+    private void setupClickListeners() {
+        markAllRead.setOnClickListener(v -> showMarkAllReadDialog());
+    }
+
+    private void loadNotifications() {
+        repository.getNotificationsByUser().observe(getViewLifecycleOwner(), new Observer<List<Notification>>() {
             @Override
-            public void onDelete(int position) {
-                // Xóa thông báo
-                adapter.removeItem(position);
-                updateNotificationCount();
-                Toast.makeText(getContext(),
-                        "Đã xóa thông báo",
-                        Toast.LENGTH_SHORT).show();
+            public void onChanged(List<Notification> notifications) {
+                if (notifications != null) {
+                    adapter.setNotifications(notifications);
+
+                    // Show empty state if needed
+                    if (notifications.isEmpty()) {
+                        showEmptyState();
+                    }
+                }
             }
         });
     }
 
-    private void setupListeners() {
-        // Xử lý nút "Đánh dấu là đã đọc"
-        markAllRead.setOnClickListener(v -> {
-            markAllAsRead();
+    private void observeUnreadCount() {
+        repository.getUnreadCount().observe(getViewLifecycleOwner(), new Observer<Integer>() {
+            @Override
+            public void onChanged(Integer count) {
+                tvNumberNotify.setText(String.valueOf(count));
+
+                // Hide mark all read button if no unread
+                if (count == 0) {
+                    markAllRead.setVisibility(View.GONE);
+                } else {
+                    markAllRead.setVisibility(View.VISIBLE);
+                }
+            }
         });
     }
 
-    private void markAllAsRead() {
-        boolean hasUnread = false;
-        for (NotificationModel notification : notificationList) {
-            if (!notification.isRead()) {
-                notification.setRead(true);
-                hasUnread = true;
-            }
+    @Override
+    public void onNotificationClick(Notification notification) {
+        // Đánh dấu là đã đọc
+        if (!notification.isRead()) {
+            repository.markAsRead(notification.getId(), new NotificationRepository.OnNotificationListener() {
+                @Override
+                public void onSuccess(String result) {
+                    // Notification đã được cập nhật qua LiveData
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    // Log error nhưng không hiện toast
+                    android.util.Log.e("Notification", "Failed to mark as read: " + error);
+                }
+            });
         }
 
-        if (hasUnread) {
-            adapter.notifyDataSetChanged();
-            updateNotificationCount();
-            Toast.makeText(getContext(),
-                    "Đã đánh dấu tất cả là đã đọc",
-                    Toast.LENGTH_SHORT).show();
+        // Navigate đến campaign detail nếu có referenceId
+        if (notification.getReferenceId() != null && !notification.getReferenceId().isEmpty()) {
+            navigateToCampaignDetail(notification.getReferenceId());
         }
     }
 
-    private void updateNotificationCount() {
-        int unreadCount = 0;
-        for (NotificationModel notification : notificationList) {
-            if (!notification.isRead()) {
-                unreadCount++;
-            }
-        }
-        tvNumberNotify.setText(String.valueOf(unreadCount));
+    @Override
+    public void onDeleteClick(Notification notification, int position) {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Xóa thông báo")
+                .setMessage("Bạn có chắc muốn xóa thông báo này?")
+                .setPositiveButton("Xóa", (dialog, which) -> {
+                    repository.deleteNotification(notification.getId(), new NotificationRepository.OnNotificationListener() {
+                        @Override
+                        public void onSuccess(String result) {
+                            adapter.removeItem(position);
+                            Toast.makeText(requireContext(), "Đã xóa thông báo", Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            Toast.makeText(requireContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void showMarkAllReadDialog() {
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Đánh dấu tất cả đã đọc")
+                .setMessage("Bạn có muốn đánh dấu tất cả thông báo là đã đọc?")
+                .setPositiveButton("Có", (dialog, which) -> {
+                    repository.markAllAsRead(new NotificationRepository.OnNotificationListener() {
+                        @Override
+                        public void onSuccess(String result) {
+                            Toast.makeText(requireContext(), result, Toast.LENGTH_SHORT).show();
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            Toast.makeText(requireContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+                        }
+                    });
+                })
+                .setNegativeButton("Không", null)
+                .show();
+    }
+
+    private void navigateToCampaignDetail(String campaignId) {
+        // TODO: Implement navigation to campaign detail
+        // Example:
+        // Intent intent = new Intent(requireContext(), CampaignDetailActivity.class);
+        // intent.putExtra("campaignId", campaignId);
+        // startActivity(intent);
+
+        Toast.makeText(requireContext(), "Mở chi tiết chiến dịch: " + campaignId, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showEmptyState() {
+        // TODO: Show empty state view
+        Toast.makeText(requireContext(), "Không có thông báo nào", Toast.LENGTH_SHORT).show();
     }
 }

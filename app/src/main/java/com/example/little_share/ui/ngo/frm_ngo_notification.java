@@ -13,7 +13,6 @@ import com.example.little_share.R;
 
 public class frm_ngo_notification extends Fragment {
 
-
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {

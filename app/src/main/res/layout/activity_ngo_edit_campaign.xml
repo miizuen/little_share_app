@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:background="@color/background_light"
     android:fillViewport="true"
-    tools:context=".ui.ngo.activity_ngo_create_campaign_form"
+    tools:context=".ui.ngo.activity_ngo_edit_campaign"
     android:id="@+id/main">
 
     <LinearLayout
@@ -22,7 +22,7 @@
             android:layout_height="?attr/actionBarSize"
             android:background="@android:color/white"
             app:navigationIcon="@drawable/icon_back"
-            app:title="Chiến dịch tình nguyện mới"
+            app:title="Chỉnh sửa chiến dịch"
             app:titleTextColor="@color/text_primary" />
 
         <!-- Form Content -->
@@ -31,6 +31,39 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="16dp">
+
+            <!-- Info Badge -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#E3F2FD">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:padding="12dp"
+                    android:gravity="center_vertical">
+
+                    <ImageView
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:src="@drawable/ic_info"
+                        app:tint="#1976D2"
+                        android:layout_marginEnd="8dp" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:text="Chế độ chỉnh sửa - Không thể thay đổi loại phân vai trò"
+                        android:textSize="12sp"
+                        android:textColor="#1976D2" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
             <!-- Section: Thông tin cơ bản -->
             <LinearLayout
@@ -93,9 +126,9 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="4dp"
+                android:layout_marginBottom="16dp"
                 app:counterEnabled="true"
-                app:counterMaxLength="50"
+                app:counterMaxLength="500"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -106,7 +139,7 @@
                     android:inputType="textMultiLine"
                     android:minLines="4"
                     android:maxLines="6"
-                    android:maxLength="50"
+                    android:maxLength="500"
                     android:gravity="top" />
             </com.google.android.material.textfield.TextInputLayout>
 
@@ -166,7 +199,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="match_parent"
                         android:scaleType="centerCrop"
-                        android:visibility="gone" />
+                        android:visibility="visible" />
 
                     <LinearLayout
                         android:id="@+id/layoutImagePlaceholder"
@@ -174,7 +207,8 @@
                         android:layout_height="match_parent"
                         android:orientation="vertical"
                         android:gravity="center"
-                        android:background="@drawable/bg_rounded_stroke">
+                        android:background="@drawable/bg_rounded_stroke"
+                        android:visibility="gone">
 
                         <ImageView
                             android:layout_width="48dp"
@@ -185,13 +219,31 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Nhấn để tải lên"
+                            android:text="Nhấn để thay đổi ảnh"
                             android:textSize="13sp" />
                     </LinearLayout>
+
+                    <!-- Overlay to indicate clickable -->
+                    <View
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:background="#33000000" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_centerInParent="true"
+                        android:text="Nhấn để thay đổi"
+                        android:textColor="@android:color/white"
+                        android:textSize="14sp"
+                        android:textStyle="bold"
+                        android:background="#99000000"
+                        android:padding="8dp"
+                        android:layout_margin="8dp" />
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Section: Thông tin cơ bản (Dates) -->
+            <!-- Section: Thời gian và địa điểm -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -208,7 +260,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thông tin cơ bản"
+                    android:text="Thời gian và địa điểm"
                     android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -348,7 +400,7 @@
                     android:layout_height="wrap_content" />
             </LinearLayout>
 
-            <!-- Sponsor Details (Initially Hidden) -->
+            <!-- Sponsor Details -->
             <LinearLayout
                 android:id="@+id/layoutSponsorDetails"
                 android:layout_width="match_parent"
@@ -412,7 +464,6 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginBottom="12dp"
                     style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -424,75 +475,66 @@
                         android:minLines="3"
                         android:gravity="top" />
                 </com.google.android.material.textfield.TextInputLayout>
+            </LinearLayout>
 
-                <!-- Info Box -->
+            <!-- Role Type Display (Read-only) -->
+            <androidx.cardview.widget.CardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="24dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="0dp"
+                app:cardBackgroundColor="#FFF3E0">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:padding="12dp">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_info"
-                        android:layout_marginEnd="8dp"
-                        android:layout_gravity="start"
-                        android:layout_marginTop="2dp" />
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
                     <TextView
-                        android:layout_width="0dp"
+                        android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Hoạt động này có tài trợ sẽ được ưu tiên với người dùng mà bạn cần có báo cáo chi tiết sau khi kết thúc"
-                        android:textSize="15sp"
-                        android:lineSpacingExtra="2dp" />
+                        android:text="Loại phân vai trò (không thể thay đổi)"
+                        android:textSize="13sp"
+                        android:textStyle="bold"
+                        android:textColor="#E65100"
+                        android:layout_marginBottom="8dp" />
+
+                    <TextView
+                        android:id="@+id/tvRoleType"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Phân chia vai trò"
+                        android:textSize="14sp"
+                        android:textColor="@color/text_primary" />
                 </LinearLayout>
-            </LinearLayout>
+            </androidx.cardview.widget.CardView>
 
-            <!-- Radio Group: Role Assignment -->
-            <RadioGroup
-                android:id="@+id/radioGroupRoleType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
-
-                <RadioButton
-                    android:id="@+id/rbNoRoleAssignment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Không phân chia vai trò"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp" />
-
-                <RadioButton
-                    android:id="@+id/rbWithRoleAssignment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Phân chia vai trò"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:checked="true" />
-            </RadioGroup>
-
-            <!-- Tiếp theo Button -->
+            <!-- Buttons -->
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnNext"
+                android:id="@+id/btnUpdate"
                 android:layout_width="match_parent"
                 android:layout_height="56dp"
-                android:layout_marginBottom="20dp"
-                android:text="Tiếp theo"
+                android:layout_marginBottom="12dp"
+                android:text="Cập nhật chiến dịch"
                 android:textAllCaps="false"
                 android:textSize="16sp"
                 android:textStyle="bold"
+                app:cornerRadius="12dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDelete"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="56dp"
+                android:layout_marginBottom="20dp"
+                android:text="Xóa chiến dịch"
+                android:textAllCaps="false"
+                android:textSize="16sp"
+                android:textColor="@android:color/holo_red_dark"
+                app:strokeColor="@android:color/holo_red_dark"
+                app:strokeWidth="2dp"
                 app:cornerRadius="12dp" />
         </LinearLayout>
     </LinearLayout>

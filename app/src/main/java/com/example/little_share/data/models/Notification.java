@@ -14,20 +14,14 @@ import java.util.Date;
 public class Notification implements Serializable {
     @DocumentId
     private String id;
-
     private String userId;
-
     private String title;
     private String message;
     private String type;
-
     private String referenceId;
-
     private boolean isRead;
-
     @ServerTimestamp
     private Date createdAt;
-
     public enum NotificationType {
         CAMPAIGN_NEW("Chiến dịch mới"),
         CAMPAIGN_APPROVED("Đã được duyệt"),

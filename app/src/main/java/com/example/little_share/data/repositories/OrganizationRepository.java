@@ -1,5 +1,7 @@
 package com.example.little_share.data.repositories;
 
+import android.util.Log;
+
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
@@ -133,6 +135,23 @@ public class OrganizationRepository {
                 });
     }
 
+    public void updateOrganizationProfile(String organizationId, Map<String, Object> updates, OnUpdateListener listener) {
+        // Add timestamp
+        updates.put("updatedAt", FieldValue.serverTimestamp());
+
+        db.collection(COLLECTION)
+                .document(organizationId)
+                .update(updates)
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("OrgRepository", "Organization profile updated successfully");
+                    if (listener != null) listener.onSuccess(organizationId);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("OrgRepository", "Failed to update organization profile: " + e.getMessage());
+                    if (listener != null) listener.onFailure(e.getMessage());
+                });
+    }
+
     // ========== CALLBACKS ==========
     public interface OnCreateOrgListener {
         void onSuccess(String organizationId);
@@ -143,4 +162,10 @@ public class OrganizationRepository {
         void onSuccess(Organization organization);
         void onFailure(String error);
     }
+
+    public interface OnUpdateListener {
+        void onSuccess(String organizationId);
+        void onFailure(String error);
+    }
+
 }

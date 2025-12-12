@@ -91,6 +91,7 @@ dependencies {
 
     // Glide
     implementation(libs.glide)
+    implementation(libs.google.material)
     annotationProcessor(libs.glide.compiler)
 
     // QR Code

@@ -18,6 +18,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.example.little_share.helper.ImgBBUploader;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.textfield.TextInputEditText;
@@ -54,6 +55,25 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    private void sendNotificationToVolunteers(String campaginId){
+        new NotificationRepository().notifyVolunteerAboutNewCampaign(
+                campaginId,
+                tempCampaign.getName(),
+                tempCampaign.getOrganizationName(),
+                new NotificationRepository.OnNotificationListener() {
+                    @Override
+                    public void onSuccess(String result) {
+                        Log.d("Notification", result);
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                    Log.e("Notification", error);
+                    }
+                }
+        );
     }
 
     private void setupCreateButton() {
@@ -178,7 +198,10 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
         // Dùng method mới để lấy tên tổ chức và tạo campaign
         new CampaignRepository().getOrganizationNameAndCreate(tempCampaign, new CampaignRepository.OnCampaignListener() {
             @Override
-            public void onSuccess(String result) {
+            public void onSuccess(String campaignId) {
+
+                sendNotificationToVolunteers(campaignId);
+
                 Toast.makeText(activity_ngo_create_campaign_no_role.this, "Tạo chiến dịch thành công!", Toast.LENGTH_LONG).show();
                 setResult(RESULT_OK);
                 finish();
