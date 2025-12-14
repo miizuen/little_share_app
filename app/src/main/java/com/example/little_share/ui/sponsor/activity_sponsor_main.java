@@ -34,11 +34,19 @@ public class activity_sponsor_main extends AppCompatActivity {
                 if(item.getItemId() == R.id.nav_home){
                     selectedFragment = new frm_sponsor_home();
                 } else if (item.getItemId() == R.id.nav_journey) {
+<<<<<<< HEAD
                     selectedFragment = new frm_sponsor_campaign_sharing();
                 } else if (item.getItemId() == R.id.nav_notification) {
                     selectedFragment = new frm_sponsor_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
                     selectedFragment = new frm_sponsor_profile();
+=======
+                    selectedFragment = new frm_campaign_sharing_sponsor();
+                } else if (item.getItemId() == R.id.nav_notification) {
+                    selectedFragment = new frm_sponsor_notification();
+                } else if (item.getItemId() == R.id.nav_profile) {
+                    selectedFragment = new frm_profile_sponsor();
+>>>>>>> 1021f6666a9fdef6213bea93a837382b23605876
                 }
 
                 if (selectedFragment != null) {
