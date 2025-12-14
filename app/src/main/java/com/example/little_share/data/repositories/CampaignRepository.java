@@ -142,6 +142,34 @@ public class CampaignRepository {
         return liveData;
     }
 
+    public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+        db.collection(COLLECTION)
+                .whereEqualTo("needsSponsor", true)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshot, error) -> {
+                    if(error != null){
+                        Log.e(TAG, "Error getting campagins needings sponsor", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if(snapshot != null){
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshot){
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());
+                            campaigns.add(campaign);
+                        }
+                        liveData.setValue(campaigns);
+                        Log.d(TAG, "Loaded "+campaigns.size()+" campagin needings sponsor");
+                    }else{
+                        liveData.setValue(new ArrayList<>());
+                    }
+                });
+        return liveData;
+    }
+
     public LiveData<Campaign> getCampaignById(String campaignId) {
         MutableLiveData<Campaign> liveData = new MutableLiveData<>();
 
