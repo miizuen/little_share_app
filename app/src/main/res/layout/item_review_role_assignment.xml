@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout cho hiển thị phân bổ vai trò trong ca làm -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="6dp">
+
+    <View
+        android:layout_width="6dp"
+        android:layout_height="6dp"
+        android:background="@drawable/ic_dot"
+        android:backgroundTint="@color/primary_green"
+        android:layout_marginEnd="8dp" />
+
+    <TextView
+        android:id="@+id/tvRoleName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Đầu bếp"
+        android:textSize="13sp"
+        android:textColor="@color/text_primary"
+        tools:text="Đầu bếp" />
+
+    <TextView
+        android:id="@+id/tvVolunteerCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5 TNV"
+        android:textSize="13sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_green"
+        tools:text="5 TNV" />
+</LinearLayout>

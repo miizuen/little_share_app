@@ -165,28 +165,57 @@
                     android:textColorHint="#999999"
                     android:textSize="14sp" />
 
-                <!-- Link ảnh -->
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="Link ảnh"
+                    android:layout_marginTop="20dp"
+                    android:text="Ảnh quà tặng *"
                     android:textColor="#333333"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    android:textStyle="bold" />
 
-                <EditText
-                    android:id="@+id/edtImageLink"
+                <RelativeLayout
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="12dp"
+                    android:gravity="center">
+
+                    <ImageView
+                        android:id="@+id/imgGiftPreview"
+                        android:layout_width="140dp"
+                        android:layout_height="140dp"
+                        android:background="@drawable/bg_rounded_stroke"
+                        android:contentDescription="Preview ảnh quà tặng"
+                        android:padding="6dp"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/ic_gift_3d" />
+
+                    <ImageView
+                        android:id="@+id/btnChangePhoto"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_alignBottom="@id/imgGiftPreview"
+                        android:layout_alignEnd="@id/imgGiftPreview"
+                        android:layout_marginBottom="8dp"
+                        android:layout_marginEnd="8dp"
+                        android:background="@drawable/bg_card_rounded_graident"
+                        android:src="@drawable/ic_add"
+                        android:scaleType="centerInside"
+                        app:tint="@null"
+                        android:elevation="4dp"
+                        android:contentDescription="Đổi ảnh" />
+
+                </RelativeLayout>
+
+                <!-- Thông báo nhỏ (tùy chọn) -->
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
                     android:layout_marginTop="8dp"
-                    android:background="@drawable/bg_edittext_border"
-                    android:drawableStart="@drawable/ic_gift"
-                    android:drawablePadding="10dp"
-                    android:inputType="textUri"
-                    android:paddingStart="14dp"
-                    android:paddingEnd="14dp"
-                    android:textColor="#000000"
-                    android:textSize="14sp" />
+                    android:text="Bấm vào ảnh để thay đổi"
+                    android:textColor="#888888"
+                    android:textSize="12sp" />
 
                 <!-- Buttons -->
                 <LinearLayout

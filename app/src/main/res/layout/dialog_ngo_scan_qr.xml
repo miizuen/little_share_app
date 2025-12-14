@@ -142,7 +142,7 @@
             android:layout_width="match_parent"
             android:layout_height="48dp"
             android:layout_marginTop="16dp"
-            android:background="@drawable/bg_default"
+            android:background="@drawable/bg_tag_education"
             android:text="Đóng"
             android:textAllCaps="false"
             android:textColor="#666666"
