@@ -144,12 +144,12 @@ public class CampaignRepository {
 
     public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
         db.collection(COLLECTION)
                 .whereEqualTo("needsSponsor", true)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshot, error) -> {
                     if(error != null){
-                        Log.e(TAG, "Error getting campagins needings sponsor", error);
+                        Log.e(TAG, "Error getting campaigns needing sponsor", error);
                         liveData.setValue(new ArrayList<>());
                         return;
                     }
@@ -159,11 +159,31 @@ public class CampaignRepository {
                         for (QueryDocumentSnapshot doc : snapshot){
                             Campaign campaign = doc.toObject(Campaign.class);
                             campaign.setId(doc.getId());
-                            campaigns.add(campaign);
+
+                            String status = campaign.getStatus();
+                            boolean isActive = "UPCOMING".equals(status) || "ONGOING".equals(status);
+                            boolean needsBudget = campaign.getCurrentBudget() < campaign.getTargetBudget();
+
+                            if (isActive && needsBudget) {
+                                campaigns.add(campaign);
+                                Log.d(TAG, "Added campaign: " + campaign.getName() +
+                                        " - Budget: " + campaign.getCurrentBudget() + "/" + campaign.getTargetBudget());
+                            } else {
+                                Log.d(TAG, "Skipped campaign: " + campaign.getName() +
+                                        " - Active: " + isActive + ", NeedsBudget: " + needsBudget);
+                            }
                         }
+
+                        // Sắp xếp theo độ ưu tiên (campaign thiếu budget nhiều nhất lên đầu)
+                        campaigns.sort((c1, c2) -> {
+                            double remaining1 = c1.getTargetBudget() - c1.getCurrentBudget();
+                            double remaining2 = c2.getTargetBudget() - c2.getCurrentBudget();
+                            return Double.compare(remaining2, remaining1);
+                        });
+
                         liveData.setValue(campaigns);
-                        Log.d(TAG, "Loaded "+campaigns.size()+" campagin needings sponsor");
-                    }else{
+                        Log.d(TAG, "Loaded " + campaigns.size() + " campaigns needing sponsor");
+                    } else {
                         liveData.setValue(new ArrayList<>());
                     }
                 });

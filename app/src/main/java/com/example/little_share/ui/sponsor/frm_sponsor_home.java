@@ -47,21 +47,29 @@ public class frm_sponsor_home extends Fragment {
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
         userRepository = new UserRepository();
         campaignRepository = new CampaignRepository();
 
         initViews(view);
-        loadSponsorData();
         setupRecyclerViews();
+        loadSponsorData();
         loadCampaignsNeedingSponsor();
     }
 
-    private void loadCampaignsNeedingSponsor() {
-        campaignRepository.getCampaignsNeedingSponsor().observe(getViewLifecycleOwner(), campaigns -> {
-            if (campaigns != null && isAdded()) {
-                needSponsorAdapter.updateData(campaigns);
-            }
-        });
+    private void initViews(View view) {
+        ivSponsorLogo = view.findViewById(R.id.imageView3);
+        tvSponsorName = view.findViewById(R.id.textView3);
+        tvTotalMoney = view.findViewById(R.id.tvTotalMoney);
+        tvTotalCampaigns = view.findViewById(R.id.tvTotalCampaigns);
+
+        // RecyclerViews
+        rvSponsoredCampaigns = view.findViewById(R.id.rvSponsoredCampaigns);
+        rvNeedSponsorCampaigns = view.findViewById(R.id.rvNeedSponsorCampaigns); // ← QUAN TRỌNG: THÊM DÒNG NÀY
+
+        // TextView empty state
+        tvEmptySponsored = view.findViewById(R.id.tvEmptySponsored);
     }
 
     private void setupRecyclerViews() {
@@ -83,10 +91,37 @@ public class frm_sponsor_home extends Fragment {
         rvNeedSponsorCampaigns.setAdapter(needSponsorAdapter);
     }
 
+    private void loadCampaignsNeedingSponsor() {
+        android.util.Log.d("frm_sponsor_home", "Loading campaigns needing sponsor...");
+
+        campaignRepository.getCampaignsNeedingSponsor().observe(getViewLifecycleOwner(), campaigns -> {
+            if (campaigns != null && isAdded()) {
+                android.util.Log.d("frm_sponsor_home", "Received " + campaigns.size() + " campaigns");
+                for (Campaign c : campaigns) {
+                    android.util.Log.d("frm_sponsor_home", "Campaign: " + c.getName() +
+                            " | Status: " + c.getStatus() +
+                            " | Budget: " + c.getCurrentBudget() + "/" + c.getTargetBudget() +
+                            " | NeedsSponsor: " + c.isNeedsSponsor());
+                }
+                needSponsorAdapter.updateData(campaigns);
+            } else {
+                android.util.Log.e("frm_sponsor_home", "Campaigns is null or fragment not added");
+            }
+        });
+    }
+
     private void openDonationForm(Campaign campaign) {
+        // TODO: Implement donation form
+        if (isAdded()) {
+            Toast.makeText(getContext(), "Mở form tài trợ cho: " + campaign.getName(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void openCampaignDetail(Campaign campaign) {
+        // TODO: Implement campaign detail
+        if (isAdded()) {
+            Toast.makeText(getContext(), "Chi tiết chiến dịch: " + campaign.getName(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadSponsorData() {
@@ -131,19 +166,4 @@ public class frm_sponsor_home extends Fragment {
             return String.valueOf(amount);
         }
     }
-
-
-    private void initViews(View view) {
-        ivSponsorLogo = view.findViewById(R.id.imageView3);
-        tvSponsorName = view.findViewById(R.id.textView3);
-        tvTotalMoney = view.findViewById(R.id.tvTotalMoney);
-        tvTotalCampaigns = view.findViewById(R.id.tvTotalCampaigns);
-
-        // RecyclerViews
-        rvSponsoredCampaigns = view.findViewById(R.id.rvSponsoredCampaigns);
-
-    }
-
-
 }
-

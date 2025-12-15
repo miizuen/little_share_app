@@ -1,6 +1,7 @@
 package com.example.little_share.ui.sponsor.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,15 +15,16 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
-import com.example.little_share.adapter.CampaignHistoryAdapter;
 import com.example.little_share.data.models.Campain.Campaign;
-import com.example.little_share.data.repositories.CampaignRepository;
 
+import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
 public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCampaignNeedAdapter.ViewHolder> {
+    private static final String TAG = "SponsorCampaignAdapter";
     private Context context;
     private List<Campaign> campaigns;
     private OnCampaignClickListener listener;
@@ -49,29 +51,60 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
     public void onBindViewHolder(@NonNull SponsorCampaignNeedAdapter.ViewHolder holder, int position) {
         Campaign campaign = campaigns.get(position);
 
-        holder.tvCampaignName.setText(campaign.getName());
-        holder.tvGroup.setText(campaign.getOrganizationName());
-        holder.tvLocation.setText(campaign.getLocation());
+        Log.d(TAG, "Binding campaign: " + campaign.getName());
 
+        // Tên chiến dịch
+        holder.tvCampaignName.setText(campaign.getName());
+
+        // Tổ chức
+        String orgName = campaign.getOrganizationName();
+        holder.tvGroup.setText(orgName != null ? orgName : "Chưa có thông tin");
+
+        // Địa điểm
+        String location = campaign.getLocation();
+        holder.tvLocation.setText(location != null ? location : "Chưa xác định");
+
+        // Category
         holder.tvCategory.setText(getCategoryDisplayName(campaign.getCategory()));
 
+        // Ngày tháng - FIX: Xử lý Date đúng cách
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String dateRange = sdf.format(campaign.getStartDate() + " - "+ sdf.format(campaign.getEndDate()));
-        holder.tvDate.setText(dateRange);
+        try {
+            Date startDate = campaign.getStartDate();
+            Date endDate = campaign.getEndDate();
 
+            String startStr = startDate != null ? sdf.format(startDate) : "N/A";
+            String endStr = endDate != null ? sdf.format(endDate) : "N/A";
+            String dateRange = startStr + " - " + endStr;
+            holder.tvDate.setText(dateRange);
+        } catch (Exception e) {
+            Log.e(TAG, "Error formatting date: " + e.getMessage());
+            holder.tvDate.setText("Chưa xác định");
+        }
+
+        // Progress bar
         int progress = campaign.getBudgetProgressPercentage();
-        holder.progressBar.setProgress(progress);
+        holder.progressBar.setProgress(Math.min(progress, 100));
 
-        if(campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()){
+        // Hiển thị tiến độ ngân sách
+        double current = campaign.getCurrentBudget();
+        double target = campaign.getTargetBudget();
+        String progressText = formatMoney(current) + " / " + formatMoney(target);
+        holder.tvProgress.setText(progressText);
+
+        // Load image
+        String imageUrl = campaign.getImageUrl();
+        if(imageUrl != null && !imageUrl.isEmpty()){
             Glide.with(context)
-                    .load(campaign.getImageUrl())
+                    .load(imageUrl)
                     .placeholder(R.drawable.img_quyengop_dochoi)
                     .error(R.drawable.img_quyengop_dochoi)
                     .into(holder.imgCampaign);
-        }else{
+        } else {
             holder.imgCampaign.setImageResource(R.drawable.img_quyengop_dochoi);
         }
 
+        // Click listeners
         holder.btnDonate.setOnClickListener(v -> {
             if(listener != null){
                 listener.onDonateClick(campaign);
@@ -83,39 +116,40 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
                 listener.onCampaignClick(campaign);
             }
         });
-
-
     }
 
     private String getCategoryDisplayName(String category) {
+        if (category == null) return "Khác";
+
         try {
             Campaign.CampaignCategory categoryEnum = Campaign.CampaignCategory.valueOf(category);
             return categoryEnum.getDisplayName();
         } catch (Exception e) {
+            Log.e(TAG, "Error parsing category: " + category);
             return "Khác";
         }
     }
 
     @Override
     public int getItemCount() {
-        return campaigns.size();
+        return campaigns != null ? campaigns.size() : 0;
     }
 
     public void updateData(List<Campaign> newCampaigns) {
+        Log.d(TAG, "Updating adapter with " + (newCampaigns != null ? newCampaigns.size() : 0) + " campaigns");
         this.campaigns = newCampaigns;
         notifyDataSetChanged();
     }
 
     private String formatMoney(double amount) {
         if (amount >= 1000000) {
-            return String.format("%.0fM", amount / 1000000);
+            return String.format(Locale.getDefault(), "%.1fM", amount / 1000000);
         } else if (amount >= 1000) {
-            return String.format("%.0fK", amount / 1000);
+            return String.format(Locale.getDefault(), "%.0fK", amount / 1000);
         } else {
-            return String.format("%.0f", amount);
+            return String.format(Locale.getDefault(), "%.0f", amount);
         }
     }
-
 
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCampaign;
