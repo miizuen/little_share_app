@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
-    tools:context=".ui.volunteer.activity_sponsor_campaign_detail"
+    tools:context=".ui.sponsor.activity_sponsor_campaign_detail"
     android:background="#F5F5F5">
 
     <androidx.core.widget.NestedScrollView

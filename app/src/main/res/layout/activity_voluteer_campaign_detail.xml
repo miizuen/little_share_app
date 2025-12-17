@@ -58,6 +58,7 @@
                     android:gravity="center"
                     android:background="@drawable/bg_bell">
                     <TextView
+                        android:id="@+id/tvCategoryBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nấu ăn và dinh dưỡng"
@@ -69,6 +70,7 @@
 
 
                 <TextView
+                    android:id="@+id/tvCampaignTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Nấu ăn cho em"
@@ -200,6 +202,7 @@
                 </LinearLayout>
                 <!-- Progress Bar -->
                 <ProgressBar
+                    android:id="@+id/progressBar"
                     style="?android:attr/progressBarStyleHorizontal"
                     android:layout_width="match_parent"
                     android:layout_height="8dp"
@@ -254,6 +257,7 @@
                         android:layout_weight="1" />
 
                     <TextView
+                        android:id="@+id/tvOrganization"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Nhóm tình nguyện Ánh Sáng"
@@ -280,6 +284,7 @@
                         android:layout_weight="1" />
 
                     <TextView
+                        android:id="@+id/tvSponsor"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="Quỹ Nuôi em"
@@ -315,6 +320,7 @@
                     android:textColor="#000000" />
 
                 <TextView
+                    android:id="@+id/tvDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:text="NẤU ĂN CHO EM - Á MỘT DỊI ẤN THIỆN NGUYỆN DÀY Ý NGHĨA, ĐƯỢC BIẾT ĐẾN RỘNG RÃI CỦA MỸ PHẨM HẠNH PHÚC VỚI PHƯƠNG CHÂM &quot;NẤU ĂN CHỨC BỎ, NHÓM TÌNH NGUYỆN NIỀM TIN, DỰ ÁN TÌNH NGUYỆN NẤU ĂN CHO EM THUỘC NHÓ THIẾT THỰC MANG NHỮNG BỮA CƠM ẨM LÒNG VÀ XÂY DỰNG NHỮNG DIỄM THƯƠNG HOANG TRÁNG CHO TRẺ EM VÙNG CAO, QUÊ CẬN ĐỒ VÀ CÁC EM HỌC TRƯỜNG SÁT HÒN VÀ MỘT TRƯỚC TẠI TỘN GIÀNG HỒN, TOÀN BỘ DOANH THU TỪ CÁ HOẠC NÀU CHÚC KẾT DÙI ĐÃU TIÊN NÀY SÉ GỘP DÙNG ĐẾ ĐÓNG GÓP TRỰC TIÉP VÀO QUỸ NẤY."
@@ -375,6 +381,7 @@
                             android:textColor="#666666" />
 
                         <TextView
+                            android:id="@+id/tvTime"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="12/10/2025 - 30/12/2025"
@@ -412,6 +419,7 @@
                             android:textColor="#666666" />
 
                         <TextView
+                            android:id="@+id/tvLocation"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Trường Tiểu học Mường Nhé, Điện Biên"
@@ -449,6 +457,7 @@
                             android:textColor="#666666" />
 
                         <TextView
+                            android:id="@+id/tvActivity"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Không giới hạn số lượng (đã có 200 suất cơm)"

@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.android.application)
+    alias(libs.plugins.google.services)
+    alias(libs.plugins.google.crashlytics)
 }
 
 android {
@@ -14,11 +16,7 @@ android {
         versionName = "1.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        javaCompileOptions {
-            annotationProcessorOptions {
-                arguments += mapOf("room.schemaLocation" to "$projectDir/schemas")
-            }
-        }
+        multiDexEnabled = true
     }
 
     buildTypes {
@@ -43,6 +41,12 @@ android {
         viewBinding = true
         dataBinding = true
     }
+
+    packagingOptions {
+        resources {
+            excludes += "/META-INF/{AL2.0,LGPL2.1}"
+        }
+    }
 }
 
 dependencies {
@@ -64,23 +68,30 @@ dependencies {
     implementation(libs.lifecycle.runtime)
     implementation(libs.lifecycle.common.java8)
 
+    //Ảnh
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     // Navigation
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
 
-    // Room
-    implementation(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
-    androidTestImplementation(libs.room.testing)
+    // Firebase (BOM manages versions)
+    implementation(platform(libs.firebase.bom))
 
-    // Retrofit + OkHttp
-    implementation(libs.retrofit)
-    implementation(libs.retrofit.gson)
-    implementation(libs.okhttp)
-    implementation(libs.okhttp.logging)
+    implementation(libs.firebase.auth)
+    implementation(libs.firebase.firestore)
+    implementation(libs.firebase.storage)
+    implementation(libs.firebase.messaging)
+    implementation(libs.firebase.analytics)
+    implementation(libs.firebase.crashlytics)
+
+    // Play Services
+    implementation(libs.play.services.auth)
+    implementation(libs.play.services.location)
 
     // Glide
     implementation(libs.glide)
+    implementation(libs.google.material)
     annotationProcessor(libs.glide.compiler)
 
     // QR Code
@@ -90,21 +101,16 @@ dependencies {
     // PDF
     implementation(libs.itext7)
 
-    // ZaloPay SDK
-//    implementation(files("libs/zpdk-release-v3.1.aar"))
-
     // Gson
     implementation(libs.gson)
 
     // Coroutines
     implementation(libs.coroutines.android)
     implementation(libs.coroutines.core)
+    implementation(libs.coroutines.play.services)
 
     // Work Manager
     implementation(libs.work.runtime)
-
-    // DataStore
-    implementation(libs.datastore.preferences)
 
     // Testing
     testImplementation(libs.junit)
@@ -112,4 +118,9 @@ dependencies {
     testImplementation(libs.arch.core.testing)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation("com.squareup.okhttp3:okhttp:4.11.0")
 }
+
+// Apply Google Services plugin at the end
+apply(plugin = "com.google.gms.google-services")

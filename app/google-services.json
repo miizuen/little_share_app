@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "405328493904",
+    "project_id": "littleshare-7b64c",
+    "storage_bucket": "littleshare-7b64c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:405328493904:android:0808349e599cea80144055",
+        "android_client_info": {
+          "package_name": "com.example.little_share"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDEWFawuLfUuL8PM7uT3O-3pRxuRPFfLek"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

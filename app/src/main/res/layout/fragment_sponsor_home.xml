@@ -46,7 +46,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_campaign_sponsored"/>
+                tools:listitem="@layout/item_campaign_sponsored" />
 
             <TextView
                 android:id="@+id/tvEmptySponsored"
@@ -55,7 +55,8 @@
                 android:text="Bạn chưa tài trợ chiến dịch nào"
                 android:textColor="@color/text_secondary"
                 android:layout_gravity="center"
-                android:visibility="gone" />
+                android:visibility="gone"
+                />
 
             <!-- Chiến dịch cần tài trợ -->
             <TextView
@@ -74,7 +75,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_campaign_need_sponsor"/>
+                tools:listitem="@layout/item_campaign_need_sponsor" />
 
         </LinearLayout>
 

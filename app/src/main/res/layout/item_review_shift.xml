@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout cho hiển thị ca làm trong review -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_rounded_graident"
+    android:padding="12dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Shift Name & Time -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <ImageView
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:src="@drawable/ic_clock"
+            app:tint="@color/primary_green"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvShiftName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Ca 1"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            tools:text="Ca sáng" />
+
+        <TextView
+            android:id="@+id/tvShiftTime"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="08:00 - 12:00"
+            android:textSize="13sp"
+            android:textColor="@color/text_secondary"
+            tools:text="08:00 - 12:00" />
+    </LinearLayout>
+
+    <!-- Role Assignments Container -->
+    <LinearLayout
+        android:id="@+id/layoutRoleAssignments"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginStart="28dp" />
+</LinearLayout>

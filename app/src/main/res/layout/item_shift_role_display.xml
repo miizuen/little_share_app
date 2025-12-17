@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingVertical="8dp">
+
+    <View
+        android:layout_width="8dp"
+        android:layout_height="8dp"
+        android:background="@drawable/ic_dot"
+        android:layout_marginEnd="12dp" />
+
+    <TextView
+        android:id="@+id/tvRoleName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Đầu bếp"
+        android:textSize="14sp"
+        android:textColor="@color/text_primary"
+        tools:text="Đầu bếp" />
+
+    <TextView
+        android:id="@+id/tvRoleCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5 người"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_green"
+        tools:text="5 người" />
+</LinearLayout>

@@ -1,4 +1,4 @@
-package com.example.little_share.ui.volunteer;
+package com.example.little_share.ui.ngo;
 
 import android.os.Bundle;
 
@@ -10,13 +10,13 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
 
-public class activity_sponsor_campaign_detail extends AppCompatActivity {
+public class activity_create_report extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_sponsor_campaign_detail);
+        setContentView(R.layout.activity_create_report);
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
