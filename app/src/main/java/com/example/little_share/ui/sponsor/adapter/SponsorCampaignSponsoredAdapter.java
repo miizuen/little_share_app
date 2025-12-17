@@ -28,18 +28,18 @@ import java.util.Locale;
 // Import Campaign class
 import com.example.little_share.data.models.Campain.Campaign;
 
-public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCampaignNeedAdapter.ViewHolder> {
-    private static final String TAG = "SponsorCampaignNeedAdapter";
+public class SponsorCampaignSponsoredAdapter extends RecyclerView.Adapter<SponsorCampaignSponsoredAdapter.ViewHolder> {
+    private static final String TAG = "SponsoredCampaignAdapter";
     private Context context;
     private List<Campaign> campaigns;
     private OnCampaignClickListener listener;
 
     public interface OnCampaignClickListener {
-        void onDonateClick(Campaign campaign);
         void onCampaignClick(Campaign campaign);
+        void onViewReportClick(Campaign campaign);
     }
 
-    public SponsorCampaignNeedAdapter(Context context, List<Campaign> campaigns, OnCampaignClickListener listener) {
+    public SponsorCampaignSponsoredAdapter(Context context, List<Campaign> campaigns, OnCampaignClickListener listener) {
         this.context = context;
         this.campaigns = campaigns;
         this.listener = listener;
@@ -48,7 +48,7 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(context).inflate(R.layout.item_campaign_need_sponsor, parent, false);
+        View view = LayoutInflater.from(context).inflate(R.layout.item_campaign_sponsored, parent, false);
         return new ViewHolder(view);
     }
 
@@ -63,7 +63,7 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
             return;
         }
 
-        Log.d(TAG, "Binding campaign: " + campaign.getName());
+        Log.d(TAG, "Binding sponsored campaign: " + campaign.getName());
 
         // Tên chiến dịch
         if (holder.tvCampaignName != null) {
@@ -85,6 +85,11 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
         // Category
         if (holder.tvCategory != null) {
             holder.tvCategory.setText(getCategoryDisplayName(campaign.getCategory()));
+        }
+
+        // Trạng thái
+        if (holder.tvStatus != null) {
+            holder.tvStatus.setText(getStatusDisplayName(campaign.getStatus()));
         }
 
         // Ngày tháng
@@ -110,6 +115,9 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
         if (holder.imgCampaign != null) {
             loadCampaignImage(holder.imgCampaign, campaign.getImageUrl());
         }
+
+        // Hiển thị nút phù hợp theo trạng thái
+        updateButtonVisibility(holder, campaign.getStatus());
 
         // Click listeners
         setupClickListeners(holder, campaign);
@@ -143,10 +151,10 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
     }
 
     private void setupClickListeners(ViewHolder holder, Campaign campaign) {
-        if (holder.btnDonate != null) {
-            holder.btnDonate.setOnClickListener(v -> {
+        if (holder.btnViewReport != null) {
+            holder.btnViewReport.setOnClickListener(v -> {
                 if (listener != null) {
-                    listener.onDonateClick(campaign);
+                    listener.onViewReportClick(campaign);
                 }
             });
         }
@@ -157,6 +165,18 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
                     listener.onCampaignClick(campaign);
                 }
             });
+        }
+    }
+
+    private void updateButtonVisibility(ViewHolder holder, String status) {
+        if (holder.btnViewReport == null) return;
+        
+        if (status != null && (status.equals("COMPLETED") || status.equals("FINISHED"))) {
+            holder.btnViewReport.setVisibility(View.VISIBLE);
+            holder.btnViewReport.setText("Xem báo cáo");
+        } else {
+            holder.btnViewReport.setVisibility(View.VISIBLE);
+            holder.btnViewReport.setText("Chi tiết");
         }
     }
 
@@ -172,13 +192,32 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
         }
     }
 
+    private String getStatusDisplayName(String status) {
+        if (status == null) return "Chưa xác định";
+
+        switch (status) {
+            case "ACTIVE":
+                return "Đang hoạt động";
+            case "ONGOING":
+                return "Đang diễn ra";
+            case "COMPLETED":
+                return "Hoàn thành";
+            case "FINISHED":
+                return "Kết thúc";
+            case "CANCELLED":
+                return "Đã hủy";
+            default:
+                return status;
+        }
+    }
+
     @Override
     public int getItemCount() {
         return campaigns != null ? campaigns.size() : 0;
     }
 
     public void updateData(List<Campaign> newCampaigns) {
-        Log.d(TAG, "Updating adapter with " + (newCampaigns != null ? newCampaigns.size() : 0) + " campaigns");
+        Log.d(TAG, "Updating adapter with " + (newCampaigns != null ? newCampaigns.size() : 0) + " sponsored campaigns");
         this.campaigns = newCampaigns;
         notifyDataSetChanged();
     }
@@ -195,9 +234,9 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCampaign;
-        TextView tvCategory, tvCampaignName, tvGroup, tvLocation, tvDate, tvProgress;
+        TextView tvCategory, tvCampaignName, tvGroup, tvLocation, tvDate, tvProgress, tvStatus;
         ProgressBar progressBar;
-        Button btnDonate;
+        Button btnViewReport;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -212,8 +251,9 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
             tvLocation = itemView.findViewById(R.id.tvLocation);
             tvDate = itemView.findViewById(R.id.tvDate);
             tvProgress = itemView.findViewById(R.id.tvProgress);
+            tvStatus = itemView.findViewById(R.id.tvStatus);
             progressBar = itemView.findViewById(R.id.progressBar);
-            btnDonate = itemView.findViewById(R.id.btnDonate);
+            btnViewReport = itemView.findViewById(R.id.btnViewReport);
         }
     }
 }

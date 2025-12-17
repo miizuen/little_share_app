@@ -92,6 +92,11 @@ dependencies {
     // Glide
     implementation(libs.glide)
     implementation(libs.google.material)
+    implementation(fileTree(mapOf(
+        "dir" to "C:\\Users\\PC\\Desktop\\zalopay",
+        "include" to listOf("*.aar", "*.jar"),
+        "exclude" to listOf("")
+    )))
     annotationProcessor(libs.glide.compiler)
 
     // QR Code
@@ -118,8 +123,9 @@ dependencies {
     testImplementation(libs.arch.core.testing)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
-
-    implementation("com.squareup.okhttp3:okhttp:4.11.0")
+    implementation("com.squareup.okhttp3:okhttp:4.6.0")
+    implementation("commons-codec:commons-codec:1.14")
+    //implementation("com.squareup.okhttp3:okhttp:4.11.0")
 }
 
 // Apply Google Services plugin at the end

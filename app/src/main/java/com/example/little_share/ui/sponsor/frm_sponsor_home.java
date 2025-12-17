@@ -1,5 +1,6 @@
 package com.example.little_share.ui.sponsor;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -8,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -21,19 +23,22 @@ import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.models.User;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.UserRepository;
+import com.example.little_share.ui.sponsor.adapter.SponsorCampaignSponsoredAdapter;
 import com.example.little_share.ui.sponsor.adapter.SponsorCampaignNeedAdapter;
 
 import java.util.ArrayList;
 
 public class frm_sponsor_home extends Fragment {
+    private static final String TAG = "frm_sponsor_home";
 
     private ImageView ivSponsorLogo;
     private TextView tvSponsorName, tvTotalMoney, tvTotalCampaigns;
 
     // RecyclerViews
     private RecyclerView rvSponsoredCampaigns, rvNeedSponsorCampaigns;
-    private TextView tvEmptySponsored;
+    private TextView tvEmptySponsored, tvEmptyNeedSponsor;
     private SponsorCampaignNeedAdapter needSponsorAdapter;
+    private SponsorCampaignSponsoredAdapter sponsoredAdapter;
 
     // Repository
     private UserRepository userRepository;
@@ -56,6 +61,7 @@ public class frm_sponsor_home extends Fragment {
         setupRecyclerViews();
         loadSponsorData();
         loadCampaignsNeedingSponsor();
+        loadSponsoredCampaigns();
     }
 
     private void initViews(View view) {
@@ -66,10 +72,11 @@ public class frm_sponsor_home extends Fragment {
 
         // RecyclerViews
         rvSponsoredCampaigns = view.findViewById(R.id.rvSponsoredCampaigns);
-        rvNeedSponsorCampaigns = view.findViewById(R.id.rvNeedSponsorCampaigns); // ← QUAN TRỌNG: THÊM DÒNG NÀY
+        rvNeedSponsorCampaigns = view.findViewById(R.id.rvNeedSponsorCampaigns);
 
-        // TextView empty state
+        // TextView empty states
         tvEmptySponsored = view.findViewById(R.id.tvEmptySponsored);
+        tvEmptyNeedSponsor = view.findViewById(R.id.tvEmptyNeedSponsor);
     }
 
     private void setupRecyclerViews() {
@@ -89,39 +96,122 @@ public class frm_sponsor_home extends Fragment {
 
         rvNeedSponsorCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
         rvNeedSponsorCampaigns.setAdapter(needSponsorAdapter);
+
+        // Setup adapter cho campaigns đã tài trợ
+        sponsoredAdapter = new SponsorCampaignSponsoredAdapter(getContext(), new ArrayList<>(),
+                new SponsorCampaignSponsoredAdapter.OnCampaignClickListener() {
+                    @Override
+                    public void onCampaignClick(Campaign campaign) {
+                        openCampaignDetail(campaign);
+                    }
+
+                    @Override
+                    public void onViewReportClick(Campaign campaign) {
+                        openCampaignReport(campaign);
+                    }
+                });
+
+        rvSponsoredCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvSponsoredCampaigns.setAdapter(sponsoredAdapter);
     }
 
     private void loadCampaignsNeedingSponsor() {
-        android.util.Log.d("frm_sponsor_home", "Loading campaigns needing sponsor...");
+        Log.d(TAG, "Loading campaigns needing sponsor...");
 
         campaignRepository.getCampaignsNeedingSponsor().observe(getViewLifecycleOwner(), campaigns -> {
             if (campaigns != null && isAdded()) {
-                android.util.Log.d("frm_sponsor_home", "Received " + campaigns.size() + " campaigns");
-                for (Campaign c : campaigns) {
-                    android.util.Log.d("frm_sponsor_home", "Campaign: " + c.getName() +
-                            " | Status: " + c.getStatus() +
-                            " | Budget: " + c.getCurrentBudget() + "/" + c.getTargetBudget() +
-                            " | NeedsSponsor: " + c.isNeedsSponsor());
+                Log.d(TAG, "Received " + campaigns.size() + " campaigns needing sponsor");
+
+                if (campaigns.isEmpty()) {
+                    rvNeedSponsorCampaigns.setVisibility(View.GONE);
+                    if (tvEmptyNeedSponsor != null) {
+                        tvEmptyNeedSponsor.setVisibility(View.VISIBLE);
+                    }
+                } else {
+                    rvNeedSponsorCampaigns.setVisibility(View.VISIBLE);
+                    if (tvEmptyNeedSponsor != null) {
+                        tvEmptyNeedSponsor.setVisibility(View.GONE);
+                    }
+                    needSponsorAdapter.updateData(campaigns);
                 }
-                needSponsorAdapter.updateData(campaigns);
             } else {
-                android.util.Log.e("frm_sponsor_home", "Campaigns is null or fragment not added");
+                Log.e(TAG, "Campaigns is null or fragment not added");
+            }
+        });
+    }
+
+    private void loadSponsoredCampaigns() {
+        Log.d(TAG, "Loading sponsored campaigns...");
+
+        // Lấy campaigns mà sponsor hiện tại đã tài trợ
+        userRepository.getCurrentUserData(new UserRepository.OnUserDataListener() {
+            @Override
+            public void onSuccess(User user) {
+                if (user != null && user.getSponsorId() != null) {
+                    campaignRepository.getCampaignsBySponsor(user.getSponsorId()).observe(getViewLifecycleOwner(), campaigns -> {
+                        if (campaigns != null && isAdded()) {
+                            Log.d(TAG, "Received " + campaigns.size() + " sponsored campaigns");
+
+                            if (campaigns.isEmpty()) {
+                                rvSponsoredCampaigns.setVisibility(View.GONE);
+                                if (tvEmptySponsored != null) {
+                                    tvEmptySponsored.setVisibility(View.VISIBLE);
+                                }
+                            } else {
+                                rvSponsoredCampaigns.setVisibility(View.VISIBLE);
+                                if (tvEmptySponsored != null) {
+                                    tvEmptySponsored.setVisibility(View.GONE);
+                                }
+                                sponsoredAdapter.updateData(campaigns);
+                            }
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Log.e(TAG, "Error loading user data: " + error);
             }
         });
     }
 
     private void openDonationForm(Campaign campaign) {
-        // TODO: Implement donation form
-        if (isAdded()) {
-            Toast.makeText(getContext(), "Mở form tài trợ cho: " + campaign.getName(), Toast.LENGTH_SHORT).show();
+        Log.d(TAG, "Opening donation form for campaign: " + campaign.getName());
+        
+        // TODO: Implement donation flow
+        // For now, just show a simple message
+        if (getContext() != null) {
+            Toast.makeText(getContext(), "Tính năng tài trợ sẽ được cập nhật sớm", Toast.LENGTH_SHORT).show();
         }
     }
 
     private void openCampaignDetail(Campaign campaign) {
-        // TODO: Implement campaign detail
-        if (isAdded()) {
-            Toast.makeText(getContext(), "Chi tiết chiến dịch: " + campaign.getName(), Toast.LENGTH_SHORT).show();
-        }
+        Log.d(TAG, "Opening campaign detail for: " + campaign.getName());
+
+        Intent intent = new Intent(getActivity(), activity_sponsor_campaign_detail.class);
+        intent.putExtra("campaign_id", campaign.getId());
+        intent.putExtra("campaign_name", campaign.getName());
+        intent.putExtra("campaign_description", campaign.getDescription());
+        intent.putExtra("campaign_location", campaign.getLocation());
+        intent.putExtra("campaign_start_date", campaign.getStartDate());
+        intent.putExtra("campaign_end_date", campaign.getEndDate());
+        intent.putExtra("campaign_target_budget", campaign.getTargetBudget());
+        intent.putExtra("campaign_current_budget", campaign.getCurrentBudget());
+        intent.putExtra("campaign_image_url", campaign.getImageUrl());
+        intent.putExtra("campaign_organization_name", campaign.getOrganizationName());
+        intent.putExtra("campaign_category", campaign.getCategory());
+        intent.putExtra("campaign_status", campaign.getStatus());
+        startActivity(intent);
+    }
+
+    private void openCampaignReport(Campaign campaign) {
+        Log.d(TAG, "Opening campaign report for: " + campaign.getName());
+
+        Intent intent = new Intent(getActivity(), activity_sponsor_report_view.class);
+        intent.putExtra("campaign_id", campaign.getId());
+        intent.putExtra("campaign_name", campaign.getName());
+        startActivity(intent);
     }
 
     private void loadSponsorData() {
