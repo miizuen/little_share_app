@@ -373,6 +373,42 @@ public class CampaignRepository {
         void onFailure(String error);
     }
 
+    public LiveData<List<Campaign>> getCampaignsBySponsor(String sponsorId) {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+        
+        Log.d(TAG, "Getting campaigns for sponsor: " + sponsorId);
+        
+        db.collection(COLLECTION)
+                .whereArrayContains("sponsorIds", sponsorId)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsored campaigns: " + error.getMessage());
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Campaign> campaigns = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                            try {
+                                Campaign campaign = doc.toObject(Campaign.class);
+                                if (campaign != null) {
+                                    campaign.setId(doc.getId());
+                                    campaigns.add(campaign);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error converting document to Campaign: " + e.getMessage());
+                            }
+                        }
+                    }
+                    
+                    Log.d(TAG, "Found " + campaigns.size() + " sponsored campaigns");
+                    liveData.setValue(campaigns);
+                });
+        
+        return liveData;
+    }
+
     public void getOrganizationNameAndCreate(Campaign campaign, OnCampaignListener listener) {
         if (currentUserId == null) {
             listener.onFailure("Chưa đăng nhập");

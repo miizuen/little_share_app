@@ -68,13 +68,22 @@
                 android:layout_marginTop="24dp"
                 android:layout_marginBottom="12dp" />
 
-            <!-- ← THÊM ID VÀO ĐÂY -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvNeedSponsorCampaigns"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_campaign_need_sponsor" />
+
+            <TextView
+                android:id="@+id/tvEmptyNeedSponsor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hiện tại không có chiến dịch nào cần tài trợ"
+                android:textColor="@color/text_secondary"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
 
         </LinearLayout>
 

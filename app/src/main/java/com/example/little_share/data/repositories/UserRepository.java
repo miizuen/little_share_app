@@ -1,5 +1,7 @@
 package com.example.little_share.data.repositories;
 
+import android.util.Log;
+
 import com.example.little_share.data.models.User;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -96,37 +98,65 @@ public class UserRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
+    // Thêm method này vào UserRepository.java nếu chưa có
+
     public void getCurrentUserData(OnUserDataListener listener) {
         String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        Log.d(TAG, "Getting current user data for userId: " + userId);
 
         db.collection(USER_COLLECTION)
                 .document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
                     if (documentSnapshot.exists()) {
-                        User user = documentSnapshot.toObject(User.class);
-                        if (user != null) {
-                            // Đảm bảo role được set đúng (vì enum không tự map)
-                            String roleString = documentSnapshot.getString("role");
-                            if (roleString != null) {
-                                user.setRole(User.UserRole.valueOf(roleString));
-                            }
+                        Log.d(TAG, "User document exists");
 
-                            // Đảm bảo organizationId được set đúng
-                            String orgId = documentSnapshot.getString("organizationId");
-                            if (orgId != null) {
-                                user.setOrganizationId(orgId);
+                        try {
+                            User user = documentSnapshot.toObject(User.class);
+                            if (user != null) {
+                                // Đảm bảo role được set đúng (vì enum không tự map)
+                                String roleString = documentSnapshot.getString("role");
+                                if (roleString != null) {
+                                    user.setRole(User.UserRole.valueOf(roleString));
+                                    Log.d(TAG, "User role set to: " + roleString);
+                                }
+
+                                // Đảm bảo organizationId được set đúng cho NGO
+                                String orgId = documentSnapshot.getString("organizationId");
+                                if (orgId != null) {
+                                    user.setOrganizationId(orgId);
+                                    Log.d(TAG, "User organizationId set to: " + orgId);
+                                }
+
+                                // Đảm bảo sponsorId được set đúng cho Sponsor
+                                String sponsorId = documentSnapshot.getString("sponsorId");
+                                if (sponsorId != null) {
+                                    user.setSponsorId(sponsorId);
+                                    Log.d(TAG, "User sponsorId set to: " + sponsorId);
+                                }
+
+                                listener.onSuccess(user);
+                            } else {
+                                Log.e(TAG, "Failed to convert document to User object");
+                                listener.onFailure("Không thể chuyển đổi dữ liệu người dùng");
                             }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error converting document to User: " + e.getMessage());
+                            listener.onFailure("Lỗi chuyển đổi dữ liệu: " + e.getMessage());
                         }
-                        listener.onSuccess(user);
                     } else {
-                        listener.onFailure("Không tìm thấy thông tin người dùng");
+                        Log.e(TAG, "User document does not exist");
+                        listener.onFailure("Không tìm thấy thông tin người dùng trong hệ thống");
                     }
                 })
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting user document: " + e.getMessage());
+                    listener.onFailure("Lỗi kết nối cơ sở dữ liệu: " + e.getMessage());
+                });
     }
 
-    // Callback mới cho việc lấy full user data
+    // Callback interface cho việc lấy full user data
     public interface OnUserDataListener {
         void onSuccess(User user);
         void onFailure(String error);

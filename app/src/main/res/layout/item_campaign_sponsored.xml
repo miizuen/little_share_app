@@ -3,218 +3,165 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="12dp"
-    app:cardCornerRadius="16dp"
-    app:cardElevation="6dp"
-    app:cardUseCompatPadding="true">
+    android:layout_margin="8dp"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="4dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:background="@android:color/white">
+        android:orientation="horizontal"
+        android:padding="12dp">
 
-        <!-- Ảnh -->
+        <!-- Campaign Image -->
         <ImageView
             android:id="@+id/imgCampaign"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_marginEnd="12dp"
             android:scaleType="centerCrop"
-            android:src="@drawable/img_nauanchoem"
-            android:background="@drawable/bg_top_rounded"
-            android:clipToOutline="true" />
+            android:src="@drawable/img_quyengop_dochoi"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- Nội dung -->
+        <!-- Campaign Info -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <!-- Category Badge -->
+            <TextView
+                android:id="@+id/tvCategory"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_category_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="Giáo dục"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp" />
+
+            <!-- Campaign Name -->
+            <TextView
+                android:id="@+id/tvCampaignName"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:fontFamily="@font/baloo_da_2_bold"
+                android:maxLines="2"
+                android:ellipsize="end"
+                android:text="Tên chiến dịch"
+                android:textColor="#000000"
+                android:textSize="14sp" />
+
+            <!-- Organization -->
+            <TextView
+                android:id="@+id/tvGroup"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:drawablePadding="4dp"
+                android:fontFamily="@font/baloo_da_2"
+                android:text="Tổ chức"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/ic_group" />
+
+            <!-- Location -->
+            <TextView
+                android:id="@+id/tvLocation"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:drawablePadding="4dp"
+                android:fontFamily="@font/baloo_da_2"
+                android:text="Địa điểm"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/ic_location" />
+
+            <!-- Date -->
+            <TextView
+                android:id="@+id/tvDate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:drawablePadding="4dp"
+                android:fontFamily="@font/baloo_da_2"
+                android:text="01/01/2024 - 31/01/2024"
+                android:textColor="#666666"
+                android:textSize="12sp"
+                app:drawableStartCompat="@drawable/ic_calendar" />
+
+            <!-- Status -->
+            <TextView
+                android:id="@+id/tvStatus"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:background="@drawable/bg_status_badge"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="2dp"
+                android:text="Đang diễn ra"
+                android:textColor="#FFFFFF"
+                android:textSize="10sp" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Progress Section -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="100dp"
+        android:orientation="vertical"
+        android:paddingHorizontal="12dp"
+        android:paddingBottom="12dp">
+
+        <!-- Progress Bar -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="6dp"
+            android:layout_marginBottom="4dp"
+            android:progress="65"
+            android:progressTint="#5B9EFF" />
+
+        <!-- Progress Text and Button -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="10dp">
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-            <!-- Loại chiến dịch -->
-                <TextView
-                    android:id="@+id/tvCategory"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_tag_education"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="Nấu ăn và dinh dưỡng"
-                    android:textColor="#FF6F00"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/tvStatus"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:background="@drawable/bg_tag_run"
-                    android:paddingHorizontal="12dp"
-                    android:paddingVertical="4dp"
-                    android:text="Đang chạy"
-                    android:textColor="#1B6A07"
-                    android:textSize="12sp"
-                    android:textStyle="bold" />
-            </LinearLayout>
-            <TextView
-                android:id="@+id/tvCampaignName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Nấu ăn cho em"
-                android:textColor="#1B6A07"
-                android:textSize="16sp"
-                android:textStyle="bold" />
-            <!-- Nhóm -->
-            <!-- Địa điểm -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_people" />
-
-                <TextView
-                    android:id="@+id/tvOrganization"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="Nhóm tình nguyện niềm tin"
-                    android:textColor="#757575"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- Địa điểm -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_location" />
-
-                <TextView
-                    android:id="@+id/tvLocation"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="Cao Bằng"
-                    android:textColor="#757575"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- Thời gian -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
-
-                <ImageView
-                    android:layout_width="16dp"
-                    android:layout_height="16dp"
-                    android:src="@drawable/ic_calendar_sponsor" />
-
-                <TextView
-                    android:id="@+id/tvDate"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="12/10/2025 - 30/12/2025"
-                    android:textColor="#757575"
-                    android:textSize="13sp" />
-            </LinearLayout>
-
-            <!-- Hàng: Tiến độ + % -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="8dp"
-                android:gravity="center_vertical">
-
-                <TextView
-                    android:text="Tiến độ"
-                    android:textColor="#616161"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-
-                <View
-                    android:layout_width="0dp"
-                    android:layout_height="0dp"
-                    android:layout_weight="1" />
-
-                <TextView
-                    android:id="@+id/tvProgressNumber"
-                    android:text="73%"
-                    android:textColor="#616161"
-                    android:textSize="12sp"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content" />
-            </LinearLayout>
-
-            <!-- Thanh tiến độ -->
-            <ProgressBar
-                android:id="@+id/progressBar"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="match_parent"
-                android:layout_height="8dp"
-                android:progress="73"
-                android:progressDrawable="@drawable/bg_progress_custom" />
-
-            <!-- Tiền tài trợ -->
-            <TextView
-                android:id="@+id/tvDaTaiTro"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="Đã tài trợ"
-                android:textColor="#757575"
-                android:textSize="13sp"
-                android:textStyle="bold" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
 
             <TextView
-                android:id="@+id/tvMoney"
-                android:layout_width="wrap_content"
+                android:id="@+id/tvProgress"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:text="5.000.000"
-                android:textColor="#1B6A07"
-                android:textSize="16sp"
-                android:textStyle="bold" />
+                android:layout_weight="1"
+                android:fontFamily="@font/baloo_da_2"
+                android:text="650K / 1M"
+                android:textColor="#333333"
+                android:textSize="12sp" />
 
-            <!-- Nút -->
-            <Button
-                android:id="@+id/btnDetail"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                app:backgroundTint="@null"
-                android:background="@drawable/gradient_sponsor"
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnViewReport"
+                android:layout_width="wrap_content"
+                android:layout_height="32dp"
+                android:backgroundTint="#5B9EFF"
+                android:fontFamily="@font/baloo_da_2"
                 android:text="Chi tiết"
+                android:textAllCaps="false"
                 android:textColor="#FFFFFF"
-                android:textSize="15sp"
-                android:textStyle="bold" />
+                android:textSize="11sp"
+                app:cornerRadius="16dp" />
+
         </LinearLayout>
+
     </LinearLayout>
+
 </androidx.cardview.widget.CardView>
