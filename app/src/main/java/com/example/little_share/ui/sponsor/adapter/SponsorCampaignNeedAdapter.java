@@ -106,8 +106,13 @@ public class SponsorCampaignNeedAdapter extends RecyclerView.Adapter<SponsorCamp
 
         // Click listeners
         holder.btnDonate.setOnClickListener(v -> {
+            android.util.Log.d("ADAPTER", "=== DONATE BUTTON CLICKED ===");
+            android.util.Log.d("ADAPTER", "Campaign: " + campaign.getName());
             if(listener != null){
+                android.util.Log.d("ADAPTER", "Calling onDonateClick");
                 listener.onDonateClick(campaign);
+            } else {
+                android.util.Log.e("ADAPTER", "Listener is NULL!");
             }
         });
 

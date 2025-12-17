@@ -421,4 +421,83 @@ public class CampaignRepository {
                             .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
                 });
     }
+    public LiveData<List<Campaign>> getSponsoredCampaigns() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        // Query donations của user hiện tại
+        db.collection("sponsorDonations")
+                .whereEqualTo("sponsorId", currentUserId)
+                .orderBy("donationDate", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsor donations", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshots == null || snapshots.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy unique campaign IDs
+                    List<String> uniqueCampaignIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        String campaignId = doc.getString("campaignId");
+                        if (campaignId != null && !uniqueCampaignIds.contains(campaignId)) {
+                            uniqueCampaignIds.add(campaignId);
+                        }
+                    }
+
+                    if (uniqueCampaignIds.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy campaign details
+                    fetchCampaignDetails(uniqueCampaignIds, liveData);
+                });
+
+        return liveData;
+    }
+
+    private void fetchCampaignDetails(List<String> campaignIds, MutableLiveData<List<Campaign>> liveData) {
+        List<Campaign> campaigns = new ArrayList<>();
+        int[] completedQueries = {0};
+        int totalQueries = campaignIds.size();
+
+        for (String campaignId : campaignIds) {
+            db.collection(COLLECTION)
+                    .document(campaignId)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            if (campaign != null) {
+                                campaign.setId(doc.getId());
+                                campaigns.add(campaign);
+                            }
+                        }
+
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                            Log.d(TAG, "Loaded " + campaigns.size() + " sponsored campaigns");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error getting campaign: " + campaignId, e);
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                        }
+                    });
+        }
+    }
+
 }

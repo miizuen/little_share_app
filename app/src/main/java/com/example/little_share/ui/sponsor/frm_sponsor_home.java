@@ -1,5 +1,6 @@
 package com.example.little_share.ui.sponsor;
 
+import android.content.Intent;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -22,11 +23,13 @@ import com.example.little_share.data.models.User;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.UserRepository;
 import com.example.little_share.ui.sponsor.adapter.SponsorCampaignNeedAdapter;
+import com.example.little_share.ui.sponsor.adapter.SponsorshipHistoryAdapter;
 
 import java.util.ArrayList;
 
 public class frm_sponsor_home extends Fragment {
 
+    private SponsorshipHistoryAdapter sponsorshipHistoryAdapter;
     private ImageView ivSponsorLogo;
     private TextView tvSponsorName, tvTotalMoney, tvTotalCampaigns;
 
@@ -56,6 +59,8 @@ public class frm_sponsor_home extends Fragment {
         setupRecyclerViews();
         loadSponsorData();
         loadCampaignsNeedingSponsor();
+        loadSponsoredCampaigns();
+
     }
 
     private void initViews(View view) {
@@ -66,7 +71,7 @@ public class frm_sponsor_home extends Fragment {
 
         // RecyclerViews
         rvSponsoredCampaigns = view.findViewById(R.id.rvSponsoredCampaigns);
-        rvNeedSponsorCampaigns = view.findViewById(R.id.rvNeedSponsorCampaigns); // ← QUAN TRỌNG: THÊM DÒNG NÀY
+        rvNeedSponsorCampaigns = view.findViewById(R.id.rvNeedSponsorCampaigns);
 
         // TextView empty state
         tvEmptySponsored = view.findViewById(R.id.tvEmptySponsored);
@@ -89,6 +94,23 @@ public class frm_sponsor_home extends Fragment {
 
         rvNeedSponsorCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
         rvNeedSponsorCampaigns.setAdapter(needSponsorAdapter);
+
+        // Setup adapter cho campaigns đang tài trợ
+        sponsorshipHistoryAdapter = new SponsorshipHistoryAdapter(getContext(), new ArrayList<>(),
+                new SponsorshipHistoryAdapter.OnSponsorshipClickListener() {
+                    @Override
+                    public void onViewDetailClick(Campaign campaign) {
+                        openCampaignDetail(campaign);
+                    }
+
+                    @Override
+                    public void onViewReportClick(Campaign campaign) {
+                        openCampaignReport(campaign);
+                    }
+                });
+
+        rvSponsoredCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
+        rvSponsoredCampaigns.setAdapter(sponsorshipHistoryAdapter);
     }
 
     private void loadCampaignsNeedingSponsor() {
@@ -110,17 +132,73 @@ public class frm_sponsor_home extends Fragment {
         });
     }
 
-    private void openDonationForm(Campaign campaign) {
-        // TODO: Implement donation form
+    private void loadSponsoredCampaigns() {
+        campaignRepository.getSponsoredCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
+            if (campaigns != null && isAdded()) {
+                sponsorshipHistoryAdapter.updateData(campaigns);
+                tvEmptySponsored.setVisibility(campaigns == null || campaigns.size() == 0 ? View.VISIBLE : View.GONE);
+            }
+        });
+    }
+
+    private void openCampaignReport(Campaign campaign) {
         if (isAdded()) {
-            Toast.makeText(getContext(), "Mở form tài trợ cho: " + campaign.getName(), Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getActivity(), activity_sponsor_report_view.class);
+            intent.putExtra("campaign_id", campaign.getId());
+            startActivity(intent);
         }
     }
 
+    private void openDonationForm(Campaign campaign) {
+        frm_sponsor_donation_form donationFragment = new frm_sponsor_donation_form();
+
+        Bundle bundle = new Bundle();
+        bundle.putString("campaign_id", campaign.getId());
+        bundle.putString("campaign_name", campaign.getName());
+        bundle.putSerializable("campaign_data", campaign);
+        donationFragment.setArguments(bundle);
+
+        requireActivity().getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, donationFragment)
+                .addToBackStack("donation_form")
+                .commit();
+
+    }
+
     private void openCampaignDetail(Campaign campaign) {
-        // TODO: Implement campaign detail
         if (isAdded()) {
-            Toast.makeText(getContext(), "Chi tiết chiến dịch: " + campaign.getName(), Toast.LENGTH_SHORT).show();
+            // Log để debug
+            android.util.Log.d("DEBUG", "=== CAMPAIGN SELECTED ===");
+            android.util.Log.d("DEBUG", "Name: " + campaign.getName());
+            android.util.Log.d("DEBUG", "ID: " + campaign.getId());
+            android.util.Log.d("DEBUG", "Organization: " + campaign.getOrganizationName());
+            android.util.Log.d("DEBUG", "Location: " + campaign.getLocation());
+            android.util.Log.d("DEBUG", "Description: " + campaign.getDescription());
+
+            // Tạo fragment chi tiết
+            frm_campaign_detail_sponsor detailFragment = new frm_campaign_detail_sponsor();
+
+            // Truyền dữ liệu qua Bundle
+            Bundle bundle = new Bundle();
+            bundle.putString("campaign_id", campaign.getId());
+            bundle.putString("campaign_name", campaign.getName());
+            bundle.putSerializable("campaign_data", campaign);
+            detailFragment.setArguments(bundle);
+
+            // Chuyển fragment sử dụng activity parent
+            if (getActivity() instanceof activity_sponsor_main) {
+                android.util.Log.d("DEBUG", "Navigating to detail fragment");
+                getActivity().getSupportFragmentManager()
+                        .beginTransaction()
+                        .replace(R.id.fragmentContainer, detailFragment)
+                        .addToBackStack(null)
+                        .commit();
+            } else {
+                android.util.Log.e("DEBUG", "Activity is not instance of activity_sponsor_main");
+            }
+        } else {
+            android.util.Log.e("DEBUG", "Fragment is not added");
         }
     }
 
@@ -128,7 +206,7 @@ public class frm_sponsor_home extends Fragment {
         userRepository.getCurrentUserData(new UserRepository.OnUserDataListener() {
             @Override
             public void onSuccess(User user) {
-                if(user != null && isAdded()){
+                if (user != null && isAdded()) {
                     tvSponsorName.setText(user.getFullName());
                     tvTotalMoney.setText(formatMoney(user.getTotalDonations()));
                     tvTotalCampaigns.setText(String.valueOf(user.getTotalCampaigns()));

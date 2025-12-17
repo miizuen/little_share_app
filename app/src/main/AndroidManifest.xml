@@ -6,6 +6,7 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
     <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
@@ -35,9 +36,6 @@
             android:name=".ui.ngo.activity_ngo_edit_campaign"
             android:exported="false" />
         <activity
-            android:name=".ui.ngo.activity_ngo_campagin_edit"
-            android:exported="false" />
-        <activity
             android:name=".ui.ngo.acitivity_ngo_campaign_shift_list"
             android:exported="false" />
         <activity
@@ -57,7 +55,21 @@
             android:exported="false" />
         <activity
             android:name=".ui.sponsor.activity_sponsor_payment_confirm"
-            android:exported="false" />
+            android:label="Merchant Demo"
+            android:launchMode="singleTask"
+            android:exported="false">
+
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:scheme="demozpdk"
+                    android:host="app" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".ui.ngo.activity_ngo_campagin_create_review"
             android:exported="false" />
