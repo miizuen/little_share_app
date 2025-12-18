@@ -92,8 +92,9 @@ dependencies {
     // Glide
     implementation(libs.glide)
     implementation(libs.google.material)
+
     implementation(fileTree(mapOf(
-        "dir" to "C:\\Users\\PC\\Desktop\\zalopay",
+        "dir" to "F:\\UTE\\125\\zalopay",
         "include" to listOf("*.aar", "*.jar"),
         "exclude" to listOf("")
     )))

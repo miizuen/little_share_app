@@ -1,4 +1,4 @@
-tài package com.example.little_share.ui.sponsor;
+package com.example.little_share.ui.sponsor;
 
 import android.os.Bundle;
 import android.widget.ImageView;

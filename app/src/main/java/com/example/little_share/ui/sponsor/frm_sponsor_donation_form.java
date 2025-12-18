@@ -38,6 +38,25 @@ public class frm_sponsor_donation_form extends Fragment {
         getCampaignDataFromBundle();
         setupClickListeners();
     }
+    public static frm_sponsor_donation_form newInstance(String campaignId, String campaignName,
+                                                        String organizationName, double targetBudget,
+                                                        double currentBudget) {
+        frm_sponsor_donation_form fragment = new frm_sponsor_donation_form();
+        Bundle args = new Bundle();
+
+        // Tạo Campaign object
+        Campaign campaign = new Campaign();
+        campaign.setId(campaignId);
+        campaign.setName(campaignName);
+        campaign.setOrganizationName(organizationName);
+        campaign.setTargetBudget(targetBudget);
+        campaign.setCurrentBudget(currentBudget);
+
+        args.putSerializable("campaign_data", campaign);
+        fragment.setArguments(args);
+
+        return fragment;
+    }
 
     private void initViews(View view) {
         btnSponsor = view.findViewById(R.id.btnSponsor);
