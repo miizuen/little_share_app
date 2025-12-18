@@ -14,6 +14,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.example.little_share.data.models.GiftRedemption;
+import com.example.little_share.utils.QRCodeGenerator;
+import java.util.UUID;
 
 public class GiftRepository {
     private static final String TAG = "GiftRepository";
@@ -28,6 +31,65 @@ public class GiftRepository {
         this.db = FirebaseFirestore.getInstance();
     }
 
+    public void redeemGift(String userId, String userName, String giftId, String giftName,
+                           int pointsSpent, OnRedemptionListener listener) {
+
+        // Tạo redemption ID unique
+        String redemptionId = UUID.randomUUID().toString();
+
+        // Tạo QR code sử dụng QRCodeGenerator hiện có
+        String qrCode = QRCodeGenerator.generateGiftRedemptionCode(userId, giftId, redemptionId);
+
+        // Tạo redemption record
+        GiftRedemption redemption = new GiftRedemption(userId, giftId, pointsSpent);
+        redemption.setUserName(userName);
+        redemption.setGiftName(giftName);
+        redemption.setQrCode(qrCode);
+        redemption.setStatus(GiftRedemption.RedemptionStatus.PENDING);
+
+        // Bắt đầu transaction để đảm bảo tính nhất quán
+        db.runTransaction(transaction -> {
+                    // 1. Lưu redemption record
+                    Map<String, Object> redemptionData = new HashMap<>();
+                    redemptionData.put("userId", redemption.getUserId());
+                    redemptionData.put("userName", redemption.getUserName());
+                    redemptionData.put("giftId", redemption.getGiftId());
+                    redemptionData.put("giftName", redemption.getGiftName());
+                    redemptionData.put("pointsSpent", redemption.getPointsSpent());
+                    redemptionData.put("qrCode", redemption.getQrCode());
+                    redemptionData.put("status", redemption.getStatus().name());
+                    redemptionData.put("redemptionDate", FieldValue.serverTimestamp());
+                    redemptionData.put("createdAt", FieldValue.serverTimestamp());
+
+                    transaction.set(db.collection("gift_redemptions").document(redemptionId), redemptionData);
+
+                    // 2. Trừ điểm của user
+                    transaction.update(db.collection(USER_COLLECTION).document(userId),
+                            "totalPoints", FieldValue.increment(-pointsSpent),
+                            "updatedAt", FieldValue.serverTimestamp());
+
+                    // 3. Giảm số lượng quà có sẵn
+                    transaction.update(db.collection(COLLECTION).document(giftId),
+                            "availableQuantity", FieldValue.increment(-1),
+                            "updatedAt", FieldValue.serverTimestamp());
+
+                    return redemptionId;
+                })
+                .addOnSuccessListener(result -> {
+                    android.util.Log.d(TAG, "Gift redeemed successfully: " + redemptionId);
+                    listener.onSuccess(redemptionId, qrCode);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e(TAG, "Error redeeming gift", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
+    // Thêm interface mới cho redemption
+    public interface OnRedemptionListener {
+        void onSuccess(String redemptionId, String qrCode);
+        void onFailure(String error);
+    }
    public void createGift(Gift gift, OnGiftListener listener){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
