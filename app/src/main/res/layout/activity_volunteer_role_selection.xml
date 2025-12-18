@@ -82,18 +82,21 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/viewHeaderBackground" />
 
+        <!-- Card Lưu ý (giữ nguyên, chỉ đổi constraint để dính vào RecyclerView) -->
+
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerRoles"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:clipToPadding="false"
             android:overScrollMode="never"
-            app:layout_constraintTop_toBottomOf="@id/tvSectionTitle"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvSectionTitle"
             tools:listitem="@layout/item_role_card" />
 
-        <!-- Card Lưu ý (giữ nguyên, chỉ đổi constraint để dính vào RecyclerView) -->
         <androidx.cardview.widget.CardView
             android:id="@+id/cardNote"
             android:layout_width="match_parent"

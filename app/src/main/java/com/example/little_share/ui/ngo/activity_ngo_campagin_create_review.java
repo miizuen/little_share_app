@@ -360,6 +360,11 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         progressDialog.setMessage("Đang tạo chiến dịch...");
         progressDialog.show();
 
+        // Lưu roles vào campaign document để volunteer có thể xem
+        if (roleList != null && !roleList.isEmpty()) {
+            campaign.setRoles(roleList);
+        }
+
         repository.createCampaign(campaign, new CampaignRepository.OnCampaignListener() {
             @Override
             public void onSuccess(String campaignId) {
