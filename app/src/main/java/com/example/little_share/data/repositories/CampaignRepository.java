@@ -142,6 +142,54 @@ public class CampaignRepository {
         return liveData;
     }
 
+    public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        db.collection(COLLECTION)
+                .whereEqualTo("needsSponsor", true)
+                .addSnapshotListener((snapshot, error) -> {
+                    if(error != null){
+                        Log.e(TAG, "Error getting campaigns needing sponsor", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if(snapshot != null){
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshot){
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());
+
+                            String status = campaign.getStatus();
+                            boolean isActive = "UPCOMING".equals(status) || "ONGOING".equals(status);
+                            boolean needsBudget = campaign.getCurrentBudget() < campaign.getTargetBudget();
+
+                            if (isActive && needsBudget) {
+                                campaigns.add(campaign);
+                                Log.d(TAG, "Added campaign: " + campaign.getName() +
+                                        " - Budget: " + campaign.getCurrentBudget() + "/" + campaign.getTargetBudget());
+                            } else {
+                                Log.d(TAG, "Skipped campaign: " + campaign.getName() +
+                                        " - Active: " + isActive + ", NeedsBudget: " + needsBudget);
+                            }
+                        }
+
+                        // Sắp xếp theo độ ưu tiên (campaign thiếu budget nhiều nhất lên đầu)
+                        campaigns.sort((c1, c2) -> {
+                            double remaining1 = c1.getTargetBudget() - c1.getCurrentBudget();
+                            double remaining2 = c2.getTargetBudget() - c2.getCurrentBudget();
+                            return Double.compare(remaining2, remaining1);
+                        });
+
+                        liveData.setValue(campaigns);
+                        Log.d(TAG, "Loaded " + campaigns.size() + " campaigns needing sponsor");
+                    } else {
+                        liveData.setValue(new ArrayList<>());
+                    }
+                });
+        return liveData;
+    }
+
     public LiveData<Campaign> getCampaignById(String campaignId) {
         MutableLiveData<Campaign> liveData = new MutableLiveData<>();
 
@@ -325,6 +373,42 @@ public class CampaignRepository {
         void onFailure(String error);
     }
 
+    public LiveData<List<Campaign>> getCampaignsBySponsor(String sponsorId) {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+        
+        Log.d(TAG, "Getting campaigns for sponsor: " + sponsorId);
+        
+        db.collection(COLLECTION)
+                .whereArrayContains("sponsorIds", sponsorId)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsored campaigns: " + error.getMessage());
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Campaign> campaigns = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                            try {
+                                Campaign campaign = doc.toObject(Campaign.class);
+                                if (campaign != null) {
+                                    campaign.setId(doc.getId());
+                                    campaigns.add(campaign);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error converting document to Campaign: " + e.getMessage());
+                            }
+                        }
+                    }
+                    
+                    Log.d(TAG, "Found " + campaigns.size() + " sponsored campaigns");
+                    liveData.setValue(campaigns);
+                });
+        
+        return liveData;
+    }
+
     public void getOrganizationNameAndCreate(Campaign campaign, OnCampaignListener listener) {
         if (currentUserId == null) {
             listener.onFailure("Chưa đăng nhập");
@@ -373,4 +457,83 @@ public class CampaignRepository {
                             .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
                 });
     }
+    public LiveData<List<Campaign>> getSponsoredCampaigns() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        // Query donations của user hiện tại
+        db.collection("sponsorDonations")
+                .whereEqualTo("sponsorId", currentUserId)
+                .orderBy("donationDate", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsor donations", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshots == null || snapshots.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy unique campaign IDs
+                    List<String> uniqueCampaignIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        String campaignId = doc.getString("campaignId");
+                        if (campaignId != null && !uniqueCampaignIds.contains(campaignId)) {
+                            uniqueCampaignIds.add(campaignId);
+                        }
+                    }
+
+                    if (uniqueCampaignIds.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy campaign details
+                    fetchCampaignDetails(uniqueCampaignIds, liveData);
+                });
+
+        return liveData;
+    }
+
+    private void fetchCampaignDetails(List<String> campaignIds, MutableLiveData<List<Campaign>> liveData) {
+        List<Campaign> campaigns = new ArrayList<>();
+        int[] completedQueries = {0};
+        int totalQueries = campaignIds.size();
+
+        for (String campaignId : campaignIds) {
+            db.collection(COLLECTION)
+                    .document(campaignId)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            if (campaign != null) {
+                                campaign.setId(doc.getId());
+                                campaigns.add(campaign);
+                            }
+                        }
+
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                            Log.d(TAG, "Loaded " + campaigns.size() + " sponsored campaigns");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error getting campaign: " + campaignId, e);
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                        }
+                    });
+        }
+    }
+
 }

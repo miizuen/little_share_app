@@ -3,8 +3,10 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    xmlns:tools="http://schemas.android.com/tools"
     android:orientation="vertical"
-    android:background="#F9F9F9">
+    android:background="#F9F9F9"
+    tools:context=".ui.sponsor.dialog_donation_success_sponsor">
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
