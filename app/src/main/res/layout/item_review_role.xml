@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Layout cho hiển thị vai trò trong review -->
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_card_rounded_graident"
+    android:padding="12dp"
+    android:layout_marginBottom="12dp">
+
+    <!-- Role Name -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <View
+            android:layout_width="4dp"
+            android:layout_height="20dp"
+            android:background="@color/primary_green"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/tvRoleName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Đầu bếp"
+            android:textSize="15sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            tools:text="Đầu bếp" />
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/bg_badge_points"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:layout_width="14dp"
+                android:layout_height="14dp"
+                android:src="@drawable/ic_star"
+                app:tint="#FF6F00"
+                android:layout_marginEnd="4dp" />
+
+            <TextView
+                android:id="@+id/tvRolePoints"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="25"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:textColor="#FF6F00"
+                tools:text="25" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Role Description -->
+    <TextView
+        android:id="@+id/tvRoleDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nấu ăn chính, chuẩn bị món ăn"
+        android:textSize="13sp"
+        android:textColor="@color/text_secondary"
+        android:layout_marginStart="12dp"
+        tools:text="Nấu ăn chính, chuẩn bị món ăn" />
+</LinearLayout>

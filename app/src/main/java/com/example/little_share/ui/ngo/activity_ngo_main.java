@@ -29,7 +29,7 @@ public class activity_ngo_main extends AppCompatActivity {
         setContentView(R.layout.activity_ngo_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new frm_sponsor_home());
+        replaceFragment(new frm_ngo_home());
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
@@ -42,9 +42,9 @@ public class activity_ngo_main extends AppCompatActivity {
                 } else if (item.getItemId() == R.id.nav_volunteer) {
                     selectedFragment = new frm_ngo_volunteer_list();
                 } else if (item.getItemId() == R.id.nav_notification) {
-                    selectedFragment = new frm_sponsor_notification();
+                    selectedFragment = new frm_ngo_notification();
                 } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new frm_sponsor_profile();
+                    selectedFragment = new frm_ngo_profile();
                 }
 
                 if (selectedFragment != null) {

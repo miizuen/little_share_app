@@ -1,183 +1,107 @@
 package com.example.little_share.data.models.Campain;
 
-import androidx.room.ColumnInfo;
-import androidx.room.Entity;
-import androidx.room.Ignore;
-import androidx.room.PrimaryKey;
-
-import com.google.gson.annotations.SerializedName;
-
+import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.IgnoreExtraProperties;
+import com.google.firebase.firestore.PropertyName;
+import com.google.firebase.firestore.ServerTimestamp;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-@Entity(tableName = "campaigns")
-public class Campaign {
-    @PrimaryKey
-    @SerializedName("id")
+@IgnoreExtraProperties
+public class Campaign implements Serializable {
+    @DocumentId
     private String id;
-
-    @ColumnInfo(name = "title")
-    @SerializedName("title")
-    private String title;
-
-    @ColumnInfo(name = "description")
-    @SerializedName("description")
+    private String name;
     private String description;
-
-    @ColumnInfo(name = "category")
-    @SerializedName("category")
-    private String category; // education, food, environment, health, urgent
-
-    @ColumnInfo(name = "image_url")
-    @SerializedName("image_url")
+    private String category;
     private String imageUrl;
-
-    @ColumnInfo(name = "organization_id")
-    @SerializedName("organization_id")
     private String organizationId;
-
-    @ColumnInfo(name = "organization_name")
-    @SerializedName("organization_name")
     private String organizationName;
-
-    @ColumnInfo(name = "sponsor_id")
-    @SerializedName("sponsor_id")
-    private String sponsorId;
-
-    @ColumnInfo(name = "sponsor_name")
-    @SerializedName("sponsor_name")
-    private String sponsorName;
-
-    @ColumnInfo(name = "location")
-    @SerializedName("location")
     private String location;
-
-    @ColumnInfo(name = "specific_location")
-    @SerializedName("specific_location")
     private String specificLocation;
-
-    @ColumnInfo(name = "start_date")
-    @SerializedName("start_date")
     private Date startDate;
-
-    @ColumnInfo(name = "end_date")
-    @SerializedName("end_date")
     private Date endDate;
-
-    @ColumnInfo(name = "activity")
-    @SerializedName("activity")
-    private String activity;
-
-    @ColumnInfo(name = "requirements")
-    @SerializedName("requirements")
-    private String requirements;
-
-    @ColumnInfo(name = "max_volunteers")
-    @SerializedName("max_volunteers")
+    private String status;
     private int maxVolunteers;
-
-    @ColumnInfo(name = "current_volunteers")
-    @SerializedName("current_volunteers")
     private int currentVolunteers;
-
-    @ColumnInfo(name = "points_reward")
-    @SerializedName("points_reward")
     private int pointsReward;
-
-    @ColumnInfo(name = "status")
-    @SerializedName("status")
-    private String status; // upcoming, ongoing, completed, cancelled
-
-    @ColumnInfo(name = "is_urgent")
-    @SerializedName("is_urgent")
-    private boolean isUrgent;
-
-    @ColumnInfo(name = "needs_sponsor")
-    @SerializedName("needs_sponsor")
+    private String requirements;
+    private String activities;
     private boolean needsSponsor;
+    private double targetBudget;
+    private double currentBudget;
 
-    @ColumnInfo(name = "target_amount")
-    @SerializedName("target_amount")
-    private long targetAmount;
-
-    @ColumnInfo(name = "current_amount")
-    @SerializedName("current_amount")
-    private long currentAmount;
-
-    @ColumnInfo(name = "budget_purpose")
-    @SerializedName("budget_purpose")
     private String budgetPurpose;
 
-    @ColumnInfo(name = "beneficiaries")
-    @SerializedName("beneficiaries")
-    private int beneficiaries;
+    private String accountNumber;
 
-    @ColumnInfo(name = "contact_phone")
-    @SerializedName("contact_phone")
     private String contactPhone;
 
-    @ColumnInfo(name = "contact_email")
-    @SerializedName("contact_email")
+
     private String contactEmail;
 
-    @ColumnInfo(name = "created_at")
-    @SerializedName("created_at")
-    private Date createdAt;
+    private String materials;
 
-    @ColumnInfo(name = "updated_at")
-    @SerializedName("updated_at")
-    private Date updatedAt;
-
-    /*@Ignore
-    @SerializedName("images")
-   // private List<CampaignImage> images;*/
-
-    @Ignore
-    @SerializedName("roles")
     private List<CampaignRole> roles;
 
-    // Constructors
-    public Campaign() {}
+    @ServerTimestamp
+    private Date createdAt;
 
-    public Campaign(String id, String title, String category, String organizationId) {
-        this.id = id;
-        this.title = title;
-        this.category = category;
-        this.organizationId = organizationId;
+    @ServerTimestamp
+    private Date updatedAt;
+
+    public enum CampaignCategory {
+        EDUCATION("Giáo dục"),
+        FOOD("Nấu ăn và dinh dưỡng"),
+        ENVIRONMENT("Môi trường"),
+        HEALTH("Y tế"),
+        URGENT("Khẩn cấp");
+
+        private String displayName;
+        CampaignCategory(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
+
+    public void setCategoryCampaign(CampaignCategory categoryEnum) {
+        if (categoryEnum != null) {
+            this.category = categoryEnum.name();
+        }
+    }
+
+    public enum CampaignStatus {
+        UPCOMING("Sắp diễn ra"),
+        ONGOING("Đang diễn ra"),
+        COMPLETED("Đã kết thúc");
+
+        private String displayName;
+        CampaignStatus(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
+
+    // Firebase requires no-argument constructor
+    public Campaign() {
+        this.status = CampaignStatus.UPCOMING.name();
         this.currentVolunteers = 0;
-        this.currentAmount = 0;
-        this.isUrgent = false;
-        this.needsSponsor = false;
-        this.status = "upcoming";
-        this.createdAt = new Date();
-        this.updatedAt = new Date();
+        this.currentBudget = 0;
+        this.roles = new ArrayList<>();
     }
 
-    // Helper methods
-    public int getProgressPercentage() {
-        if (maxVolunteers == 0) return 0;
-        return (int) ((currentVolunteers * 100.0) / maxVolunteers);
+    public Campaign(String name, CampaignCategory category, String organizationName, String location) {
+        this();
+        this.name = name;
+        this.category = category.name();
+        this.organizationName = organizationName;
+        this.location = location;
     }
 
-    public int getFundingPercentage() {
-        if (targetAmount == 0) return 0;
-        return (int) ((currentAmount * 100.0) / targetAmount);
-    }
-
-    public boolean isFull() {
-        return currentVolunteers >= maxVolunteers;
-    }
-
-    public boolean isFullyFunded() {
-        return currentAmount >= targetAmount;
-    }
-
-    // Getters and Setters
+    // Getters and Setters (required by Firebase)
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
-    public String getTitle() { return title; }
-    public void setTitle(String title) { this.title = title; }
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
 
     public String getDescription() { return description; }
     public void setDescription(String description) { this.description = description; }
@@ -185,84 +109,144 @@ public class Campaign {
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
 
+
     public String getImageUrl() { return imageUrl; }
+
     public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
 
+
     public String getOrganizationId() { return organizationId; }
+
     public void setOrganizationId(String organizationId) { this.organizationId = organizationId; }
 
+
     public String getOrganizationName() { return organizationName; }
+
     public void setOrganizationName(String organizationName) { this.organizationName = organizationName; }
-
-    public String getSponsorId() { return sponsorId; }
-    public void setSponsorId(String sponsorId) { this.sponsorId = sponsorId; }
-
-    public String getSponsorName() { return sponsorName; }
-    public void setSponsorName(String sponsorName) { this.sponsorName = sponsorName; }
 
     public String getLocation() { return location; }
     public void setLocation(String location) { this.location = location; }
 
+
     public String getSpecificLocation() { return specificLocation; }
+
     public void setSpecificLocation(String specificLocation) { this.specificLocation = specificLocation; }
 
+
     public Date getStartDate() { return startDate; }
+
     public void setStartDate(Date startDate) { this.startDate = startDate; }
 
+
     public Date getEndDate() { return endDate; }
+
     public void setEndDate(Date endDate) { this.endDate = endDate; }
 
-    public String getActivity() { return activity; }
-    public void setActivity(String activity) { this.activity = activity; }
-
-    public String getRequirements() { return requirements; }
-    public void setRequirements(String requirements) { this.requirements = requirements; }
+    public String getStatus() { return status; }
+    public void setStatus(String status) { this.status = status; }
 
     public int getMaxVolunteers() { return maxVolunteers; }
     public void setMaxVolunteers(int maxVolunteers) { this.maxVolunteers = maxVolunteers; }
 
     public int getCurrentVolunteers() { return currentVolunteers; }
+
     public void setCurrentVolunteers(int currentVolunteers) { this.currentVolunteers = currentVolunteers; }
 
+
     public int getPointsReward() { return pointsReward; }
+
     public void setPointsReward(int pointsReward) { this.pointsReward = pointsReward; }
 
-    public String getStatus() { return status; }
-    public void setStatus(String status) { this.status = status; }
+    public String getRequirements() { return requirements; }
+    public void setRequirements(String requirements) { this.requirements = requirements; }
 
-    public boolean isUrgent() { return isUrgent; }
-    public void setUrgent(boolean urgent) { isUrgent = urgent; }
+    public String getActivities() { return activities; }
+    public void setActivities(String activities) { this.activities = activities; }
+
 
     public boolean isNeedsSponsor() { return needsSponsor; }
+
     public void setNeedsSponsor(boolean needsSponsor) { this.needsSponsor = needsSponsor; }
 
-    public long getTargetAmount() { return targetAmount; }
-    public void setTargetAmount(long targetAmount) { this.targetAmount = targetAmount; }
 
-    public long getCurrentAmount() { return currentAmount; }
-    public void setCurrentAmount(long currentAmount) { this.currentAmount = currentAmount; }
+    public double getTargetBudget() { return targetBudget; }
+
+    public void setTargetBudget(double targetBudget) { this.targetBudget = targetBudget; }
+
+
+    public double getCurrentBudget() { return currentBudget; }
+
+    public void setCurrentBudget(double currentBudget) { this.currentBudget = currentBudget; }
+
 
     public String getBudgetPurpose() { return budgetPurpose; }
+
     public void setBudgetPurpose(String budgetPurpose) { this.budgetPurpose = budgetPurpose; }
 
-    public int getBeneficiaries() { return beneficiaries; }
-    public void setBeneficiaries(int beneficiaries) { this.beneficiaries = beneficiaries; }
+    public String getAccountNumber() { return accountNumber; }
+
+    public void setAccountNumber(String accountNumber) { this.accountNumber = accountNumber; }
 
     public String getContactPhone() { return contactPhone; }
+
     public void setContactPhone(String contactPhone) { this.contactPhone = contactPhone; }
 
     public String getContactEmail() { return contactEmail; }
+
     public void setContactEmail(String contactEmail) { this.contactEmail = contactEmail; }
 
+    public String getMaterials() { return materials; }
+    public void setMaterials(String materials) { this.materials = materials; }
+
+
     public Date getCreatedAt() { return createdAt; }
+
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
     public Date getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Date updatedAt) { this.updatedAt = updatedAt; }
 
-    /*public List<CampaignImage> getImages() { return images; }
-    public void setImages(List<CampaignImage> images) { this.images = images; }*/
+    // Helper methods
+    public int getProgressPercentage() {
+        if (maxVolunteers == 0) return 0;
+        return (currentVolunteers * 100) / maxVolunteers;
+    }
 
-    public List<CampaignRole> getRoles() { return roles; }
-    public void setRoles(List<CampaignRole> roles) { this.roles = roles; }
+    public int getBudgetProgressPercentage() {
+        if (targetBudget == 0) return 0;
+        return (int) ((currentBudget * 100) / targetBudget);
+    }
+
+    public boolean isVolunteersFull() {
+        return currentVolunteers >= maxVolunteers;
+    }
+
+    public double getRemainingBudget() {
+        return targetBudget - currentBudget;
+    }
+
+    public CampaignCategory getCategoryEnum() {
+        try {
+            return CampaignCategory.valueOf(category);
+        } catch (Exception e) {
+            return CampaignCategory.EDUCATION;
+        }
+    }
+
+    public CampaignStatus getStatusEnum() {
+        try {
+            return CampaignStatus.valueOf(status);
+        } catch (Exception e) {
+            return CampaignStatus.UPCOMING;
+        }
+    }
+
+    public List<CampaignRole> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(List<CampaignRole> roles) {
+        this.roles = roles;
+    }
 }
+

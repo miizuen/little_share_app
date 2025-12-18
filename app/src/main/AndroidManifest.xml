@@ -2,6 +2,13 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-feature android:name="android.hardware.camera" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -13,7 +20,37 @@
         android:theme="@style/Theme.Little_share"
         tools:targetApi="31">
         <activity
-            android:name=".ui.auth.activity_signup_sponsor"
+            android:name=".ui.ngo.activity_ngo_attendance"
+            android:exported="false" />
+        <activity
+            android:name=".ui.sponsor.activity_sponsor_report_view"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_create_report"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_profile_edit"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_edit_campaign"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_campagin_edit"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.acitivity_ngo_campaign_shift_list"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_campaign_add_shift"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_campagin_add_role"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_create_campagin_with_role"
+            android:exported="false" />
+        <activity
+            android:name=".ui.ngo.activity_ngo_create_campaign_no_role"
             android:exported="false" />
         <activity
             android:name=".ui.volunteer.activity_volunteer_campagin_history"
@@ -70,7 +107,10 @@
             android:name=".ui.volunteer.activity_voluteer_campaign_detail"
             android:exported="false" />
         <activity
-            android:name=".ui.volunteer.activity_sponsor_campaign_detail"
+            android:name=".ui.auth.activity_signup_sponsor"
+            android:exported="false" />
+        <activity
+            android:name=".ui.sponsor.activity_sponsor_campaign_detail"
             android:exported="false" />
         <activity
             android:name=".ui.sponsor.activity_bio_profile_sponsor"
@@ -83,9 +123,6 @@
             android:exported="false" />
         <activity
             android:name=".ui.volunteer.activity_volunteer_main"
-            android:exported="false" /> <!-- Activity của BẠN (Trường) -->
-        <activity
-            android:name=".ui.volunteer_no_role"
             android:exported="false" />
         <activity
             android:name=".ui.sponsor.activity_sponsor_main"
@@ -106,7 +143,7 @@
             android:exported="false" />
         <activity
             android:name=".ui.auth.logInAndSignUp"
-            android:exported="false" /> <!-- Splash screen -->
+            android:exported="false" /> <!-- Splash Screen - Launcher -->
         <activity
             android:name=".ui.spash_screen"
             android:exported="true">
@@ -117,6 +154,15 @@
             </intent-filter>
         </activity>
 
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_notification" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/notification_accent" />
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
