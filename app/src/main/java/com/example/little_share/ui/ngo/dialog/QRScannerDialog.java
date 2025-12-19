@@ -13,6 +13,7 @@ import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
+import com.example.little_share.utils.QRCodeGenerator;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
@@ -44,7 +45,14 @@ public class QRScannerDialog extends Dialog {
     public interface OnQRScannedListener {
         void onQRScanned(String code);
         void onManualCodeEntered(String code);
+
+        // Thêm phương thức mới để xử lý các loại QR khác nhau
+        void onGiftRedemptionScanned(String redemptionId, String userId, String giftId);
+        void onCampaignRegistrationScanned(String registrationId, String userId, String campaignId);
+        void onVolunteerScanned(String volunteerId);
+        void onInvalidQRScanned(String error);
     }
+
 
     public QRScannerDialog(@NonNull Context context, OnQRScannedListener listener) {
         super(context, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
@@ -72,7 +80,6 @@ public class QRScannerDialog extends Dialog {
     }
 
     private void setupCamera() {
-        // Kiểm tra quyền camera
         if (ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
                 != PackageManager.PERMISSION_GRANTED) {
             Toast.makeText(getContext(), "Cần cấp quyền camera để quét QR", Toast.LENGTH_LONG).show();
@@ -80,48 +87,64 @@ public class QRScannerDialog extends Dialog {
             return;
         }
 
-        // Tạo BarcodeView
-        barcodeView = new DecoratedBarcodeView(getContext());
-        barcodeView.setLayoutParams(new FrameLayout.LayoutParams(
-                FrameLayout.LayoutParams.MATCH_PARENT,
-                FrameLayout.LayoutParams.MATCH_PARENT
-        ));
+        try {
+            android.util.Log.d("QRScanner", "Setting up camera..."); // THÊM LOG
 
-        // Cấu hình decoder chỉ quét QR code
-        barcodeView.getBarcodeView().setDecoderFactory(
-                new DefaultDecoderFactory(Collections.singleton(BarcodeFormat.QR_CODE))
-        );
+            barcodeView = new DecoratedBarcodeView(getContext());
+            barcodeView.setLayoutParams(new FrameLayout.LayoutParams(
+                    FrameLayout.LayoutParams.MATCH_PARENT,
+                    FrameLayout.LayoutParams.MATCH_PARENT
+            ));
 
-        // Thêm vào container
-        cameraPreview.addView(barcodeView);
+            barcodeView.getBarcodeView().setDecoderFactory(
+                    new DefaultDecoderFactory(Collections.singleton(BarcodeFormat.QR_CODE))
+            );
 
-        // Ẩn placeholder khi camera khởi động
-        layoutPlaceholder.setVisibility(View.GONE);
+            cameraPreview.addView(barcodeView);
+            layoutPlaceholder.setVisibility(View.GONE);
 
-        // Bắt đầu quét
-        startScanning();
+            // THÊM DELAY NHỎ TRƯỚC KHI START SCANNING
+            cameraPreview.post(() -> startScanning());
+
+        } catch (Exception e) {
+            android.util.Log.e("QRScanner", "Error setting up camera", e);
+            Toast.makeText(getContext(), "Không thể khởi động camera: " + e.getMessage(),
+                    Toast.LENGTH_LONG).show();
+            layoutPlaceholder.setVisibility(View.VISIBLE);
+        }
     }
 
     private void startScanning() {
         if (barcodeView != null && !isScanning) {
-            barcodeView.decodeContinuous(new BarcodeCallback() {
-                @Override
-                public void barcodeResult(BarcodeResult result) {
-                    if (result != null && result.getText() != null) {
-                        handleQRScanned(result.getText());
+            try {
+                barcodeView.decodeContinuous(new BarcodeCallback() {
+                    @Override
+                    public void barcodeResult(BarcodeResult result) {
+                        if (result != null && result.getText() != null) {
+                            android.util.Log.d("QRScanner", "QR scanned: " + result.getText());
+                            handleQRScanned(result.getText());
+                        }
                     }
-                }
 
-                @Override
-                public void possibleResultPoints(List<ResultPoint> resultPoints) {
-                    // Có thể vẽ các điểm tìm thấy QR code
-                }
-            });
+                    @Override
+                    public void possibleResultPoints(List<ResultPoint> resultPoints) {
+                        // Có thể vẽ các điểm tìm thấy QR code
+                    }
+                });
 
-            barcodeView.resume();
-            isScanning = true;
+                barcodeView.resume();
+                isScanning = true;
+                android.util.Log.d("QRScanner", "Camera started successfully");
+
+            } catch (Exception e) {
+                android.util.Log.e("QRScanner", "Error starting camera", e);
+                Toast.makeText(getContext(), "Lỗi camera, vui lòng nhập mã thủ công", Toast.LENGTH_LONG).show();
+                layoutPlaceholder.setVisibility(View.VISIBLE);
+            }
         }
     }
+
+
 
     private void stopScanning() {
         if (barcodeView != null && isScanning) {
@@ -133,12 +156,67 @@ public class QRScannerDialog extends Dialog {
     private void handleQRScanned(String code) {
         stopScanning();
 
-        if (listener != null) {
-            listener.onQRScanned(code);
+        // Parse QR code để xác định loại
+        QRCodeGenerator.QRCodeData qrData = QRCodeGenerator.parseQRCode(code);
+
+        if (qrData == null) {
+            // QR code không hợp lệ
+            if (listener != null) {
+                listener.onInvalidQRScanned("QR code không hợp lệ hoặc không được hỗ trợ");
+            }
+            dismiss();
+            return;
+        }
+
+        // Xử lý theo loại QR code
+        switch (qrData.type) {
+            case "gift":
+                handleGiftRedemptionQR(qrData);
+                break;
+            case "campaign":
+                handleCampaignRegistrationQR(qrData);
+                break;
+            case "volunteer":
+                handleVolunteerQR(qrData);
+                break;
+            default:
+                if (listener != null) {
+                    listener.onInvalidQRScanned("Loại QR code không được hỗ trợ: " + qrData.type);
+                }
+                break;
         }
 
         dismiss();
     }
+
+    private void handleGiftRedemptionQR(QRCodeGenerator.QRCodeData qrData) {
+        String redemptionId = qrData.getRegistrationId(); // redemptionId
+        String userId = qrData.getUserId();
+        String giftId = qrData.getReferenceId();
+
+        if (listener != null) {
+            listener.onGiftRedemptionScanned(redemptionId, userId, giftId);
+        }
+    }
+
+    private void handleCampaignRegistrationQR(QRCodeGenerator.QRCodeData qrData) {
+        String registrationId = qrData.getRegistrationId();
+        String userId = qrData.getUserId();
+        String campaignId = qrData.getReferenceId();
+
+        if (listener != null) {
+            listener.onCampaignRegistrationScanned(registrationId, userId, campaignId);
+        }
+    }
+
+    private void handleVolunteerQR(QRCodeGenerator.QRCodeData qrData) {
+        String volunteerId = qrData.getUserId();
+
+        if (listener != null) {
+            listener.onVolunteerScanned(volunteerId);
+        }
+    }
+
 
     private void setupListeners() {
         // Nút X đóng

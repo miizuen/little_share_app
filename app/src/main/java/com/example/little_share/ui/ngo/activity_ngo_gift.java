@@ -15,7 +15,8 @@ import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
-
+import com.example.little_share.data.repositories.GiftRepository;
+import com.example.little_share.utils.QRCodeGenerator;
 import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -49,6 +50,9 @@ public class activity_ngo_gift extends AppCompatActivity {
     private GiftRepository giftRepository;
     private GiftAdapter adapter;
 
+
+
+
     private Uri selectedImageUri = null;
     private ImageView currentPreviewImageView = null;
 
@@ -70,6 +74,7 @@ public class activity_ngo_gift extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        giftRepository = new GiftRepository();
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_ngo_gift);
 
@@ -178,14 +183,42 @@ public class activity_ngo_gift extends AppCompatActivity {
         QRScannerDialog qrDialog = new QRScannerDialog(this, new QRScannerDialog.OnQRScannedListener() {
             @Override
             public void onQRScanned(String code) {
-                // Xử lý mã QR đã quét được
                 handleScannedCode(code);
             }
 
             @Override
             public void onManualCodeEntered(String code) {
-                // Xử lý mã được nhập thủ công
                 handleScannedCode(code);
+            }
+
+            @Override
+            public void onGiftRedemptionScanned(String redemptionId, String userId, String giftId) {
+                // XỬ LÝ KHI QUÉT ĐƯỢC QR ĐỔI QUÀ
+                showGiftRedemptionConfirmation(
+                        QRCodeGenerator.generateGiftRedemptionCode(userId, giftId, redemptionId),
+                        redemptionId, userId, giftId
+                );
+            }
+
+            @Override
+            public void onCampaignRegistrationScanned(String registrationId, String userId, String campaignId) {
+                Toast.makeText(activity_ngo_gift.this,
+                        "QR code này dành cho chiến dịch, không phải đổi quà",
+                        Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onVolunteerScanned(String volunteerId) {
+                Toast.makeText(activity_ngo_gift.this,
+                        "QR code này dành cho volunteer",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onInvalidQRScanned(String error) {
+                Toast.makeText(activity_ngo_gift.this,
+                        "QR không hợp lệ: " + error,
+                        Toast.LENGTH_LONG).show();
             }
         });
 
@@ -195,32 +228,87 @@ public class activity_ngo_gift extends AppCompatActivity {
     /**
      * Xử lý mã QR sau khi quét hoặc nhập thủ công
      */
+    /**
+     * Xử lý mã QR sau khi quét hoặc nhập thủ công
+     */
     private void handleScannedCode(String code) {
-        Toast.makeText(this, "Đã quét mã: " + code, Toast.LENGTH_SHORT).show();
+        // Parse QR code để kiểm tra loại
+        QRCodeGenerator.QRCodeData qrData = QRCodeGenerator.parseQRCode(code);
 
-        // TODO: Xử lý logic đổi quà theo mã QR
-        // Ví dụ: Kiểm tra mã có hợp lệ không, cập nhật trạng thái đơn đổi quà, v.v.
+        if (qrData == null) {
+            Toast.makeText(this, "QR code không hợp lệ", Toast.LENGTH_LONG).show();
+            return;
+        }
 
-        // Tạm thời hiển thị dialog xác nhận
-        showGiftRedemptionConfirmation(code);
+        // Kiểm tra xem có phải QR code đổi quà không
+        if (!"gift".equals(qrData.type)) {
+            Toast.makeText(this, "QR code này không phải để đổi quà", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        // Lấy thông tin từ QR code
+        String redemptionId = qrData.getRegistrationId();
+        String userId = qrData.getUserId();
+        String giftId = qrData.getReferenceId();
+
+        // Hiển thị dialog xác nhận
+        showGiftRedemptionConfirmation(code, redemptionId, userId, giftId);
     }
+    /**
+     * Hoàn thành đổi quà - trừ điểm và cập nhật trạng thái
+     */
+    private void completeGiftRedemption(String qrCode) {
+        // Hiển thị loading
+        Toast.makeText(this, "Đang xử lý...", Toast.LENGTH_SHORT).show();
+
+        giftRepository.completeGiftRedemption(qrCode, new GiftRepository.OnRedemptionListener() {
+            @Override
+            public void onSuccess(String redemptionId, String message) {
+                // Hiển thị thông báo thành công
+                new AlertDialog.Builder(activity_ngo_gift.this)
+                        .setTitle("Thành công")
+                        .setMessage(message + "\n\nĐiểm đã được trừ và người dùng đã nhận được thông báo.")
+                        .setPositiveButton("OK", (dialog, which) -> {
+                            // Refresh lại danh sách và thống kê
+                            loadGifts();
+                            loadStats();
+                        })
+                        .show();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                // Hiển thị thông báo lỗi
+                new AlertDialog.Builder(activity_ngo_gift.this)
+                        .setTitle("Lỗi")
+                        .setMessage("Không thể hoàn thành đổi quà:\n" + error)
+                        .setPositiveButton("OK", null)
+                        .show();
+            }
+        });
+    }
+
 
     /**
      * Hiển thị dialog xác nhận đổi quà
      */
-    private void showGiftRedemptionConfirmation(String code) {
+    /**
+     * Hiển thị dialog xác nhận đổi quà
+     */
+    private void showGiftRedemptionConfirmation(String qrCode, String redemptionId, String userId, String giftId) {
         new AlertDialog.Builder(this)
-                .setTitle("Xác nhận đổi quà")
-                .setMessage("Mã: " + code + "\n\nBạn có muốn xác nhận đơn đổi quà này?")
+                .setTitle("Xác nhận trao quà")
+                .setMessage("Bạn có muốn xác nhận trao quà cho người dùng này?\n\n" +
+                        "Mã đổi quà: " + redemptionId + "\n" +
+                        "Điểm sẽ được trừ sau khi xác nhận.")
                 .setPositiveButton("Xác nhận", (dialog, which) -> {
-                    // TODO: Gọi API xác nhận đổi quà
-                    Toast.makeText(this, "Đã xác nhận đơn đổi quà", Toast.LENGTH_SHORT).show();
-                    loadGifts(); // Refresh lại danh sách
-                    loadStats(); // Cập nhật thống kê
+                    // Gọi GiftRepository để hoàn thành đổi quà
+                    completeGiftRedemption(qrCode);
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
     }
+
 
     // ==================== END QR SCANNER ====================
 

@@ -70,10 +70,12 @@ dependencies {
 
     //Ảnh
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
-
+    implementation("com.github.bumptech.glide:glide:4.16.0")
     // Navigation
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
+    implementation("com.journeyapps:zxing-android-embedded:4.3.0")
+    implementation("com.google.zxing:core:3.5.2")
 
     // Firebase (BOM manages versions)
     implementation(platform(libs.firebase.bom))

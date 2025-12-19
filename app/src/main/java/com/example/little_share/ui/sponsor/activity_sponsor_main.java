@@ -2,6 +2,7 @@ package com.example.little_share.ui.sponsor;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.activity.EdgeToEdge;
@@ -19,6 +20,7 @@ import com.google.android.material.navigation.NavigationBarView;
 import vn.zalopay.sdk.ZaloPaySDK;
 
 public class activity_sponsor_main extends AppCompatActivity {
+    private static final String TAG = "SPONSOR_MAIN";
     private BottomNavigationView bottomNavigationView;
 
     @Override
@@ -28,8 +30,10 @@ public class activity_sponsor_main extends AppCompatActivity {
         setContentView(R.layout.activity_sponsor_main);
         initViews();
         setupBottomNavigation();
-        handleIntent();
         setupWindowInsets();
+
+        // Handle intent after setup
+        handleIntent(getIntent());
     }
 
     private void initViews() {
@@ -42,7 +46,7 @@ public class activity_sponsor_main extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
                 int itemId = item.getItemId();
-                
+
                 if (itemId == R.id.nav_home) {
                     selectedFragment = new frm_sponsor_home();
                 } else if (itemId == R.id.nav_journey) {
@@ -52,7 +56,7 @@ public class activity_sponsor_main extends AppCompatActivity {
                 } else if (itemId == R.id.nav_profile) {
                     selectedFragment = new frm_sponsor_profile();
                 }
-                
+
                 if (selectedFragment != null) {
                     replaceFragment(selectedFragment);
                     return true;
@@ -62,11 +66,28 @@ public class activity_sponsor_main extends AppCompatActivity {
         });
     }
 
-    private void handleIntent() {
+    private void handleIntent(Intent intent) {
+        if (intent == null) {
+            // Default to home
+            replaceFragment(new frm_sponsor_home());
+            return;
+        }
+
+        Log.d(TAG, "=== HANDLING INTENT ===");
+        Log.d(TAG, "refresh_sponsored: " + intent.getBooleanExtra("refresh_sponsored", false));
+        Log.d(TAG, "open_donation_form: " + intent.getBooleanExtra("open_donation_form", false));
+
+        // Check if we need to navigate to home and refresh sponsored campaigns
+        if (intent.getBooleanExtra("refresh_sponsored", false)) {
+            Log.d(TAG, "Navigating to home with refresh");
+            navigateToHomeAndRefresh();
+        }
         // Check if we need to open donation form
-        if (getIntent().getBooleanExtra("open_donation_form", false)) {
-            openDonationFormFromIntent();
+        else if (intent.getBooleanExtra("open_donation_form", false)) {
+            Log.d(TAG, "Opening donation form");
+            openDonationFormFromIntent(intent);
         } else {
+            Log.d(TAG, "Default navigation to home");
             replaceFragment(new frm_sponsor_home());
         }
     }
@@ -82,17 +103,51 @@ public class activity_sponsor_main extends AppCompatActivity {
     @Override
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
+        Log.d(TAG, "=== ON NEW INTENT ===");
+
+        // QUAN TRỌNG: Cập nhật intent hiện tại
+        setIntent(intent);
+
+        // Handle ZaloPay callback
         ZaloPaySDK.getInstance().onResult(intent);
-        
-        // Check if we need to open donation form from new intent
-        if (intent.getBooleanExtra("open_donation_form", false)) {
-            setIntent(intent);
-            openDonationFormFromIntent();
-        }
+
+        // Handle refresh or navigation
+        handleIntent(intent);
     }
 
-    private void openDonationFormFromIntent() {
-        Intent intent = getIntent();
+    private void navigateToHomeAndRefresh() {
+        Log.d(TAG, "=== NAVIGATE TO HOME AND REFRESH ===");
+
+        // Set home tab as selected
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+
+        // Find existing home fragment
+        Fragment existingFragment = getSupportFragmentManager()
+                .findFragmentById(R.id.fragmentContainer);
+
+        if (existingFragment instanceof frm_sponsor_home) {
+            // Fragment đã tồn tại, chỉ cần refresh
+            Log.d(TAG, "Home fragment exists, refreshing data");
+            ((frm_sponsor_home) existingFragment).refreshData();
+        } else {
+            // Tạo fragment mới
+            Log.d(TAG, "Creating new home fragment");
+            frm_sponsor_home homeFragment = new frm_sponsor_home();
+            Bundle args = new Bundle();
+            args.putBoolean("should_refresh", true);
+            homeFragment.setArguments(args);
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, homeFragment)
+                    .commit();
+        }
+
+        // Clear the flag để tránh refresh lại
+        getIntent().removeExtra("refresh_sponsored");
+    }
+
+    private void openDonationFormFromIntent(Intent intent) {
         String campaignId = intent.getStringExtra("campaign_id");
         String campaignName = intent.getStringExtra("campaign_name");
         String organizationName = intent.getStringExtra("campaign_organization_name");

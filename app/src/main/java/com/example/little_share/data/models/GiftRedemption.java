@@ -7,7 +7,7 @@ import com.google.firebase.firestore.ServerTimestamp;
 import java.io.Serializable;
 import java.util.Date;
 @IgnoreExtraProperties
-public class GiftRedemption implements Serializable {
+public class    GiftRedemption implements Serializable {
     @DocumentId
     private String id;
     private String userId;
