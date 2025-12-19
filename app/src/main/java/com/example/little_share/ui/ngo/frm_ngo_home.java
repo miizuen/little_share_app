@@ -61,7 +61,7 @@ public class frm_ngo_home extends Fragment {
     private void setupQuickActions() {
         btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
         btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
-        btnReport.setOnClickListener(v -> Toast.makeText(getContext(), "Báo cáo", Toast.LENGTH_SHORT).show());
+        btnReport.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_finance_report.class)));
         btnReward.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_gift.class)));
         btnDonation.setOnClickListener(v -> Toast.makeText(getContext(), "Quyên góp", Toast.LENGTH_SHORT).show());
     }

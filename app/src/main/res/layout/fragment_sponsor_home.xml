@@ -23,8 +23,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="0dp">
+            android:orientation="vertical">
 
             <!-- Stats Header -->
             <include layout="@layout/view_stats_header_sponsor" />
@@ -55,8 +54,7 @@
                 android:text="Bạn chưa tài trợ chiến dịch nào"
                 android:textColor="@color/text_secondary"
                 android:layout_gravity="center"
-                android:visibility="gone"
-                />
+                android:visibility="gone" />
 
             <!-- Chiến dịch cần tài trợ -->
             <TextView
@@ -77,9 +75,18 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_campaign_need_sponsor" />
 
+            <TextView
+                android:id="@+id/tvEmptyNeedSponsor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hiện tại không có chiến dịch nào cần tài trợ"
+                android:textColor="@color/text_secondary"
+                android:layout_gravity="center"
+                android:layout_marginTop="16dp"
+                android:visibility="gone" />
+
         </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
-
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

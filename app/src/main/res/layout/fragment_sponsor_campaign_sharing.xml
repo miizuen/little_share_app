@@ -47,5 +47,43 @@
         android:padding="20dp"
         tools:listitem="@layout/item_sponsor_campaign_history" />
 
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/layoutEmptyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="32dp"
+        android:visibility="gone">
+
+        <ImageView
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            android:src="@drawable/ic_journey"
+            android:alpha="0.5"
+            app:tint="#CCCCCC" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="Chưa có chiến dịch nào"
+            android:textColor="#666666"
+            android:textSize="16sp"
+            android:fontFamily="@font/baloo_da_2_bold" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Hãy tài trợ chiến dịch đầu tiên để bắt đầu hành trình chia sẻ của bạn!"
+            android:textColor="#999999"
+            android:textSize="14sp"
+            android:textAlignment="center"
+            android:fontFamily="@font/baloo_da_2" />
+
+    </LinearLayout>
 
 </LinearLayout>

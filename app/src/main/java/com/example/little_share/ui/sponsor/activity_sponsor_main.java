@@ -1,6 +1,8 @@
 package com.example.little_share.ui.sponsor;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.MenuItem;
 
 import androidx.activity.EdgeToEdge;
@@ -15,46 +17,152 @@ import com.example.little_share.R;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
+import vn.zalopay.sdk.ZaloPaySDK;
+
 public class activity_sponsor_main extends AppCompatActivity {
-    BottomNavigationView bottomNavigationView;
+    private static final String TAG = "SPONSOR_MAIN";
+    private BottomNavigationView bottomNavigationView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_sponsor_main);
+        initViews();
+        setupBottomNavigation();
+        setupWindowInsets();
 
+        // Handle intent after setup
+        handleIntent(getIntent());
+    }
+
+    private void initViews() {
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new frm_sponsor_home());
+    }
 
+    private void setupBottomNavigation() {
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
-                if(item.getItemId() == R.id.nav_home){
+                int itemId = item.getItemId();
+
+                if (itemId == R.id.nav_home) {
                     selectedFragment = new frm_sponsor_home();
-                } else if (item.getItemId() == R.id.nav_journey) {
+                } else if (itemId == R.id.nav_journey) {
                     selectedFragment = new frm_sponsor_campaign_sharing();
-                } else if (item.getItemId() == R.id.nav_notification) {
+                } else if (itemId == R.id.nav_notification) {
                     selectedFragment = new frm_sponsor_notification();
-                } else if (item.getItemId() == R.id.nav_profile) {
-                    selectedFragment = new frm_sponsor_profile();
+                } else if (itemId == R.id.nav_profile) {
+                    selectedFragment = new frm_profile_sponsor();
                 }
 
                 if (selectedFragment != null) {
                     replaceFragment(selectedFragment);
                     return true;
                 }
-
                 return false;
             }
         });
+    }
 
+    private void handleIntent(Intent intent) {
+        if (intent == null) {
+            // Default to home
+            replaceFragment(new frm_sponsor_home());
+            return;
+        }
+
+        Log.d(TAG, "=== HANDLING INTENT ===");
+        Log.d(TAG, "refresh_sponsored: " + intent.getBooleanExtra("refresh_sponsored", false));
+        Log.d(TAG, "open_donation_form: " + intent.getBooleanExtra("open_donation_form", false));
+
+        // Check if we need to navigate to home and refresh sponsored campaigns
+        if (intent.getBooleanExtra("refresh_sponsored", false)) {
+            Log.d(TAG, "Navigating to home with refresh");
+            navigateToHomeAndRefresh();
+        }
+        // Check if we need to open donation form
+        else if (intent.getBooleanExtra("open_donation_form", false)) {
+            Log.d(TAG, "Opening donation form");
+            openDonationFormFromIntent(intent);
+        } else {
+            Log.d(TAG, "Default navigation to home");
+            replaceFragment(new frm_sponsor_home());
+        }
+    }
+
+    private void setupWindowInsets() {
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+    }
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        Log.d(TAG, "=== ON NEW INTENT ===");
+
+        // QUAN TRỌNG: Cập nhật intent hiện tại
+        setIntent(intent);
+
+        // Handle ZaloPay callback
+        ZaloPaySDK.getInstance().onResult(intent);
+
+        // Handle refresh or navigation
+        handleIntent(intent);
+    }
+
+    private void navigateToHomeAndRefresh() {
+        Log.d(TAG, "=== NAVIGATE TO HOME AND REFRESH ===");
+
+        // Set home tab as selected
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+
+        // Find existing home fragment
+        Fragment existingFragment = getSupportFragmentManager()
+                .findFragmentById(R.id.fragmentContainer);
+
+        if (existingFragment instanceof frm_sponsor_home) {
+            // Fragment đã tồn tại, chỉ cần refresh
+            Log.d(TAG, "Home fragment exists, refreshing data");
+            ((frm_sponsor_home) existingFragment).refreshData();
+        } else {
+            // Tạo fragment mới
+            Log.d(TAG, "Creating new home fragment");
+            frm_sponsor_home homeFragment = new frm_sponsor_home();
+            Bundle args = new Bundle();
+            args.putBoolean("should_refresh", true);
+            homeFragment.setArguments(args);
+
+            getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, homeFragment)
+                    .commit();
+        }
+
+        // Clear the flag để tránh refresh lại
+        getIntent().removeExtra("refresh_sponsored");
+    }
+
+    private void openDonationFormFromIntent(Intent intent) {
+        String campaignId = intent.getStringExtra("campaign_id");
+        String campaignName = intent.getStringExtra("campaign_name");
+        String organizationName = intent.getStringExtra("campaign_organization_name");
+        double targetBudget = intent.getDoubleExtra("campaign_target_budget", 0);
+        double currentBudget = intent.getDoubleExtra("campaign_current_budget", 0);
+
+        frm_sponsor_donation_form donationFragment = frm_sponsor_donation_form.newInstance(
+                campaignId, campaignName, organizationName, targetBudget, currentBudget
+        );
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, donationFragment)
+                .addToBackStack(null)
+                .commit();
     }
 
     private void replaceFragment(Fragment fragment) {

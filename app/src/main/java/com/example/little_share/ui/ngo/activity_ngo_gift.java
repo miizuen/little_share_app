@@ -36,6 +36,7 @@ import com.example.little_share.data.models.Gift;
 import com.example.little_share.data.repositories.GiftRepository;
 import com.example.little_share.helper.ImgBBUploader;
 import com.example.little_share.ui.ngo.adapter.GiftAdapter;
+import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
 
 import java.util.ArrayList;
 

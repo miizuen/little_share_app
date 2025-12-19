@@ -1,4 +1,4 @@
-package com.example.little_share.adapter;
+package com.example.little_share.adapter.volunteer;
 
 import android.graphics.Color;
 import android.view.LayoutInflater;
@@ -10,7 +10,7 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
-import com.example.little_share.data.models.VolunteerHistoryModel;
+import com.example.little_share.data.models.volunteer.VolunteerHistoryModel;
 
 import java.util.ArrayList;
 import java.util.List;

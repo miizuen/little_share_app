@@ -20,9 +20,8 @@ public class User implements Serializable {
 
     @PropertyName("role")
     private UserRole role; // "VOLUNTEER", "SPONSOR", "ORGANIZATION"
-
     private String organizationId;
-
+    private String sponsorId;
     private int totalPoints;
     private int totalDonations;
     private int totalCampaigns;
@@ -182,5 +181,13 @@ public class User implements Serializable {
 
     public void touchUpdatedAt() {
         this.updatedAt = new Date();
+    }
+
+    public String getSponsorId() {
+        return sponsorId;
+    }
+
+    public void setSponsorId(String sponsorId) {
+        this.sponsorId = sponsorId;
     }
 }

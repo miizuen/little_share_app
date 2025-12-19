@@ -4,7 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -13,17 +13,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
-import com.example.little_share.adapter.CampaignHistoryAdapter;
-import com.example.little_share.data.models.CampaignHistoryModel;
+import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.ui.sponsor.adapter.SponsorCampaignHistoryAdapter;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class frm_sponsor_campaign_sharing extends Fragment {
 
     private RecyclerView rvCampaignsHistory;
-    private CampaignHistoryAdapter adapter;
-    private List<CampaignHistoryModel> campaignList;
+    private SponsorCampaignHistoryAdapter adapter;
+    private CampaignRepository campaignRepository;
+    private View layoutEmptyState;
 
     @Nullable
     @Override
@@ -34,106 +35,81 @@ public class frm_sponsor_campaign_sharing extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        
+        campaignRepository = new CampaignRepository();
+        
         initViews(view);
         setupRecyclerView();
-        loadCampaigns();
+        loadSponsoredCampaigns();
     }
 
     private void initViews(View view) {
         rvCampaignsHistory = view.findViewById(R.id.rvCampaignsHistory);
+        layoutEmptyState = view.findViewById(R.id.layoutEmptyState);
     }
 
     private void setupRecyclerView() {
-        adapter = new CampaignHistoryAdapter();
+        adapter = new SponsorCampaignHistoryAdapter(getContext(), new ArrayList<>(),
+                new SponsorCampaignHistoryAdapter.OnCampaignHistoryClickListener() {
+                    @Override
+                    public void onCampaignClick(Campaign campaign) {
+                        openCampaignDetail(campaign);
+                    }
+
+                    @Override
+                    public void onDetailClick(Campaign campaign) {
+                        openCampaignDetail(campaign);
+                    }
+                });
+
         rvCampaignsHistory.setLayoutManager(new LinearLayoutManager(getContext()));
         rvCampaignsHistory.setAdapter(adapter);
+    }
 
-        // Xử lý sự kiện click
-        adapter.setClickListener(new CampaignHistoryAdapter.OnCampaignClickListener() {
-            @Override
-            public void onDetailClick(CampaignHistoryModel campaign, int position) {
-                // Xử lý khi click button chi tiết
-                Toast.makeText(getContext(),
-                        "Chi tiết: " + campaign.getCampaignName(),
-                        Toast.LENGTH_SHORT).show();
-
-                // Có thể navigate đến màn hình chi tiết
-                // NavController navController = Navigation.findNavController(requireView());
-                // Bundle bundle = new Bundle();
-                // bundle.putString("campaignName", campaign.getCampaignName());
-                // navController.navigate(R.id.action_to_detail, bundle);
-            }
-
-            @Override
-            public void onItemClick(CampaignHistoryModel campaign, int position) {
-                // Xử lý khi click vào item
-                Toast.makeText(getContext(),
-                        "Đã chọn: " + campaign.getCampaignName(),
-                        Toast.LENGTH_SHORT).show();
+    private void loadSponsoredCampaigns() {
+        android.util.Log.d("CAMPAIGN_SHARING", "Loading sponsored campaigns...");
+        
+        campaignRepository.getSponsoredCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
+            if (campaigns != null && isAdded()) {
+                android.util.Log.d("CAMPAIGN_SHARING", "Received " + campaigns.size() + " sponsored campaigns");
+                adapter.updateData(campaigns);
+                
+                // Show/hide empty state
+                if (campaigns.isEmpty()) {
+                    android.util.Log.d("CAMPAIGN_SHARING", "No sponsored campaigns found");
+                    rvCampaignsHistory.setVisibility(View.GONE);
+                    layoutEmptyState.setVisibility(View.VISIBLE);
+                } else {
+                    android.util.Log.d("CAMPAIGN_SHARING", "Displaying " + campaigns.size() + " campaigns");
+                    rvCampaignsHistory.setVisibility(View.VISIBLE);
+                    layoutEmptyState.setVisibility(View.GONE);
+                }
+            } else {
+                android.util.Log.e("CAMPAIGN_SHARING", "Campaigns is null or fragment not added");
             }
         });
     }
 
-    private void loadCampaigns() {
-                campaignList = new ArrayList<>();
+    private void openCampaignDetail(Campaign campaign) {
+        if (isAdded()) {
+            android.util.Log.d("CAMPAIGN_SHARING", "Opening detail for: " + campaign.getName());
+            
+            // Create detail fragment
+            frm_campaign_detail_sponsor detailFragment = new frm_campaign_detail_sponsor();
 
-        // Thêm dữ liệu mẫu
-        campaignList.add(new CampaignHistoryModel(
-                "Bữa cơm Nghĩa Tình",
-                "Bệnh Viện K, Cơ sở 3 - Đống Đa, Hà Nội - Bếp Từ Tâm",
-                "15/10 - 20/10",
-                "20.000.000",
-                R.drawable.logo_buacomnghiatinh,
-                "Nấu ăn và dinh dưỡng"
-        ));
+            // Pass campaign data via Bundle
+            Bundle bundle = new Bundle();
+            bundle.putString("campaign_id", campaign.getId());
+            bundle.putString("campaign_name", campaign.getName());
+            bundle.putSerializable("campaign_data", campaign);
+            detailFragment.setArguments(bundle);
 
-        campaignList.add(new CampaignHistoryModel(
-                "Mùa đông ấm áp",
-                "Các tỉnh miền núi phía Bắc - Hà Giang, Lào Cai",
-                "01/11 - 30/11",
-                "15.500.000",
-                R.drawable.img_quyengop_dochoi,
-                "Tặng áo ấm"
-        ));
-
-        campaignList.add(new CampaignHistoryModel(
-                "Ánh sáng học đường",
-                "Các trường THCS vùng sâu - Cao Bằng, Bắc Kạn",
-                "10/09 - 15/09",
-                "30.000.000",
-                R.drawable.img_nauanchoem,
-                "Xây dựng lớp học"
-        ));
-
-        campaignList.add(new CampaignHistoryModel(
-                "Nước sạch cho em",
-                "Xã Phiêng Luông, Mộc Châu - Sơn La",
-                "05/08 - 25/08",
-                "45.000.000",
-                R.drawable.logo_buacomnghiatinh,
-                "Xây bể chứa nước"
-        ));
-
-        campaignList.add(new CampaignHistoryModel(
-                "Học bổng tương lai",
-                "Học sinh nghèo vượt khó toàn quốc",
-                "01/07 - 31/07",
-                "25.000.000",
-                R.drawable.logo_buacomnghiatinh,
-                "Trao học bổng"
-        ));
-
-        campaignList.add(new CampaignHistoryModel(
-                "Trung thu yêu thương",
-                "Trẻ em mồ côi các tỉnh Miền Trung",
-                "15/08 - 30/08",
-                "18.000.000",
-                R.drawable.img_quyengop_dochoi,
-                "Tặng quà Trung thu"
-        ));
-
-
-        adapter.setCampaignList(campaignList);
+            // Navigate to detail fragment
+            requireActivity().getSupportFragmentManager()
+                    .beginTransaction()
+                    .replace(R.id.fragmentContainer, detailFragment)
+                    .addToBackStack("campaign_detail")
+                    .commit();
+        }
     }
 }

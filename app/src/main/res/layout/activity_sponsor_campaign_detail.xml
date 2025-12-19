@@ -18,9 +18,38 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <!-- Header -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_bottom_rounded_ngo"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
+
+                <ImageView
+                    android:id="@+id/btnBack"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/icon_back"
+                    app:tint="#000000" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="16dp"
+                    android:fontFamily="@font/baloo_da_2_bold"
+                    android:text="Chi tiết chiến dịch"
+                    android:textColor="#000000"
+                    android:textSize="20sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
             <!-- Banner Image -->
             <ImageView
-                android:id="@+id/imgBanner"
+                android:id="@+id/imgCampaign"
                 android:layout_width="match_parent"
                 android:layout_height="200dp"
                 android:scaleType="centerCrop"
@@ -175,11 +204,96 @@
 
                     <!-- Thanh tiến độ -->
                     <ProgressBar
+                        android:id="@+id/progressBudget"
                         style="?android:attr/progressBarStyleHorizontal"
                         android:layout_width="match_parent"
                         android:layout_height="8dp"
                         android:progress="73"
                         android:progressDrawable="@drawable/bg_progress_custom" />
+
+                    <!-- Budget Info -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="16dp">
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Ngân sách hiện tại"
+                                android:textSize="12sp"
+                                android:textColor="#666666" />
+
+                            <TextView
+                                android:id="@+id/tvCurrentBudget"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="650,000 VND"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#5B9EFF" />
+
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Mục tiêu"
+                                android:textSize="12sp"
+                                android:textColor="#666666" />
+
+                            <TextView
+                                android:id="@+id/tvTargetBudget"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="1,000,000 VND"
+                                android:textSize="14sp"
+                                android:textStyle="bold"
+                                android:textColor="#333333" />
+
+                        </LinearLayout>
+
+                    </LinearLayout>
+
+                    <!-- Progress Percent -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center_vertical">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="Tiến độ hoàn thành"
+                            android:textSize="12sp"
+                            android:textColor="#666666" />
+
+                        <TextView
+                            android:id="@+id/tvProgressPercent"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="65%"
+                            android:textSize="12sp"
+                            android:textStyle="bold"
+                            android:textColor="#5B9EFF" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 
@@ -218,7 +332,6 @@
                         android:gravity="center_vertical">
 
                         <TextView
-                            android:id="@+id/tvOrganization"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Tổ chức:"
@@ -232,7 +345,7 @@
                             android:layout_weight="1" />
 
                         <TextView
-                            android:id="@+id/tvLocation"
+                            android:id="@+id/tvOrganizationName"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:text="Nhóm tình nguyện Ánh Sáng"
@@ -337,15 +450,40 @@
                                 android:textColor="#757575"
                                 android:textSize="12sp" />
 
-                            <TextView
-                                android:id="@+id/tvDuration"
+                            <LinearLayout
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:layout_marginTop="2dp"
-                                android:text="12/10/2025 - 30/12/2025"
-                                android:textColor="#000000"
-                                android:textSize="14sp"
-                                android:textStyle="bold" />
+                                android:orientation="horizontal">
+
+                                <TextView
+                                    android:id="@+id/tvStartDate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="12/10/2025"
+                                    android:textColor="#000000"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text=" - "
+                                    android:textColor="#000000"
+                                    android:textSize="14sp" />
+
+                                <TextView
+                                    android:id="@+id/tvEndDate"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="2dp"
+                                    android:text="30/12/2025"
+                                    android:textColor="#000000"
+                                    android:textSize="14sp"
+                                    android:textStyle="bold" />
+
+                            </LinearLayout>
 
                         </LinearLayout>
 
@@ -380,7 +518,7 @@
                                 android:textSize="12sp" />
 
                             <TextView
-                                android:id="@+id/tvLocation2"
+                                android:id="@+id/tvLocation"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:layout_marginTop="2dp"
@@ -464,31 +602,39 @@
                         android:textStyle="bold" />
 
 
-                    <!-- Button Gửi Email -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnCall"
+                    <!-- Action Buttons -->
+                    <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="12dp"
-                        android:background="@drawable/gradient_sponsor"
-                        android:text="📞 Gọi điện"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        app:backgroundTint="@null"
-                        app:cornerRadius="12dp" />
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:layout_marginTop="12dp">
 
-                    <!-- Button Gọi điện -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnEmail"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:background="@drawable/gradient_sponsor"
-                        android:text="✉️ Gửi Email"
-                        android:textColor="#FFFFFF"
-                        android:textSize="14sp"
-                        app:backgroundTint="@null"
-                        app:cornerRadius="12dp" />
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnDonate"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:backgroundTint="#5B9EFF"
+                            android:text="Tài trợ"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            app:cornerRadius="12dp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewReport"
+                            android:layout_width="0dp"
+                            android:layout_height="48dp"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:backgroundTint="#4CAF50"
+                            android:text="Xem báo cáo"
+                            android:textColor="#FFFFFF"
+                            android:textSize="14sp"
+                            android:visibility="gone"
+                            app:cornerRadius="12dp" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
 

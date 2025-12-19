@@ -105,7 +105,6 @@ public class frm_ngo_campaign_list extends Fragment {
                     }
                 }
         );
-
         rvCampaigns.setAdapter(adapter);
     }
 

@@ -2,7 +2,6 @@ package com.example.little_share.ui.ngo;
 
 import android.os.Bundle;
 import android.view.MenuItem;
-import android.widget.ImageView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
@@ -13,9 +12,6 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.little_share.R;
-import com.example.little_share.ui.sponsor.frm_sponsor_home;
-import com.example.little_share.ui.sponsor.frm_sponsor_notification;
-import com.example.little_share.ui.sponsor.frm_sponsor_profile;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 

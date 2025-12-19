@@ -96,7 +96,7 @@ dependencies {
     implementation(libs.google.material)
 
     implementation(fileTree(mapOf(
-        "dir" to "F:\\UTE\\125\\zalopay",
+        "dir" to "${projectDir}\\zalopay",
         "include" to listOf("*.aar", "*.jar"),
         "exclude" to listOf("")
     )))

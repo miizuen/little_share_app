@@ -6,7 +6,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.little_share.data.models.Campain.CampaignRegistration;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.data.models.SponsorDonation;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -239,6 +242,54 @@ public class CampaignRepository {
         return liveData;
     }
 
+    public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        db.collection(COLLECTION)
+                .whereEqualTo("needsSponsor", true)
+                .addSnapshotListener((snapshot, error) -> {
+                    if(error != null){
+                        Log.e(TAG, "Error getting campaigns needing sponsor", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if(snapshot != null){
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshot){
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());
+
+                            String status = campaign.getStatus();
+                            boolean isActive = "UPCOMING".equals(status) || "ONGOING".equals(status);
+                            boolean needsBudget = campaign.getCurrentBudget() < campaign.getTargetBudget();
+
+                            if (isActive && needsBudget) {
+                                campaigns.add(campaign);
+                                Log.d(TAG, "Added campaign: " + campaign.getName() +
+                                        " - Budget: " + campaign.getCurrentBudget() + "/" + campaign.getTargetBudget());
+                            } else {
+                                Log.d(TAG, "Skipped campaign: " + campaign.getName() +
+                                        " - Active: " + isActive + ", NeedsBudget: " + needsBudget);
+                            }
+                        }
+
+                        // Sắp xếp theo độ ưu tiên (campaign thiếu budget nhiều nhất lên đầu)
+                        campaigns.sort((c1, c2) -> {
+                            double remaining1 = c1.getTargetBudget() - c1.getCurrentBudget();
+                            double remaining2 = c2.getTargetBudget() - c2.getCurrentBudget();
+                            return Double.compare(remaining2, remaining1);
+                        });
+
+                        liveData.setValue(campaigns);
+                        Log.d(TAG, "Loaded " + campaigns.size() + " campaigns needing sponsor");
+                    } else {
+                        liveData.setValue(new ArrayList<>());
+                    }
+                });
+        return liveData;
+    }
+
     public LiveData<Campaign> getCampaignById(String campaignId) {
         MutableLiveData<Campaign> liveData = new MutableLiveData<>();
 
@@ -422,6 +473,42 @@ public class CampaignRepository {
         void onFailure(String error);
     }
 
+    public LiveData<List<Campaign>> getCampaignsBySponsor(String sponsorId) {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+        
+        Log.d(TAG, "Getting campaigns for sponsor: " + sponsorId);
+        
+        db.collection(COLLECTION)
+                .whereArrayContains("sponsorIds", sponsorId)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsored campaigns: " + error.getMessage());
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Campaign> campaigns = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (com.google.firebase.firestore.DocumentSnapshot doc : snapshots.getDocuments()) {
+                            try {
+                                Campaign campaign = doc.toObject(Campaign.class);
+                                if (campaign != null) {
+                                    campaign.setId(doc.getId());
+                                    campaigns.add(campaign);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error converting document to Campaign: " + e.getMessage());
+                            }
+                        }
+                    }
+                    
+                    Log.d(TAG, "Found " + campaigns.size() + " sponsored campaigns");
+                    liveData.setValue(campaigns);
+                });
+        
+        return liveData;
+    }
+
     public void getOrganizationNameAndCreate(Campaign campaign, OnCampaignListener listener) {
         if (currentUserId == null) {
             listener.onFailure("Chưa đăng nhập");
@@ -470,4 +557,156 @@ public class CampaignRepository {
                             .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
                 });
     }
+    public LiveData<List<Campaign>> getSponsoredCampaigns() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        // Query donations của user hiện tại
+        db.collection("sponsorDonations")
+                .whereEqualTo("sponsorId", currentUserId)
+                .orderBy("donationDate", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting sponsor donations", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshots == null || snapshots.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy unique campaign IDs
+                    List<String> uniqueCampaignIds = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        String campaignId = doc.getString("campaignId");
+                        if (campaignId != null && !uniqueCampaignIds.contains(campaignId)) {
+                            uniqueCampaignIds.add(campaignId);
+                        }
+                    }
+
+                    if (uniqueCampaignIds.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Lấy campaign details
+                    fetchCampaignDetails(uniqueCampaignIds, liveData);
+                });
+
+        return liveData;
+    }
+
+    private void fetchCampaignDetails(List<String> campaignIds, MutableLiveData<List<Campaign>> liveData) {
+        List<Campaign> campaigns = new ArrayList<>();
+        int[] completedQueries = {0};
+        int totalQueries = campaignIds.size();
+
+        for (String campaignId : campaignIds) {
+            db.collection(COLLECTION)
+                    .document(campaignId)
+                    .get()
+                    .addOnSuccessListener(doc -> {
+                        if (doc.exists()) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            if (campaign != null) {
+                                campaign.setId(doc.getId());
+                                campaigns.add(campaign);
+                            }
+                        }
+
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                            Log.d(TAG, "Loaded " + campaigns.size() + " sponsored campaigns");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        Log.e(TAG, "Error getting campaign: " + campaignId, e);
+                        completedQueries[0]++;
+                        if (completedQueries[0] == totalQueries) {
+                            liveData.setValue(campaigns);
+                        }
+                    });
+        }
+    }
+
+    // Lưu donation vào Firebase
+    public void saveDonation(SponsorDonation donation, OnDonationSaveListener listener) {
+        // Lưu donation vào collection "sponsorDonations"
+        db.collection("sponsorDonations")
+            .add(donation)
+            .addOnSuccessListener(documentReference -> {
+                Log.d(TAG, "Donation saved with ID: " + documentReference.getId());
+                
+                // Cập nhật currentBudget của campaign
+                updateCampaignBudget(donation.getCampaignId(), donation.getAmount(), listener);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error saving donation", e);
+                listener.onFailure("Lỗi lưu thông tin donation: " + e.getMessage());
+            });
+    }
+
+    private void updateCampaignBudget(String campaignId, double donationAmount, OnDonationSaveListener listener) {
+        DocumentReference campaignRef = db.collection("campaigns").document(campaignId);
+        
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(campaignRef);
+            double currentBudget = snapshot.getDouble("currentBudget");
+            double newBudget = currentBudget + donationAmount;
+            
+            transaction.update(campaignRef, "currentBudget", newBudget);
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d(TAG, "Campaign budget updated successfully");
+            listener.onSuccess();
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error updating campaign budget", e);
+            listener.onFailure("Lỗi cập nhật budget: " + e.getMessage());
+        });
+    }
+
+    public interface OnDonationSaveListener {
+        void onSuccess();
+        void onFailure(String error);
+    }
+
+    // Lấy tổng số tiền đã donate cho một campaign cụ thể
+    public void getTotalDonationForCampaign(String campaignId, OnDonationAmountListener listener) {
+        if (currentUserId == null) {
+            listener.onResult(0.0);
+            return;
+        }
+
+        db.collection("sponsorDonations")
+            .whereEqualTo("sponsorId", currentUserId)
+            .whereEqualTo("campaignId", campaignId)
+            .whereEqualTo("status", "COMPLETED")
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                double totalAmount = 0.0;
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    Double amount = doc.getDouble("amount");
+                    if (amount != null) {
+                        totalAmount += amount;
+                    }
+                }
+                listener.onResult(totalAmount);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error getting donation amount", e);
+                listener.onResult(0.0);
+            });
+    }
+
+    public interface OnDonationAmountListener {
+        void onResult(double amount);
+    }
+
 }
