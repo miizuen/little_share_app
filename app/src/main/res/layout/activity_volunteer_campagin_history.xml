@@ -82,8 +82,8 @@
                         <ImageView
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@drawable/ic_campaign"
-                            android:contentDescription="Events" />
+                            android:contentDescription="Events"
+                            android:src="@drawable/ic_people_heart" />
 
                         <TextView
                             android:id="@+id/tv_total_events"
@@ -125,8 +125,8 @@
                         <ImageView
                             android:layout_width="36dp"
                             android:layout_height="36dp"
-                            android:src="@drawable/ic_reward_3d"
-                            android:contentDescription="Points" />
+                            android:contentDescription="Points"
+                            android:src="@drawable/ic_reward" />
 
                         <TextView
                             android:id="@+id/tv_total_points"
