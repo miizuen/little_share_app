@@ -68,7 +68,7 @@ public class frm_volunteer_notification extends Fragment implements Notification
     }
 
     private void loadNotifications() {
-        repository.getNotificationsByUser().observe(getViewLifecycleOwner(), new Observer<List<Notification>>() {
+        repository.getUserNotifications().observe(getViewLifecycleOwner(), new Observer<List<Notification>>() {
             @Override
             public void onChanged(List<Notification> notifications) {
                 if (notifications != null) {
@@ -117,9 +117,9 @@ public class frm_volunteer_notification extends Fragment implements Notification
             });
         }
 
-        // Navigate đến campaign detail nếu có referenceId
-        if (notification.getReferenceId() != null && !notification.getReferenceId().isEmpty()) {
-            navigateToCampaignDetail(notification.getReferenceId());
+        // Navigate đến campaign detail nếu có relatedId
+        if (notification.getRelatedId() != null && !notification.getRelatedId().isEmpty()) {
+            navigateToCampaignDetail(notification.getRelatedId());
         }
     }
 
