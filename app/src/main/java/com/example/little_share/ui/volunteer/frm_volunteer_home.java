@@ -233,4 +233,18 @@ public class frm_volunteer_home extends Fragment {
                     .commit();
         }
     }
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Refresh user data khi fragment được hiển thị lại
+        loadCurrentUserData();
+    }
+
+    // Phương thức public để refresh từ bên ngoài
+    public void refreshUserData() {
+        if (isAdded()) {
+            loadCurrentUserData();
+        }
+    }
+
 }
