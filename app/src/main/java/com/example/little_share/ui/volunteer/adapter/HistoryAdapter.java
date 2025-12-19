@@ -76,9 +76,17 @@ public class HistoryAdapter extends RecyclerView.Adapter<HistoryAdapter.HistoryV
     }
 
     public void updateData(List<CampaignRegistration> newList) {
-        this.historyList = newList;
-        notifyDataSetChanged();
+        if (newList != null && !newList.isEmpty()) {
+            this.historyList.clear();
+            this.historyList.addAll(newList);
+            notifyDataSetChanged();
+
+            android.util.Log.d("HistoryAdapter", "Data updated with " + newList.size() + " items");
+        } else {
+            android.util.Log.w("HistoryAdapter", "Attempted to update with empty or null list");
+        }
     }
+
 
     public void setOnHistoryItemClickListener(OnHistoryItemClickListener listener) {
         this.listener = listener;

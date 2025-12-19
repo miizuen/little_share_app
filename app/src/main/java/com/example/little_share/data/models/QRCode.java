@@ -3,7 +3,9 @@ package com.example.little_share.data.models;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.ServerTimestamp;
-
+import org.json.JSONObject;
+import java.util.Calendar;
+import java.util.UUID;
 import java.io.Serializable;
 import java.util.Date;
 @IgnoreExtraProperties
@@ -26,6 +28,8 @@ public class QRCode implements Serializable {
     @ServerTimestamp
     private Date updatedAt;  // <-- thêm field bị thiếu
     private boolean isActive; // <-- thêm field bị thiếu
+
+
 
     public enum QRCodeType {
         CAMPAIGN_REGISTRATION("Đăng ký chiến dịch"),
@@ -56,6 +60,8 @@ public class QRCode implements Serializable {
         this.createdAt = new Date();
         this.updatedAt = new Date();
     }
+
+
 
     // Getters & Setters
     public String getId() { return id; }
@@ -103,6 +109,93 @@ public class QRCode implements Serializable {
     public boolean isValid() {
         return isActive && !isUsed && !isExpired();
     }
+    public static QRCode createGiftRedemptionQR(String giftId, String volunteerId,
+                                                String giftName, int pointsRequired,
+                                                String organizationId) {
+        String code = generateUniqueCode();
+        String metadata = createGiftMetadata(giftId, giftName, pointsRequired, organizationId);
+
+        QRCode qrCode = new QRCode(code, QRCodeType.GIFT_REDEMPTION, giftId, volunteerId);
+        qrCode.setMetadata(metadata);
+        qrCode.setExpiryDate(getExpiryDate24Hours());
+
+        return qrCode;
+    }
+
+    private static String createGiftMetadata(String giftId, String giftName,
+                                             int pointsRequired, String organizationId) {
+        return "{"
+                + "\"giftId\":\"" + giftId + "\","
+                + "\"giftName\":\"" + giftName + "\","
+                + "\"pointsRequired\":" + pointsRequired + ","
+                + "\"organizationId\":\"" + organizationId + "\""
+                + "}";
+    }
+
+    private static String generateUniqueCode() {
+        return "QR_" + System.currentTimeMillis() + "_" +
+                UUID.randomUUID().toString().substring(0, 8);
+    }
+
+    private static Date getExpiryDate24Hours() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.HOUR_OF_DAY, 24);
+        return cal.getTime();
+    }
+    public String getGiftName() {
+        try {
+            if (metadata == null) return "";
+            JSONObject json = new JSONObject(metadata);
+            return json.getString("giftName");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public int getPointsRequired() {
+        try {
+            if (metadata == null) return 0;
+            JSONObject json = new JSONObject(metadata);
+            return json.getInt("pointsRequired");
+        } catch (Exception e) {
+            return 0;
+        }
+    }
+
+    public String getGiftId() {
+        try {
+            if (metadata == null) return "";
+            JSONObject json = new JSONObject(metadata);
+            return json.getString("giftId");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public String getOrganizationId() {
+        try {
+            if (metadata == null) return "";
+            JSONObject json = new JSONObject(metadata);
+            return json.getString("organizationId");
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    public boolean isValidForGiftRedemption() {
+        return isValid() &&
+                type == QRCodeType.GIFT_REDEMPTION &&
+                metadata != null &&
+                !metadata.isEmpty();
+    }
+
+    public void markAsUsed() {
+        this.isUsed = true;
+        this.usedAt = new Date();
+        this.updatedAt = new Date();
+    }
+
+
 }
 
 

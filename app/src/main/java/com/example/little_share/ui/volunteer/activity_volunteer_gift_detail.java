@@ -196,32 +196,24 @@ public class activity_volunteer_gift_detail extends AppCompatActivity {
         btnExchange.setText("ĐANG XỬ LÝ...");
 
         // Gọi GiftRepository để thực hiện đổi quà
-        giftRepository.redeemGift(
-                currentUser.getId(),
-                currentUser.getFullName(), // userName
+        giftRepository.createGiftRedemptionRequest(
                 currentGift.getId(),
                 currentGift.getName(),
-                currentGift.getPointsRequired(), // pointsSpent
+                currentGift.getPointsRequired(),
                 new GiftRepository.OnRedemptionListener() {
                     @Override
-                    public void onSuccess(String redemptionId, String qrCode) {
-                        // Cập nhật điểm user local
-                        int newPoints = currentUser.getTotalPoints() - currentGift.getPointsRequired();
-                        currentUser.setTotalPoints(newPoints);
+                    public void onSuccess(String redemptionId, String qrContent) {
+                        // KHÔNG cập nhật điểm user local vì chưa trừ điểm
+                        // KHÔNG cập nhật số lượng quà vì chưa hoàn thành
 
-                        // Cập nhật số lượng quà local
-                        currentGift.setAvailableQuantity(currentGift.getAvailableQuantity() - 1);
-
-                        // Hiển thị dialog thành công
-                        showSuccessDialog(newPoints, qrCode);
+                        // Hiển thị dialog thành công với QR code
+                        showSuccessDialog(qrContent);
 
                         // Reset button
                         btnExchange.setEnabled(true);
-                        updateExchangeButton();
-                        updateUserPointsDisplay();
-                        displayGiftData(); // Refresh gift data
+                        btnExchange.setText("ĐỔI QUÀ NGAY");
 
-                        Log.d(TAG, "Gift redemption successful. Remaining points: " + newPoints);
+                        Log.d(TAG, "Gift redemption request created successfully");
                     }
 
                     @Override
@@ -233,25 +225,28 @@ public class activity_volunteer_gift_detail extends AppCompatActivity {
                         btnExchange.setEnabled(true);
                         btnExchange.setText("ĐỔI QUÀ NGAY");
 
-                        Log.e(TAG, "Gift redemption failed: " + error);
+                        Log.e(TAG, "Gift redemption request failed: " + error);
                     }
                 }
         );
     }
 
-    private void showSuccessDialog(int remainingPoints, String qrCode) {
+    private void showSuccessDialog(String qrCode) {
         GiftRedemptionSuccessDialog dialog = new GiftRedemptionSuccessDialog(
                 this,
-                currentGift.getName(),
-                remainingPoints,
-                qrCode
+                currentGift.getName(),  // ✅ Sử dụng currentGift
+                qrCode                  // ✅ Sử dụng tham số qrCode
         );
 
-        dialog.setOnDialogActionListener(() -> {
-            // Quay về gift shop và refresh dữ liệu
-            finish();
+        dialog.setOnDialogActionListener(new GiftRedemptionSuccessDialog.OnDialogActionListener() {
+            @Override
+            public void onComplete() {
+                // Có thể refresh trang hoặc quay về trang trước
+                finish();
+            }
         });
 
         dialog.show();
     }
+
 }

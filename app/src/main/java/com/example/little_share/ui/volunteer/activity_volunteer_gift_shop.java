@@ -33,6 +33,10 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
     private UserRepository userRepository;
     private User currentUser;
 
+
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

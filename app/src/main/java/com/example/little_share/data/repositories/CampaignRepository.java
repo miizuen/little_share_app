@@ -4,7 +4,7 @@ import android.util.Log;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
-
+import com.example.little_share.data.models.Campain.CampaignRegistration;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FieldValue;
@@ -23,13 +23,17 @@ public class CampaignRepository {
     private final FirebaseFirestore db;
     private final String currentUserId;
 
+
     public LiveData<List<CampaignRegistration>> getUserRegistrationHistory() {
         MutableLiveData<List<CampaignRegistration>> liveData = new MutableLiveData<>();
 
         if (currentUserId == null) {
+            Log.w(TAG, "Current user ID is null");
             liveData.setValue(new ArrayList<>());
             return liveData;
         }
+
+        Log.d(TAG, "Setting up registration history listener for user: " + currentUserId);
 
         db.collection("campaign_registrations")
                 .whereEqualTo("userId", currentUserId)
@@ -37,33 +41,49 @@ public class CampaignRepository {
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error getting registrations", error);
-                        liveData.setValue(new ArrayList<>());
+                        // Không set empty list nếu có lỗi, giữ nguyên data cũ
                         return;
                     }
 
-                    List<CampaignRegistration> registrations = new ArrayList<>();
-                    if (snapshots != null) {
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        List<CampaignRegistration> registrations = new ArrayList<>();
+                        Log.d(TAG, "Processing " + snapshots.size() + " registration documents");
+
                         for (QueryDocumentSnapshot doc : snapshots) {
-                            CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
-                            if (registration != null) {
-                                registration.setId(doc.getId());
-                                registrations.add(registration);
+                            try {
+                                CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
+                                if (registration != null) {
+                                    registration.setId(doc.getId());
+                                    registrations.add(registration);
+                                }
+                            } catch (Exception e) {
+                                Log.e(TAG, "Error parsing registration document: " + doc.getId(), e);
                             }
                         }
-                    }
 
-                    Log.d(TAG, "Loaded " + registrations.size() + " registrations");
-                    liveData.setValue(registrations);
+                        if (!registrations.isEmpty()) {
+                            Log.d(TAG, "Setting " + registrations.size() + " registrations to LiveData");
+                            liveData.setValue(registrations);
+                        }
+                    } else {
+                        Log.w(TAG, "No registration documents found");
+                        // Chỉ set empty list lần đầu
+                        if (liveData.getValue() == null) {
+                            liveData.setValue(new ArrayList<>());
+                        }
+                    }
                 });
 
         return liveData;
     }
-
     public void getRegistrationStats(OnRegistrationStatsListener listener) {
         if (currentUserId == null) {
+            Log.w(TAG, "Current user ID is null for stats");
             listener.onSuccess(0, 0);
             return;
         }
+
+        Log.d(TAG, "Loading registration stats for user: " + currentUserId);
 
         db.collection("campaign_registrations")
                 .whereEqualTo("userId", currentUserId)
@@ -72,13 +92,20 @@ public class CampaignRepository {
                     int totalCampaigns = snapshots.size();
                     int totalPoints = 0;
 
+                    Log.d(TAG, "Found " + totalCampaigns + " registration documents for stats");
+
                     for (QueryDocumentSnapshot doc : snapshots) {
-                        CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
-                        if (registration != null) {
-                            totalPoints += registration.getPointsEarned();
+                        try {
+                            CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
+                            if (registration != null) {
+                                totalPoints += registration.getPointsEarned();
+                            }
+                        } catch (Exception e) {
+                            Log.e(TAG, "Error parsing registration for stats: " + doc.getId(), e);
                         }
                     }
 
+                    Log.d(TAG, "Stats calculated: " + totalCampaigns + " campaigns, " + totalPoints + " points");
                     listener.onSuccess(totalCampaigns, totalPoints);
                 })
                 .addOnFailureListener(e -> {
@@ -91,6 +118,7 @@ public class CampaignRepository {
     public interface OnRegistrationStatsListener {
         void onSuccess(int totalCampaigns, int totalPoints);
     }
+
 
     public CampaignRepository() {
         this.db = FirebaseFirestore.getInstance();
