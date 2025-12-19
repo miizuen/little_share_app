@@ -15,6 +15,7 @@ import android.widget.Toast;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Gift;
 import com.example.little_share.data.models.User;
+import com.example.little_share.data.repositories.GiftRepository;
 import com.example.little_share.data.repositories.UserRepository;
 import com.example.little_share.ui.volunteer.adapter.GiftAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
@@ -33,6 +34,37 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
     private UserRepository userRepository;
     private User currentUser;
 
+    private GiftRepository giftRepository; // Thêm biến này
+
+    private void initRepositories() {
+        db = FirebaseFirestore.getInstance();
+        userRepository = new UserRepository();
+        giftRepository = new GiftRepository(); // Thêm dòng này
+    }
+
+    private void loadGiftsFromFirestore() {
+        Log.d(TAG, "Starting to load gifts using GiftRepository...");
+
+        giftRepository.getAllGifts().observe(this, gifts -> {
+            Log.d(TAG, "Observer triggered with " + (gifts != null ? gifts.size() : "null") + " gifts");
+
+            // KIỂM TRA ADAPTER TRƯỚC
+            if (giftAdapter == null) {
+                Log.e(TAG, "GiftAdapter is null! Setting up RecyclerView first.");
+                setupRecyclerView();
+            }
+
+            if (gifts != null && !gifts.isEmpty()) {
+                Log.d(TAG, "Received " + gifts.size() + " gifts from repository");
+                giftAdapter.updateGiftList(gifts);
+                Log.d(TAG, "Adapter updated successfully");
+            } else {
+                Log.d(TAG, "No gifts found, creating sample gifts");
+                createSampleGifts();
+            }
+        });
+    }
+
 
 
 
@@ -42,6 +74,7 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_volunteer_gift_shop);
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -50,8 +83,10 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
 
         initViews();
         initRepositories();
-        setupRecyclerView();
+        setupRecyclerView(); // ĐẢM BẢO ADAPTER ĐƯỢC TẠO TRƯỚC
         setupClickListeners();
+
+        // Load data SAU KHI setup UI
         loadCurrentUserData();
         loadGiftsFromFirestore();
     }
@@ -61,7 +96,11 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
         super.onResume();
         // Refresh user data khi quay lại activity
         loadCurrentUserData();
+
+        // THÊM: Refresh gifts data (nếu không dùng real-time listener)
+        // loadGiftsFromFirestore(); // Không cần nếu đã dùng addSnapshotListener
     }
+
 
     private void initViews() {
         recyclerGifts = findViewById(R.id.recyclerGifts);
@@ -69,10 +108,7 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
         tvPoints = findViewById(R.id.tvPoints);
     }
 
-    private void initRepositories() {
-        db = FirebaseFirestore.getInstance();
-        userRepository = new UserRepository();
-    }
+
 
     private void setupRecyclerView() {
         giftList = new ArrayList<>();
@@ -108,50 +144,39 @@ public class activity_volunteer_gift_shop extends AppCompatActivity {
         });
     }
 
-    private void loadGiftsFromFirestore() {
-        db.collection("gifts")
-                .get()
-                .addOnCompleteListener(task -> {
-                    if (task.isSuccessful()) {
-                        giftList.clear();
-                        for (QueryDocumentSnapshot document : task.getResult()) {
-                            Gift gift = document.toObject(Gift.class);
-                            giftList.add(gift);
-                        }
-                        giftAdapter.notifyDataSetChanged();
-                        Log.d(TAG, "Loaded " + giftList.size() + " gifts");
-                    } else {
-                        Log.w(TAG, "Error getting gifts.", task.getException());
-                        Toast.makeText(this, "Không thể tải danh sách quà", Toast.LENGTH_SHORT).show();
-                        createSampleGifts();
-                    }
-                });
-    }
-
     private void createSampleGifts() {
+        Log.d(TAG, "Creating sample gifts...");
+
         giftList.clear();
 
-        Gift gift1 = new Gift("abc", "Đồ chơi", 400, 10);
+        Gift gift1 = new Gift("abc", "Đồ chơi", 400, 15);
         gift1.setDescription("Gấu bông mềm mại, dễ thương cho trẻ em");
         gift1.setImageUrl("");
-        gift1.setAvailableQuantity(5);
+        gift1.setAvailableQuantity(8);
 
-        Gift gift2 = new Gift("Movie Ticket", "Giải trí", 400, 15);
+        Gift gift2 = new Gift("Movie Ticket", "Giải trí", 400, 10);
         gift2.setDescription("Vé xem phim tại rạp CGV");
         gift2.setImageUrl("");
-        gift2.setAvailableQuantity(8);
+        gift2.setAvailableQuantity(5);
 
         Gift gift3 = new Gift("Gau bong teddy", "Đồ chơi", 800, 25);
         gift3.setDescription("Gấu bông teddy cao cấp");
         gift3.setImageUrl("");
-        gift3.setAvailableQuantity(12);
+        gift3.setAvailableQuantity(14);
 
         giftList.add(gift1);
         giftList.add(gift2);
         giftList.add(gift3);
 
-        giftAdapter.notifyDataSetChanged();
+        // SỬA: Sử dụng updateGiftList thay vì notifyDataSetChanged
+        if (giftAdapter != null) {
+            giftAdapter.updateGiftList(giftList);
+            Log.d(TAG, "Sample gifts updated to adapter: " + giftList.size());
+        } else {
+            Log.e(TAG, "GiftAdapter is null when creating sample gifts!");
+        }
     }
+
 
     // Phương thức public để lấy user hiện tại (dùng cho adapter hoặc activity khác)
     public User getCurrentUser() {
