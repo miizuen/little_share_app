@@ -15,7 +15,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:background="@drawable/gradient_sponsor"
+            android:background="@drawable/button_sign_up"
             android:padding="16dp"
             android:gravity="center_vertical">
 
@@ -43,7 +43,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:padding="16dp"
-                android:background="@drawable/gradient_sponsor">
+                android:background="@drawable/button_sign_up">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -52,11 +52,13 @@
                     android:gravity="center_vertical">
 
                     <ImageView
+                        android:id="@+id/ivAvatar"
                         android:layout_width="60dp"
                         android:layout_height="60dp"
                         android:src="@drawable/logo_d_japan"
                         android:background="@drawable/circle_bg_light"
                         android:padding="1dp" />
+
 
                     <LinearLayout
                         android:layout_width="wrap_content"
