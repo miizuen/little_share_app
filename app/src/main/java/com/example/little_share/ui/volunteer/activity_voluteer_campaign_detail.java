@@ -2,8 +2,6 @@ package com.example.little_share.ui.volunteer;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ProgressBar;
@@ -18,9 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 
-import java.io.Serializable;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Locale;
 
 public class activity_voluteer_campaign_detail extends AppCompatActivity {
@@ -51,7 +47,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             return insets;
         });
     }
-
 
     private void getDataFromIntent() {
         if (getIntent().hasExtra("campaign")) {
@@ -86,13 +81,7 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             Intent intent = new Intent(activity_voluteer_campaign_detail.this, activity_volunteer_role_selection.class);
             intent.putExtra("campaignId", campaign.getId());
             intent.putExtra("campaignName", campaign.getName());
-
-            Log.d("CampaignDetail", "Campaign ID: " + campaign.getId());
-            Log.d("CampaignDetail", "Roles count: " + (campaign.getRoles() != null ? campaign.getRoles().size() : "null"));
-
-            if (campaign.getRoles() != null && !campaign.getRoles().isEmpty()) {
-                intent.putExtra("roles", (Serializable) new ArrayList<>(campaign.getRoles()));
-            }
+            intent.putExtra("campaign", campaign);
             startActivity(intent);
         });
     }

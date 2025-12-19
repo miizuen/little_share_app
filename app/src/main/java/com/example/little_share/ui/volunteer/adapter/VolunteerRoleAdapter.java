@@ -40,6 +40,10 @@ public class VolunteerRoleAdapter extends RecyclerView.Adapter<VolunteerRoleAdap
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CampaignRole role = roles.get(position);
+        
+        android.util.Log.d("RoleAdapter", "Role: " + role.getRoleName() 
+        + ", maxVol: " + role.getMaxVolunteers() 
+        + ", currentVol: " + role.getCurrentVolunteers());
 
         holder.tvRoleTitle.setText(role.getRoleName());
         holder.tvRoleDescription.setText(role.getDescription());

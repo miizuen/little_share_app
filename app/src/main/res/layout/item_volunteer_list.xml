@@ -36,15 +36,17 @@
                 android:textSize="13sp"
                 android:textStyle="bold" />
 
-            <!-- Icon đúng -->
+            <!-- Icon duyệt -->
             <ImageView
+                android:id="@+id/btnApprove"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:src="@drawable/ic_check"
                 app:tint="@color/primary_green" />
 
-            <!-- Icon sai -->
+            <!-- Icon từ chối -->
             <ImageView
+                android:id="@+id/btnReject"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:src="@drawable/ic_close"

@@ -78,7 +78,7 @@ public class CampaignRepository {
                             .add(campaign)
                             .addOnSuccessListener(ref -> {
                                 campaign.setId(ref.getId());
-                                listener.onSuccess("Tạo thành công!");
+                                listener.onSuccess(ref.getId());
                             })
                             .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
                 })
