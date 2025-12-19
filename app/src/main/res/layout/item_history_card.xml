@@ -37,7 +37,7 @@
                 android:layout_width="50dp"
                 android:layout_height="50dp"
                 android:layout_alignParentEnd="true"
-                android:src="@drawable/ic_qr" />
+                android:src="@drawable/ic_reward_3d" />
         </RelativeLayout>
 
         <!-- Role Badge -->

@@ -19,6 +19,7 @@ import com.example.little_share.data.models.Campain.Campaign;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -217,9 +218,23 @@ public class SponsorCampaignSponsoredAdapter extends RecyclerView.Adapter<Sponso
     }
 
     public void updateData(List<Campaign> newCampaigns) {
-        Log.d(TAG, "Updating adapter with " + (newCampaigns != null ? newCampaigns.size() : 0) + " sponsored campaigns");
-        this.campaigns = newCampaigns;
+        Log.d(TAG, "=== UPDATING SPONSORED CAMPAIGNS ADAPTER ===");
+        Log.d(TAG, "Previous size: " + (this.campaigns != null ? this.campaigns.size() : 0));
+        Log.d(TAG, "New size: " + (newCampaigns != null ? newCampaigns.size() : 0));
+
+        if (newCampaigns != null && !newCampaigns.isEmpty()) {
+            for (int i = 0; i < newCampaigns.size(); i++) {
+                Campaign c = newCampaigns.get(i);
+                Log.d(TAG, "Campaign [" + i + "]: " + c.getName() +
+                        " | ID: " + c.getId() +
+                        " | Status: " + c.getStatus());
+            }
+        }
+
+        this.campaigns = newCampaigns != null ? newCampaigns : new ArrayList<>();
         notifyDataSetChanged();
+
+        Log.d(TAG, "Adapter updated, notifyDataSetChanged() called");
     }
 
     private String formatMoney(double amount) {

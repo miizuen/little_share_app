@@ -39,27 +39,33 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="20dp"
                     android:fontFamily="sans-serif-medium"
-                    android:text="Đổi quà thành công"
+                    android:text="Yêu cầu đổi quà thành công"
                     android:textColor="#1A1A1A"
-                    android:textSize="24sp"
+                    android:textSize="22sp"
                     android:textStyle="bold"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/ivSuccessIcon" />
 
+
                 <!-- Remaining Points -->
                 <TextView
                     android:id="@+id/tvDialogRemainingPoints"
-                    android:layout_width="wrap_content"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif"
-                    android:text="Điểm còn lại: 50"
-                    android:textColor="#666666"
+                    android:gravity="center"
+                    android:text="Điểm sẽ được trừ khi tổ chức quét QR code này"
+                    android:textColor="#FF6B35"
                     android:textSize="15sp"
+                    android:textStyle="bold"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvDialogTitle" />
+
 
                 <!-- Note -->
                 <TextView
@@ -67,15 +73,18 @@
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="16dp"
                     android:fontFamily="sans-serif"
                     android:gravity="center"
-                    android:lineSpacingExtra="2dp"
-                    android:text="Vui lòng xuất trình mã này trước khi nhận quà"
+                    android:lineSpacingExtra="4dp"
+                    android:text="Vui lòng mang QR code này đến địa điểm nhận quà.\nBạn sẽ nhận được thông báo khi quà được trao."
                     android:textColor="#666666"
                     android:textSize="14sp"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toBottomOf="@id/tvDialogRemainingPoints" />
+
 
                 <!-- QR Code Card -->
                 <androidx.cardview.widget.CardView
@@ -100,26 +109,52 @@
                         android:src="@drawable/placeholder_qr_code" />
                 </androidx.cardview.widget.CardView>
 
-                <!-- Complete Button -->
-                <Button
-                    android:id="@+id/btnDialogComplete"
+                <!-- Buttons Layout -->
+                <LinearLayout
+                    android:id="@+id/layoutButtons"
                     android:layout_width="0dp"
-                    android:layout_height="52dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="28dp"
-                    android:background="@drawable/bg_button_gradient"
-                    android:backgroundTint="@null"
-                    android:elevation="0dp"
-                    android:fontFamily="sans-serif-medium"
-                    android:stateListAnimator="@null"
-                    android:text="Hoàn tất"
-                    android:textAllCaps="false"
-                    android:textColor="@android:color/white"
-                    android:textSize="16sp"
-                    app:backgroundTint="@null"
+                    android:orientation="horizontal"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/cardDialogQRCode" />
+                    app:layout_constraintTop_toBottomOf="@id/cardDialogQRCode">
+
+                    <!-- Save QR Button -->
+                    <Button
+                        android:id="@+id/btnSaveQR"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginEnd="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_outline"
+                        android:fontFamily="sans-serif-medium"
+                        android:text="Lưu QR"
+                        android:textAllCaps="false"
+                        android:textColor="#FF6B35"
+                        android:textSize="16sp" />
+
+                    <!-- Complete Button -->
+                    <Button
+                        android:id="@+id/btnDialogComplete"
+                        android:layout_width="0dp"
+                        android:layout_height="52dp"
+                        android:layout_marginStart="8dp"
+                        android:layout_weight="1"
+                        android:background="@drawable/bg_button_gradient"
+                        android:backgroundTint="@null"
+                        android:elevation="0dp"
+                        android:fontFamily="sans-serif-medium"
+                        android:stateListAnimator="@null"
+                        android:text="Đóng"
+                        android:textAllCaps="false"
+                        android:textColor="@android:color/white"
+                        android:textSize="16sp"
+                        app:backgroundTint="@null" />
+
+                </LinearLayout>
+
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.cardview.widget.CardView>
