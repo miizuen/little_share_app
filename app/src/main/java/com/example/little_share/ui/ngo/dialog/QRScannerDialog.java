@@ -1,4 +1,4 @@
-package com.example.little_share.ui.ngo;
+package com.example.little_share.ui.ngo.dialog;
 
 import android.Manifest;
 import android.app.Dialog;
@@ -17,7 +17,6 @@ import com.example.little_share.utils.QRCodeGenerator;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.AppCompatButton;
-import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.example.little_share.R;
