@@ -1,6 +1,7 @@
 package com.example.little_share.ui.sponsor;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.util.Log;
@@ -111,22 +112,15 @@ public class activity_sponsor_payment_confirm extends AppCompatActivity {
                             new PayOrderListener() {
                                 @Override
                                 public void onPaymentSucceeded(String s, String s1, String s2) {
-                                    Log.d("ZALOPAY", "✅ Payment SUCCESS");
-                                    Intent intent1 = new Intent(activity_sponsor_payment_confirm.this,
-                                            dialog_donation_success_sponsor.class);
-                                    intent1.putExtra("result","Thanh toán thành công");
-                                    startActivity(intent1);
-                                    finish();
+                                    Log.d("ZALOPAY", "✅ Payment SUCCESS - waiting for callback");
+                                    // KHÔNG chuyển trang ở đây, chờ callback từ ZaloPay app
                                 }
 
                                 @Override
                                 public void onPaymentCanceled(String s, String s1) {
                                     Log.d("ZALOPAY", "⚠️ Payment CANCELED");
-                                    Intent intent1 = new Intent(activity_sponsor_payment_confirm.this,
-                                            dialog_donation_success_sponsor.class);
-                                    intent1.putExtra("result","Hủy thanh toán");
-                                    startActivity(intent1);
-                                    finish();
+                                    Toast.makeText(activity_sponsor_payment_confirm.this,
+                                            "Đã hủy thanh toán", Toast.LENGTH_SHORT).show();
                                 }
 
                                 @Override
@@ -156,6 +150,22 @@ public class activity_sponsor_payment_confirm extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         ZaloPaySDK.getInstance().onResult(intent);
+
+        // Kiểm tra callback từ ZaloPay
+        Uri data = intent.getData();
+        if (data != null && "demozpdk".equals(data.getScheme())) {
+            Log.d("ZALOPAY", "✅ Received callback from ZaloPay - redirecting to success page");
+            
+            // ZaloPay đã thanh toán xong, chuyển đến trang thành công
+            Intent successIntent = new Intent(this, dialog_donation_success_sponsor.class);
+            successIntent.putExtra("result", "Thanh toán thành công");
+            successIntent.putExtra("campaign_name", currentCampaign != null ? currentCampaign.getName() : "");
+            successIntent.putExtra("donation_amount", etAmount);
+            successIntent.putExtra("message", etNote);
+            startActivity(successIntent);
+            finish();
+        }
     }
+
 
 }

@@ -36,37 +36,57 @@ public class dialog_donation_success_sponsor extends AppCompatActivity {
     private void getDataFromIntent() {
         Intent intent = getIntent();
         String result = intent.getStringExtra("result");
+        String campaignName = intent.getStringExtra("campaign_name");
+        String donationAmount = intent.getStringExtra("donation_amount");
+        String message = intent.getStringExtra("message");
+        String transactionId = intent.getStringExtra("transaction_id");
 
-        // Hiển thị kết quả thanh toán (có thể log hoặc toast)
+        // Hiển thị kết quả thanh toán
         if (result != null) {
             android.util.Log.d("DONATION_SUCCESS", "Payment result: " + result);
+            android.util.Log.d("DONATION_SUCCESS", "Campaign: " + campaignName);
+            android.util.Log.d("DONATION_SUCCESS", "Amount: " + donationAmount);
+            android.util.Log.d("DONATION_SUCCESS", "Transaction ID: " + transactionId);
 
-            // Có thể cập nhật UI dựa vào result
-            updateUIBasedOnResult(result);
+            // Cập nhật UI với thông tin chi tiết
+            updateUIWithPaymentInfo(campaignName, donationAmount, transactionId);
+
+            // Cập nhật dữ liệu vào Firebase (nếu thanh toán thành công)
+            if ("Thanh toán thành công".equals(result)) {
+                updateFirebaseWithDonation(campaignName, donationAmount, message, transactionId);
+            }
         }
     }
 
-    private void updateUIBasedOnResult(String result) {
-        TextView tvTitle = findViewById(R.id.tvAmount).getRootView()
-                .findViewById(R.id.tvAmount); // Tìm TextView tiêu đề nếu cần
-
-        // Tùy chỉnh hiển thị dựa vào kết quả
-        switch (result) {
-            case "Thanh toán thành công":
-                // UI đã đúng với success
-                break;
-            case "Hủy thanh toán":
-                // Có thể thay đổi icon, text nếu cần
-                break;
-            case "Lỗi thanh toán":
-                // Có thể thay đổi màu sắc, thông báo
-                break;
+    private void updateUIWithPaymentInfo(String campaignName, String donationAmount, String transactionId) {
+        // Hiển thị số tiền đã tài trợ
+        if (donationAmount != null && tvAmount != null) {
+            try {
+                double amount = Double.parseDouble(donationAmount);
+                String formattedAmount = new java.text.DecimalFormat("#,###").format(amount) + " VNĐ";
+                tvAmount.setText(formattedAmount);
+            } catch (NumberFormatException e) {
+                tvAmount.setText(donationAmount + " VNĐ");
+            }
         }
+
+        // Log thông tin để debug
+        android.util.Log.d("DONATION_SUCCESS", "Updated UI with amount: " + donationAmount);
+    }
+
+    private void updateFirebaseWithDonation(String campaignName, String donationAmount, String message, String transactionId) {
+        // TODO: Thêm code cập nhật Firebase ở đây
+        // Ví dụ: thêm vào collection sponsoredCampaigns của user
+        android.util.Log.d("FIREBASE_UPDATE", "Should update Firebase with:");
+        android.util.Log.d("FIREBASE_UPDATE", "Campaign: " + campaignName);
+        android.util.Log.d("FIREBASE_UPDATE", "Amount: " + donationAmount);
+        android.util.Log.d("FIREBASE_UPDATE", "Transaction ID: " + transactionId);
+
+        // Bạn có thể thêm code Firebase ở đây sau
     }
 
     private void setupClickListeners() {
         btnBackToHome.setOnClickListener(v -> {
-            // Quay về trang chủ và xóa toàn bộ stack
             Intent intent = new Intent(this, activity_sponsor_main.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
             startActivity(intent);

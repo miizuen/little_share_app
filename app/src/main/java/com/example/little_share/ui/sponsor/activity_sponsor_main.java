@@ -42,7 +42,7 @@ public class activity_sponsor_main extends AppCompatActivity {
             public boolean onNavigationItemSelected(@NonNull MenuItem item) {
                 Fragment selectedFragment = null;
                 int itemId = item.getItemId();
-                
+
                 if (itemId == R.id.nav_home) {
                     selectedFragment = new frm_sponsor_home();
                 } else if (itemId == R.id.nav_journey) {
@@ -52,7 +52,7 @@ public class activity_sponsor_main extends AppCompatActivity {
                 } else if (itemId == R.id.nav_profile) {
                     selectedFragment = new frm_sponsor_profile();
                 }
-                
+
                 if (selectedFragment != null) {
                     replaceFragment(selectedFragment);
                     return true;
@@ -83,7 +83,7 @@ public class activity_sponsor_main extends AppCompatActivity {
     protected void onNewIntent(Intent intent) {
         super.onNewIntent(intent);
         ZaloPaySDK.getInstance().onResult(intent);
-        
+
         // Check if we need to open donation form from new intent
         if (intent.getBooleanExtra("open_donation_form", false)) {
             setIntent(intent);
