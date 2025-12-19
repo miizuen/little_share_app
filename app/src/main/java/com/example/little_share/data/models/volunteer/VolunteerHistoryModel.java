@@ -1,4 +1,4 @@
-package com.example.little_share.data.models;
+package com.example.little_share.data.models.volunteer;
 
 public class VolunteerHistoryModel {
     private String status;
