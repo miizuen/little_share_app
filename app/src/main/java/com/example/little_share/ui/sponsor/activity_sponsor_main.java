@@ -50,7 +50,7 @@ public class activity_sponsor_main extends AppCompatActivity {
                 } else if (itemId == R.id.nav_notification) {
                     selectedFragment = new frm_sponsor_notification();
                 } else if (itemId == R.id.nav_profile) {
-                    selectedFragment = new frm_sponsor_profile();
+                    selectedFragment = new frm_profile_sponsor();
                 }
                 
                 if (selectedFragment != null) {
