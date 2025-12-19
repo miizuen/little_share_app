@@ -11,10 +11,11 @@ import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-
+import com.example.little_share.data.models.Campain.CampaignRegistration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+
 
 public class CampaignRepository {
     private static final String TAG = "CampaignRepository";
@@ -22,6 +23,74 @@ public class CampaignRepository {
     private final FirebaseFirestore db;
     private final String currentUserId;
 
+    public LiveData<List<CampaignRegistration>> getUserRegistrationHistory() {
+        MutableLiveData<List<CampaignRegistration>> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        db.collection("campaign_registrations")
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("workDate", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting registrations", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<CampaignRegistration> registrations = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
+                            if (registration != null) {
+                                registration.setId(doc.getId());
+                                registrations.add(registration);
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "Loaded " + registrations.size() + " registrations");
+                    liveData.setValue(registrations);
+                });
+
+        return liveData;
+    }
+
+    public void getRegistrationStats(OnRegistrationStatsListener listener) {
+        if (currentUserId == null) {
+            listener.onSuccess(0, 0);
+            return;
+        }
+
+        db.collection("campaign_registrations")
+                .whereEqualTo("userId", currentUserId)
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    int totalCampaigns = snapshots.size();
+                    int totalPoints = 0;
+
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
+                        if (registration != null) {
+                            totalPoints += registration.getPointsEarned();
+                        }
+                    }
+
+                    listener.onSuccess(totalCampaigns, totalPoints);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting registration stats", e);
+                    listener.onSuccess(0, 0);
+                });
+    }
+
+    // Thêm interface mới
+    public interface OnRegistrationStatsListener {
+        void onSuccess(int totalCampaigns, int totalPoints);
+    }
 
     public CampaignRepository() {
         this.db = FirebaseFirestore.getInstance();
