@@ -18,7 +18,6 @@ public class dialog_donation_success_sponsor extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.dialog_donation_success_sponsor);
-
         initViews();
         getDataFromIntent();
         setupClickListeners();
@@ -87,8 +86,11 @@ public class dialog_donation_success_sponsor extends AppCompatActivity {
 
     private void setupClickListeners() {
         btnBackToHome.setOnClickListener(v -> {
+            // Quay về MainActivity và chuyển đến home fragment với refresh
             Intent intent = new Intent(this, activity_sponsor_main.class);
             intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            intent.putExtra("navigate_to", "home");
+            intent.putExtra("refresh_sponsored", true);
             startActivity(intent);
             finish();
         });

@@ -13,7 +13,11 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.data.models.SponsorDonation;
+import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.example.little_share.helper.helperZaloPay.Api.CreateOrder;
+import com.google.firebase.auth.FirebaseAuth;
 
 import org.json.JSONObject;
 
@@ -154,17 +158,74 @@ public class activity_sponsor_payment_confirm extends AppCompatActivity {
         // Kiểm tra callback từ ZaloPay
         Uri data = intent.getData();
         if (data != null && "demozpdk".equals(data.getScheme())) {
-            Log.d("ZALOPAY", "✅ Received callback from ZaloPay - redirecting to success page");
+            Log.d("ZALOPAY", "✅ Received callback from ZaloPay - processing payment success");
             
-            // ZaloPay đã thanh toán xong, chuyển đến trang thành công
-            Intent successIntent = new Intent(this, dialog_donation_success_sponsor.class);
-            successIntent.putExtra("result", "Thanh toán thành công");
-            successIntent.putExtra("campaign_name", currentCampaign != null ? currentCampaign.getName() : "");
-            successIntent.putExtra("donation_amount", etAmount);
-            successIntent.putExtra("message", etNote);
-            startActivity(successIntent);
-            finish();
+            // Lưu donation vào Firebase trước khi chuyển trang
+            onPaymentSuccess("zalopay_" + System.currentTimeMillis());
         }
+    }
+
+    private void onPaymentSuccess(String transactionId) {
+        // Tạo SponsorDonation object
+        SponsorDonation donation = new SponsorDonation();
+        donation.setSponsorId(getCurrentUserId());
+        donation.setSponsorName(getCurrentUserName());
+        donation.setCampaignId(currentCampaign.getId());
+        donation.setCampaignName(currentCampaign.getName());
+        donation.setOrganizationName(currentCampaign.getOrganizationName());
+        donation.setAmount(Double.parseDouble(etAmount));
+        donation.setMessage(etNote);
+        donation.setTransactionId(transactionId);
+        donation.setStatus("COMPLETED");
+        donation.setPaymentMethod("ZaloPay");
+        
+        // Lưu vào Firebase
+        CampaignRepository campaignRepository = new CampaignRepository();
+        campaignRepository.saveDonation(donation, new CampaignRepository.OnDonationSaveListener() {
+            @Override
+            public void onSuccess() {
+                Log.d("PAYMENT_CONFIRM", "Donation saved successfully");
+                
+                // Tạo notification cho donation thành công
+                NotificationRepository notificationRepository = new NotificationRepository();
+                notificationRepository.createDonationSuccessNotification(
+                    currentCampaign.getName(), 
+                    Double.parseDouble(etAmount)
+                );
+                
+                // Chuyển đến trang thành công
+                showSuccessPage();
+            }
+            
+            @Override
+            public void onFailure(String error) {
+                Log.e("PAYMENT_CONFIRM", "Failed to save donation: " + error);
+                Toast.makeText(activity_sponsor_payment_confirm.this, 
+                    "Lỗi lưu thông tin: " + error, Toast.LENGTH_SHORT).show();
+                // Vẫn chuyển đến trang thành công vì đã thanh toán
+                showSuccessPage();
+            }
+        });
+    }
+
+    private void showSuccessPage() {
+        Intent successIntent = new Intent(this, dialog_donation_success_sponsor.class);
+        successIntent.putExtra("result", "Thanh toán thành công");
+        successIntent.putExtra("campaign_name", currentCampaign != null ? currentCampaign.getName() : "");
+        successIntent.putExtra("donation_amount", etAmount);
+        successIntent.putExtra("message", etNote);
+        startActivity(successIntent);
+        finish();
+    }
+
+    private String getCurrentUserId() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        return auth.getCurrentUser() != null ? auth.getCurrentUser().getUid() : null;
+    }
+
+    private String getCurrentUserName() {
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        return auth.getCurrentUser() != null ? auth.getCurrentUser().getDisplayName() : "Nhà tài trợ";
     }
 
 

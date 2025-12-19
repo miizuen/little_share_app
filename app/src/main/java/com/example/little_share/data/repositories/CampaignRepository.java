@@ -6,7 +6,10 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.data.models.SponsorDonation;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -534,6 +537,79 @@ public class CampaignRepository {
                         }
                     });
         }
+    }
+
+    // Lưu donation vào Firebase
+    public void saveDonation(SponsorDonation donation, OnDonationSaveListener listener) {
+        // Lưu donation vào collection "sponsorDonations"
+        db.collection("sponsorDonations")
+            .add(donation)
+            .addOnSuccessListener(documentReference -> {
+                Log.d(TAG, "Donation saved with ID: " + documentReference.getId());
+                
+                // Cập nhật currentBudget của campaign
+                updateCampaignBudget(donation.getCampaignId(), donation.getAmount(), listener);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error saving donation", e);
+                listener.onFailure("Lỗi lưu thông tin donation: " + e.getMessage());
+            });
+    }
+
+    private void updateCampaignBudget(String campaignId, double donationAmount, OnDonationSaveListener listener) {
+        DocumentReference campaignRef = db.collection("campaigns").document(campaignId);
+        
+        db.runTransaction(transaction -> {
+            DocumentSnapshot snapshot = transaction.get(campaignRef);
+            double currentBudget = snapshot.getDouble("currentBudget");
+            double newBudget = currentBudget + donationAmount;
+            
+            transaction.update(campaignRef, "currentBudget", newBudget);
+            return null;
+        }).addOnSuccessListener(aVoid -> {
+            Log.d(TAG, "Campaign budget updated successfully");
+            listener.onSuccess();
+        }).addOnFailureListener(e -> {
+            Log.e(TAG, "Error updating campaign budget", e);
+            listener.onFailure("Lỗi cập nhật budget: " + e.getMessage());
+        });
+    }
+
+    public interface OnDonationSaveListener {
+        void onSuccess();
+        void onFailure(String error);
+    }
+
+    // Lấy tổng số tiền đã donate cho một campaign cụ thể
+    public void getTotalDonationForCampaign(String campaignId, OnDonationAmountListener listener) {
+        if (currentUserId == null) {
+            listener.onResult(0.0);
+            return;
+        }
+
+        db.collection("sponsorDonations")
+            .whereEqualTo("sponsorId", currentUserId)
+            .whereEqualTo("campaignId", campaignId)
+            .whereEqualTo("status", "COMPLETED")
+            .get()
+            .addOnSuccessListener(snapshots -> {
+                double totalAmount = 0.0;
+                for (QueryDocumentSnapshot doc : snapshots) {
+                    Double amount = doc.getDouble("amount");
+                    if (amount != null) {
+                        totalAmount += amount;
+                    }
+                }
+                listener.onResult(totalAmount);
+            })
+            .addOnFailureListener(e -> {
+                Log.e(TAG, "Error getting donation amount", e);
+                listener.onResult(0.0);
+            });
+    }
+
+    public interface OnDonationAmountListener {
+        void onResult(double amount);
     }
 
 }

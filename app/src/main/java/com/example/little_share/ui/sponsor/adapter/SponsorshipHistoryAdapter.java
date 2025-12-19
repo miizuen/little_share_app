@@ -50,31 +50,41 @@ public class SponsorshipHistoryAdapter extends RecyclerView.Adapter<SponsorshipH
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         Campaign campaign = sponsoredCampaigns.get(position);
 
-        // Bind data
+        // Campaign name
         holder.tvCampaignName.setText(campaign.getName());
+        
+        // Organization
         holder.tvOrganization.setText(campaign.getOrganizationName());
+        
+        // Location
         holder.tvLocation.setText(campaign.getLocation());
 
+        // Category
+        String category = getCategoryDisplayName(campaign.getCategory());
+        holder.tvCategory.setText(category);
+        
+        // Status
+        String status = getStatusDisplayName(campaign.getStatus());
+        holder.tvStatus.setText(status);
+        holder.tvStatus.setBackgroundResource(getStatusBackground(campaign.getStatus()));
+
         // Format date
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String dateRange = sdf.format(campaign.getStartDate()) + " - " + sdf.format(campaign.getEndDate());
-        holder.tvDate.setText(dateRange);
+        if (campaign.getStartDate() != null && campaign.getEndDate() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String dateRange = sdf.format(campaign.getStartDate()) + " - " + sdf.format(campaign.getEndDate());
+            holder.tvDate.setText(dateRange);
+        }
 
         // Progress
         int progress = campaign.getBudgetProgressPercentage();
         holder.progressBar.setProgress(progress);
-        holder.tvProgress.setText(progress + "%");
+        
+        // Progress text with money format
+        String progressText = formatMoney(campaign.getCurrentBudget()) + " / " + formatMoney(campaign.getTargetBudget());
+        holder.tvProgress.setText(progressText);
 
         // Load image
-        if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
-            Glide.with(context)
-                    .load(campaign.getImageUrl())
-                    .placeholder(R.drawable.img_quyengop_dochoi)
-                    .error(R.drawable.img_quyengop_dochoi)
-                    .into(holder.imgCampaign);
-        } else {
-            holder.imgCampaign.setImageResource(R.drawable.img_quyengop_dochoi);
-        }
+        loadCampaignImage(holder.imgCampaign, campaign);
 
         // Click listeners
         holder.btnViewDetail.setOnClickListener(v -> {
@@ -102,9 +112,85 @@ public class SponsorshipHistoryAdapter extends RecyclerView.Adapter<SponsorshipH
         notifyDataSetChanged();
     }
 
+    private String getCategoryDisplayName(String category) {
+        if (category == null) return "Khác";
+        
+        switch (category.toUpperCase()) {
+            case "FOOD": return "Thực phẩm";
+            case "EDUCATION": return "Giáo dục";
+            case "HEALTH": return "Y tế";
+            case "ENVIRONMENT": return "Môi trường";
+            case "URGENT": return "Khẩn cấp";
+            default: return category;
+        }
+    }
+
+    private String getStatusDisplayName(String status) {
+        if (status == null) return "Không rõ";
+        
+        switch (status.toUpperCase()) {
+            case "ONGOING": return "Đang diễn ra";
+            case "UPCOMING": return "Sắp diễn ra";
+            case "COMPLETED": return "Hoàn thành";
+            case "PENDING": return "Chờ duyệt";
+            case "CANCELLED": return "Đã hủy";
+            default: return status;
+        }
+    }
+
+    private int getStatusBackground(String status) {
+        if (status == null) return R.drawable.bg_status_badge;
+        
+        switch (status.toUpperCase()) {
+            case "ONGOING": return R.drawable.bg_status_active;
+            case "UPCOMING": return R.drawable.bg_status_pending;
+            case "COMPLETED": return R.drawable.bg_status_completed;
+            case "CANCELLED": return R.drawable.bg_status_cancelled;
+            default: return R.drawable.bg_status_badge;
+        }
+    }
+
+    private void loadCampaignImage(ImageView imageView, Campaign campaign) {
+        if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
+            Glide.with(context)
+                    .load(campaign.getImageUrl())
+                    .placeholder(R.drawable.img_quyengop_dochoi)
+                    .error(R.drawable.img_quyengop_dochoi)
+                    .centerCrop()
+                    .into(imageView);
+        } else {
+            int defaultImage = getDefaultImageForCategory(campaign.getCategory());
+            imageView.setImageResource(defaultImage);
+        }
+    }
+
+    private int getDefaultImageForCategory(String category) {
+        if (category == null) return R.drawable.img_quyengop_dochoi;
+        
+        switch (category.toUpperCase()) {
+            case "FOOD": return R.drawable.img_nauanchoem;
+            case "EDUCATION":
+            case "HEALTH":
+            case "ENVIRONMENT":
+            case "URGENT":
+            default: return R.drawable.img_quyengop_dochoi;
+        }
+    }
+
+    private String formatMoney(double amount) {
+        if (amount >= 1000000) {
+            return String.format(Locale.getDefault(), "%.1fM", amount / 1000000);
+        } else if (amount >= 1000) {
+            return String.format(Locale.getDefault(), "%.0fK", amount / 1000);
+        } else {
+            return String.format(Locale.getDefault(), "%.0f", amount);
+        }
+    }
+
     static class ViewHolder extends RecyclerView.ViewHolder {
         ImageView imgCampaign;
         TextView tvCampaignName, tvOrganization, tvLocation, tvDate, tvProgress;
+        TextView tvCategory, tvStatus;
         ProgressBar progressBar;
         Button btnViewDetail;
 
@@ -112,13 +198,14 @@ public class SponsorshipHistoryAdapter extends RecyclerView.Adapter<SponsorshipH
             super(itemView);
             imgCampaign = itemView.findViewById(R.id.imgCampaign);
             tvCampaignName = itemView.findViewById(R.id.tvCampaignName);
-            tvOrganization = itemView.findViewById(R.id.tvOrganization);
+            tvOrganization = itemView.findViewById(R.id.tvGroup);
             tvLocation = itemView.findViewById(R.id.tvLocation);
             tvDate = itemView.findViewById(R.id.tvDate);
             tvProgress = itemView.findViewById(R.id.tvProgress);
+            tvCategory = itemView.findViewById(R.id.tvCategory);
+            tvStatus = itemView.findViewById(R.id.tvStatus);
             progressBar = itemView.findViewById(R.id.progressBar);
-            btnViewDetail = itemView.findViewById(R.id.btnDetail);
-
+            btnViewDetail = itemView.findViewById(R.id.btnViewReport);
         }
     }
 }

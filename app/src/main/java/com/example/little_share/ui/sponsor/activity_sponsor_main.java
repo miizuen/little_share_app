@@ -63,8 +63,14 @@ public class activity_sponsor_main extends AppCompatActivity {
     }
 
     private void handleIntent() {
+        Intent intent = getIntent();
+        
+        // Check if we need to navigate to home and refresh sponsored campaigns
+        if (intent.getBooleanExtra("refresh_sponsored", false)) {
+            navigateToHomeAndRefresh();
+        }
         // Check if we need to open donation form
-        if (getIntent().getBooleanExtra("open_donation_form", false)) {
+        else if (intent.getBooleanExtra("open_donation_form", false)) {
             openDonationFormFromIntent();
         } else {
             replaceFragment(new frm_sponsor_home());
@@ -84,11 +90,30 @@ public class activity_sponsor_main extends AppCompatActivity {
         super.onNewIntent(intent);
         ZaloPaySDK.getInstance().onResult(intent);
 
+        // Check if we need to refresh sponsored campaigns
+        if (intent.getBooleanExtra("refresh_sponsored", false)) {
+            setIntent(intent);
+            navigateToHomeAndRefresh();
+        }
         // Check if we need to open donation form from new intent
-        if (intent.getBooleanExtra("open_donation_form", false)) {
+        else if (intent.getBooleanExtra("open_donation_form", false)) {
             setIntent(intent);
             openDonationFormFromIntent();
         }
+    }
+
+    private void navigateToHomeAndRefresh() {
+        // Set home tab as selected
+        bottomNavigationView.setSelectedItemId(R.id.nav_home);
+        
+        // Create new home fragment and replace
+        frm_sponsor_home homeFragment = new frm_sponsor_home();
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.fragmentContainer, homeFragment)
+                .commit();
+        
+        android.util.Log.d("SPONSOR_MAIN", "Navigated to home and refreshed sponsored campaigns");
     }
 
     private void openDonationFormFromIntent() {
