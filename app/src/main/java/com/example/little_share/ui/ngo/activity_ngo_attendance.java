@@ -19,6 +19,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Shift;
+import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;

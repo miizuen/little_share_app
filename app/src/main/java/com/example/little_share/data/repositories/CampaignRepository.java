@@ -22,7 +22,6 @@ public class CampaignRepository {
     private final FirebaseFirestore db;
     private final String currentUserId;
 
-
     public CampaignRepository() {
         this.db = FirebaseFirestore.getInstance();
         this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
