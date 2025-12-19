@@ -16,7 +16,7 @@ public class frm_sponsor_profile extends Fragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.fragment_sponsor_home, container, false);
+        return inflater.inflate(R.layout.frm_profile_sponsor, container, false);
     }
 
     @Override
