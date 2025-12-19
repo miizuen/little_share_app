@@ -1,10 +1,17 @@
 package com.example.little_share.ui.volunteer;
 
+import android.app.Dialog;
+import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.ImageButton;
+import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -14,18 +21,28 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
-import com.example.little_share.adapter.volunteer.VolunteerHistoryAdapter;
-import com.example.little_share.data.models.volunteer.VolunteerHistoryModel;
+import com.example.little_share.data.models.VolunteerRegistration;
+import com.example.little_share.ui.volunteer.adapter.MyRegistrationAdapter;
+import com.google.android.material.button.MaterialButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Query;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.common.BitMatrix;
+import com.google.zxing.qrcode.QRCodeWriter;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class frm_volunteer_calendar extends Fragment {
+public class frm_volunteer_calendar extends Fragment implements MyRegistrationAdapter.OnViewQRListener {
 
     private RecyclerView rvHistory;
-    private VolunteerHistoryAdapter adapter;
+    private MyRegistrationAdapter adapter;
     private ImageButton btnBack;
-    private List<VolunteerHistoryModel> historyList;
+    private TextView tvCampaignName;
+    private List<VolunteerRegistration> registrationList = new ArrayList<>();
+    private FirebaseFirestore db;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -37,126 +54,126 @@ public class frm_volunteer_calendar extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        db = FirebaseFirestore.getInstance();
+
         initViews(view);
         setupRecyclerView();
-        loadHistoryData();
+        loadMyRegistrations();
         setupClickListeners();
     }
 
     private void initViews(View view) {
         rvHistory = view.findViewById(R.id.rv_history);
         btnBack = view.findViewById(R.id.btnBack);
+        tvCampaignName = view.findViewById(R.id.tvCampaignName);
     }
 
     private void setupRecyclerView() {
-        adapter = new VolunteerHistoryAdapter();
+        adapter = new MyRegistrationAdapter(getContext(), registrationList, this);
         rvHistory.setLayoutManager(new LinearLayoutManager(getContext()));
         rvHistory.setAdapter(adapter);
-
-        // Xử lý sự kiện click item
-        adapter.setClickListener((history, position) -> {
-            Toast.makeText(getContext(),
-                    "Chi tiết: " + history.getCampaignTitle(),
-                    Toast.LENGTH_SHORT).show();
-
-            // Có thể navigate đến màn hình chi tiết
-            // NavController navController = Navigation.findNavController(requireView());
-            // Bundle bundle = new Bundle();
-            // bundle.putString("campaignTitle", history.getCampaignTitle());
-            // navController.navigate(R.id.action_to_detail, bundle);
-        });
     }
 
-    private void loadHistoryData() {
-        historyList = new ArrayList<>();
+    private void loadMyRegistrations() {
+        String userId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid() : "";
 
-        // Thêm dữ liệu mẫu - Hoạt động đã hoàn thành
-        historyList.add(new VolunteerHistoryModel(
-                "✓ Hoàn thành",
-                70,
-                "Nấu ăn cho em",
-                "Đầu bếp",
-                "28/10/2024",
-                "8:00 - 12:00",
-                "#22C55E",  // Green
-                true
-        ));
+        if (userId.isEmpty()) {
+            tvCampaignName.setText("Vui lòng đăng nhập");
+            return;
+        }
 
-        historyList.add(new VolunteerHistoryModel(
-                "✓ Hoàn thành",
-                85,
-                "Dạy học cho trẻ vùng cao",
-                "Giáo viên",
-                "25/10/2024",
-                "13:00 - 17:00",
-                "#22C55E",
-                true
-        ));
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("status", "approved")  // THÊM DÒNG NÀY
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    registrationList.clear();
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
+                        reg.setId(doc.getId());
+                        registrationList.add(reg);
+                    }
+                    adapter.notifyDataSetChanged();
 
-        historyList.add(new VolunteerHistoryModel(
-                "✓ Hoàn thành",
-                60,
-                "Phát quà Trung thu",
-                "Phụ trách",
-                "20/10/2024",
-                "9:00 - 15:00",
-                "#22C55E",
-                true
-        ));
+                    // Cập nhật subtitle
+                    if (registrationList.isEmpty()) {
+                        tvCampaignName.setText("Chưa có hoạt động nào");
+                    } else {
+                        tvCampaignName.setText("Bạn có " + registrationList.size() + " hoạt động");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi tải dữ liệu", Toast.LENGTH_SHORT).show();
+                });
+    }
 
-        // Hoạt động sắp tới
-        historyList.add(new VolunteerHistoryModel(
-                "⏰ Sắp tới",
-                0,
-                "Mùa đông ấm áp",
-                "Hỗ trợ",
-                "05/11/2024",
-                "7:00 - 11:00",
-                "#F59E0B",  // Amber/Orange
-                false
-        ));
+    @Override
+    public void onViewQR(VolunteerRegistration registration) {
+        showQRDialog(registration);
+    }
 
-        historyList.add(new VolunteerHistoryModel(
-                "⏰ Sắp tới",
-                0,
-                "Xây dựng trường học",
-                "Công nhân",
-                "12/11/2024",
-                "6:00 - 16:00",
-                "#F59E0B",
-                false
-        ));
+    private void showQRDialog(VolunteerRegistration registration) {
+        Dialog dialog = new Dialog(requireContext());
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+        dialog.setContentView(R.layout.dialog_registration_success);
+        dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
 
-        // Hoạt động đang diễn ra
-        historyList.add(new VolunteerHistoryModel(
-                "▶ Đang diễn ra",
-                0,
-                "Bữa cơm Nghĩa Tình",
-                "Đầu bếp",
-                "28/11/2024",
-                "8:00 - 12:00",
-                "#3B82F6",  // Blue
-                false
-        ));
+        // Bind views
+        TextView tvTitle = dialog.findViewById(R.id.tvTitle);
+        TextView tvRoleInfo = dialog.findViewById(R.id.tvRoleInfo);
+        TextView tvDateTime = dialog.findViewById(R.id.tvDateTime);
+        ImageView ivQRCode = dialog.findViewById(R.id.ivQRCode);
+        MaterialButton btnComplete = dialog.findViewById(R.id.btnComplete);
+        ImageButton btnBackDialog = dialog.findViewById(R.id.btnBack);
 
-        // Hoạt động đã hủy
-        historyList.add(new VolunteerHistoryModel(
-                "✕ Đã hủy",
-                0,
-                "Trao học bổng",
-                "MC",
-                "15/10/2024",
-                "14:00 - 18:00",
-                "#EF4444",  // Red
-                false
-        ));
+        // Set data
+        tvTitle.setText("Mã điểm danh");
+        tvRoleInfo.setText("Vai trò: " + registration.getRoleName());
+        tvDateTime.setText("Ngày: " + registration.getDate() + " · " + registration.getShiftTime());
 
-        adapter.setHistoryList(historyList);
+        // Sinh QR Code từ mã đã lưu
+        String qrContent = registration.getQrCode();
+        if (qrContent != null && !qrContent.isEmpty()) {
+            Bitmap qrBitmap = generateQrCode(qrContent);
+            if (qrBitmap != null) {
+                ivQRCode.setImageBitmap(qrBitmap);
+            }
+        } else {
+            Toast.makeText(getContext(), "Chưa có mã QR", Toast.LENGTH_SHORT).show();
+        }
+
+        btnComplete.setOnClickListener(v -> dialog.dismiss());
+        if (btnBackDialog != null) {
+            btnBackDialog.setOnClickListener(v -> dialog.dismiss());
+        }
+
+        dialog.show();
+    }
+
+    private Bitmap generateQrCode(String content) {
+        try {
+            QRCodeWriter writer = new QRCodeWriter();
+            BitMatrix bitMatrix = writer.encode(content, BarcodeFormat.QR_CODE, 512, 512);
+            int width = bitMatrix.getWidth();
+            int height = bitMatrix.getHeight();
+            Bitmap bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565);
+
+            for (int x = 0; x < width; x++) {
+                for (int y = 0; y < height; y++) {
+                    bitmap.setPixel(x, y, bitMatrix.get(x, y) ? Color.BLACK : Color.WHITE);
+                }
+            }
+            return bitmap;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> {
-            // Xử lý nút back
             if (getActivity() != null) {
                 getActivity().onBackPressed();
             }

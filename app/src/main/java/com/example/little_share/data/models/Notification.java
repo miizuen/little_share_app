@@ -56,6 +56,21 @@ public class Notification implements Serializable {
     
     @ServerTimestamp
     private Date createdAt;
+    public enum NotificationType {
+        CAMPAIGN_NEW("Chiến dịch mới"),
+        CAMPAIGN_APPROVED("Đã được duyệt"),
+        CAMPAIGN_REMINDER("Nhắc nhở"),
+        DONATION_CONFIRMED("Quyên góp xác nhận"),
+        GIFT_AVAILABLE("Quà mới"),
+        SPONSORSHIP_SUCCESS("Tài trợ thành công"),
+        REGISTRATION_APPROVED("Đăng ký được duyệt"),  // THÊM
+        REGISTRATION_REJECTED("Đăng ký bị từ chối"),  // THÊM
+        GENERAL("Thông báo chung");
+
+        private String displayName;
+        NotificationType(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
 
     public Notification() {
         this.isRead = false;

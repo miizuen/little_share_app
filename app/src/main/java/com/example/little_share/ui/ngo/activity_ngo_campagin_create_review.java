@@ -33,6 +33,7 @@ import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.util.HashMap;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.List;
@@ -357,8 +358,32 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
     }
 
     private void saveCampaignToFirestore(Campaign campaign) {
-        progressDialog.setMessage("Đang tạo chiến dịch...");
-        progressDialog.show();
+    progressDialog.setMessage("Đang tạo chiến dịch...");
+    progressDialog.show();
+
+    // Tính maxVolunteers cho mỗi role TRƯỚC khi lưu
+    if (roleList != null && !roleList.isEmpty()) {
+        Map<String, Integer> totalVolunteersPerRole = new HashMap<>();
+        
+        if (shiftRoleAssignments != null) {
+            for (Map<String, Integer> shiftAssignment : shiftRoleAssignments.values()) {
+                for (Map.Entry<String, Integer> entry : shiftAssignment.entrySet()) {
+                    String roleName = entry.getKey();
+                    int count = entry.getValue();
+                    totalVolunteersPerRole.put(roleName, 
+                        totalVolunteersPerRole.getOrDefault(roleName, 0) + count);
+                }
+            }
+        }
+        
+        // Set maxVolunteers cho từng role
+        for (CampaignRole role : roleList) {
+            int maxVol = totalVolunteersPerRole.getOrDefault(role.getRoleName(), 0);
+            role.setMaxVolunteers(maxVol);
+        }
+        
+        campaign.setRoles(roleList);
+    }
 
         repository.createCampaign(campaign, new CampaignRepository.OnCampaignListener() {
             @Override
@@ -393,11 +418,26 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
     }
 
     private void saveRolesAndShifts(String campaignId) {
+           Map<String, Integer> totalVolunteersPerRole = new HashMap<>();
+    
+    if (shiftRoleAssignments != null) {
+        for (Map<String, Integer> shiftAssignment : shiftRoleAssignments.values()) {
+            for (Map.Entry<String, Integer> entry : shiftAssignment.entrySet()) {
+                String roleName = entry.getKey();
+                int count = entry.getValue();
+                totalVolunteersPerRole.put(roleName, 
+                    totalVolunteersPerRole.getOrDefault(roleName, 0) + count);
+            }
+        }
+    }
         // Lưu roles
         for (CampaignRole role : roleList) {
-            role.setCampaignId(campaignId);
-            db.collection("campaign_roles").add(role);
-        }
+        role.setCampaignId(campaignId);
+        // Set maxVolunteers từ tổng đã tính
+        int maxVol = totalVolunteersPerRole.getOrDefault(role.getRoleName(), 0);
+        role.setMaxVolunteers(maxVol);
+        db.collection("campaign_roles").add(role);
+    }
 
         // Lưu shifts
         if (shiftList != null) {

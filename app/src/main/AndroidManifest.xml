@@ -82,6 +82,7 @@
         <activity
             android:name=".ui.volunteer.activity_volunteer_gift_detail"
             android:exported="false" />
+        <activity android:name=".ui.volunteer.activity_volunteer_role_registration" />
         <activity
             android:name=".ui.volunteer.activity_volunteer_gift_shop"
             android:exported="false" />

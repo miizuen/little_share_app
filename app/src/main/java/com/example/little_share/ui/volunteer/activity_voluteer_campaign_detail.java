@@ -1,5 +1,6 @@
 package com.example.little_share.ui.volunteer;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -28,7 +29,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button btnRegister;
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -37,7 +37,7 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
 
         initView();
         getDataFromIntent();
-        if(campaign != null){
+        if (campaign != null) {
             bindData();
         }
 
@@ -49,39 +49,41 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     }
 
     private void getDataFromIntent() {
-        if(getIntent().hasExtra("campaign")){
+        if (getIntent().hasExtra("campaign")) {
             campaign = (Campaign) getIntent().getSerializableExtra("campaign");
         }
     }
 
     private void bindData() {
         tvCampaignTitle.setText(campaign.getName());
-       try {
-           tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
-       } catch (Exception e) {
-           tvCategoryBadge.setText(campaign.getCategory());
-       }
+        try {
+            tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
+        } catch (Exception e) {
+            tvCategoryBadge.setText(campaign.getCategory());
+        }
 
-       int progress = campaign.getProgressPercentage();
-       tvProgressNumber.setText(progress + "%");
-       progressBar.setProgress(progress);
+        int progress = campaign.getProgressPercentage();
+        tvProgressNumber.setText(progress + "%");
+        progressBar.setProgress(progress);
 
-       tvOrganization.setText(campaign.getOrganizationName());
-
-       tvSponsor.setText("Quỹ từ thiện Nuôi Em");
-
-       tvDescription.setText(campaign.getDescription());
+        tvOrganization.setText(campaign.getOrganizationName());
+        tvSponsor.setText("Quỹ từ thiện Nuôi Em");
+        tvDescription.setText(campaign.getDescription());
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         String dateRange = sdf.format(campaign.getStartDate()) + " - " + sdf.format(campaign.getEndDate());
         tvTime.setText(dateRange);
 
-       tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
-       tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
+        tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
+        tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
 
-       btnRegister.setOnClickListener(v -> {
-           // Handle button click
-       });
+        btnRegister.setOnClickListener(v -> {
+            Intent intent = new Intent(activity_voluteer_campaign_detail.this, activity_volunteer_role_selection.class);
+            intent.putExtra("campaignId", campaign.getId());
+            intent.putExtra("campaignName", campaign.getName());
+            intent.putExtra("campaign", campaign);
+            startActivity(intent);
+        });
     }
 
     private void initView() {
