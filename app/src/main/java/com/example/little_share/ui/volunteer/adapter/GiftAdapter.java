@@ -24,6 +24,18 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         this.context = context;
         this.giftList = giftList;
     }
+    public void updateGiftList(List<Gift> newGiftList) {
+        android.util.Log.d("GiftAdapter", "updateGiftList called with " + (newGiftList != null ? newGiftList.size() : "null") + " gifts");
+
+        if (newGiftList != null) {
+            this.giftList.clear();
+            this.giftList.addAll(newGiftList);
+            notifyDataSetChanged();
+
+            android.util.Log.d("GiftAdapter", "Adapter updated, total items: " + getItemCount());
+        }
+    }
+
 
     @NonNull
     @Override
@@ -33,24 +45,28 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     }
 
     @Override
+
     public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         Gift gift = giftList.get(position);
 
         holder.tvGiftName.setText(gift.getName());
         holder.tvPoints.setText("🌟 +" + gift.getPointsRequired());
 
+        // THÊM MỚI: Hiển thị số lượng còn lại
+        holder.tvQuantity.setText("Còn " + gift.getAvailableQuantity() + "/" + gift.getTotalQuantity());
+
         // Load image từ URL bằng Glide
         if (gift.getImageUrl() != null && !gift.getImageUrl().isEmpty()) {
             Glide.with(context)
                     .load(gift.getImageUrl())
-                    .placeholder(R.drawable.gift_teddy_bear) // placeholder image
-                    .error(R.drawable.gift_teddy_bear) // error image
+                    .placeholder(R.drawable.gift_teddy_bear)
+                    .error(R.drawable.gift_teddy_bear)
                     .into(holder.ivGift);
         } else {
             holder.ivGift.setImageResource(R.drawable.gift_teddy_bear);
         }
 
-        // Hiển thị HOT badge cho quà có điểm cao (ví dụ > 800 điểm)
+        // Hiển thị HOT badge cho quà có điểm cao
         if (gift.getPointsRequired() > 800) {
             holder.tvHotBadge.setVisibility(View.VISIBLE);
         } else {
@@ -63,29 +79,35 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
             holder.tvOutOfStock.setVisibility(View.VISIBLE);
             holder.btnExchange.setVisibility(View.GONE);
             holder.btnOutOfStock.setVisibility(View.VISIBLE);
+
+            // THÊM: Đổi màu text số lượng khi hết hàng
+            holder.tvQuantity.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
         } else {
             holder.viewOutOfStockOverlay.setVisibility(View.GONE);
             holder.tvOutOfStock.setVisibility(View.GONE);
             holder.btnExchange.setVisibility(View.VISIBLE);
             holder.btnOutOfStock.setVisibility(View.GONE);
+
+            // THÊM: Màu bình thường khi còn hàng
+            holder.tvQuantity.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
         }
 
-        // Trong phương thức onBindViewHolder, cập nhật click listeners:
+        // Click listeners
         holder.btnExchange.setOnClickListener(v -> {
             Intent intent = new Intent(context, activity_volunteer_gift_detail.class);
-            intent.putExtra("gift", gift); // Truyền toàn bộ object Gift
+            intent.putExtra("gift", gift);
             context.startActivity(intent);
         });
 
         holder.itemView.setOnClickListener(v -> {
             if (gift.isAvailable()) {
                 Intent intent = new Intent(context, activity_volunteer_gift_detail.class);
-                intent.putExtra("gift", gift); // Truyền toàn bộ object Gift
+                intent.putExtra("gift", gift);
                 context.startActivity(intent);
             }
         });
-
     }
+
 
     @Override
     public int getItemCount() {
@@ -94,7 +116,7 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
 
     public static class GiftViewHolder extends RecyclerView.ViewHolder {
         ImageView ivGift;
-        TextView tvGiftName, tvPoints;
+        TextView tvGiftName, tvPoints, tvQuantity; // THÊM tvQuantity
         MaterialButton tvHotBadge, btnExchange, btnOutOfStock, tvOutOfStock;
         View viewOutOfStockOverlay;
 
@@ -103,12 +125,13 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
             ivGift = itemView.findViewById(R.id.ivGift);
             tvGiftName = itemView.findViewById(R.id.tvGiftName);
             tvPoints = itemView.findViewById(R.id.tvPoints);
+            tvQuantity = itemView.findViewById(R.id.tvQuantity); // THÊM dòng này
             tvHotBadge = itemView.findViewById(R.id.tvHotBadge);
             btnExchange = itemView.findViewById(R.id.btnExchange);
             btnOutOfStock = itemView.findViewById(R.id.btnOutOfStock);
             tvOutOfStock = itemView.findViewById(R.id.tvOutOfStock);
             viewOutOfStockOverlay = itemView.findViewById(R.id.viewOutOfStockOverlay);
-
         }
     }
+
 }

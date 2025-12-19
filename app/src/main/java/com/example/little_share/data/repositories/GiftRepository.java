@@ -34,6 +34,83 @@ public class GiftRepository {
         this.db = FirebaseFirestore.getInstance();
     }
 
+    // THÊM method này vào GiftRepository.java
+    public LiveData<List<Gift>> getAllAvailableGifts() {
+        MutableLiveData<List<Gift>> liveData = new MutableLiveData<>();
+
+        db.collection(COLLECTION)
+                .whereGreaterThan("availableQuantity", 0) // Chỉ lấy quà còn hàng
+                .orderBy("availableQuantity")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        android.util.Log.e(TAG, "Error listening to gifts", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Gift> gifts = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (var doc : snapshots.getDocuments()) {
+                            Gift gift = doc.toObject(Gift.class);
+                            if (gift != null) {
+                                gift.setId(doc.getId());
+                                gifts.add(gift);
+                            }
+                        }
+                    }
+                    android.util.Log.d(TAG, "Loaded " + gifts.size() + " available gifts for volunteers");
+                    liveData.setValue(gifts);
+                });
+
+        return liveData;
+    }
+
+    // HOẶC method lấy tất cả gifts (kể cả hết hàng)
+    public LiveData<List<Gift>> getAllGifts() {
+        MutableLiveData<List<Gift>> liveData = new MutableLiveData<>();
+
+        android.util.Log.d(TAG, "Starting getAllGifts query...");
+
+        db.collection(COLLECTION)
+                // BỎ orderBy để tránh lỗi nếu không có createdAt field
+                // .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        android.util.Log.e(TAG, "Error listening to all gifts", error);
+                        // Trả về empty list thay vì null
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Gift> gifts = new ArrayList<>();
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        android.util.Log.d(TAG, "Found " + snapshots.size() + " documents");
+
+                        for (var doc : snapshots.getDocuments()) {
+                            try {
+                                Gift gift = doc.toObject(Gift.class);
+                                if (gift != null) {
+                                    gift.setId(doc.getId());
+                                    gifts.add(gift);
+                                    android.util.Log.d(TAG, "Added gift: " + gift.getName());
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e(TAG, "Error parsing gift document: " + doc.getId(), e);
+                            }
+                        }
+                    } else {
+                        android.util.Log.d(TAG, "No documents found in Firebase");
+                    }
+
+                    android.util.Log.d(TAG, "Loaded " + gifts.size() + " total gifts");
+                    liveData.setValue(gifts);
+                });
+
+        return liveData;
+    }
+
+
     public void redeemGift(String userId, String userName, String giftId, String giftName,
                            int pointsSpent, OnRedemptionListener listener) {
 
