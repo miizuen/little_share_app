@@ -24,6 +24,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
+
 
 public class frm_ngo_volunteer_campaign_detail extends Fragment implements VolunteerRegistrationAdapter.OnActionListener {
 
@@ -122,26 +125,77 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
     }
 
     private void approveRegistration(VolunteerRegistration registration, int position) {
+        // Sinh mã QR unique
+        String qrCode = "LS-" + registration.getId().substring(0, 8).toUpperCase() + "-" + System.currentTimeMillis() % 10000;
+
         db.collection("volunteer_registrations")
                 .document(registration.getId())
-                .update("status", "approved", "approvedAt", System.currentTimeMillis())
+                .update(
+                        "status", "approved",
+                        "approvedAt", System.currentTimeMillis(),
+                        "qrCode", qrCode  // LƯU MÃ QR
+                )
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Đã duyệt!", Toast.LENGTH_SHORT).show();
                     adapter.removeItem(position);
                     updateTitle();
+
+                    // Gửi thông báo cho TNV
+                    sendNotificationToVolunteer(registration, true, "");
                 });
     }
 
     private void rejectRegistration(VolunteerRegistration registration, int position, String reason) {
         db.collection("volunteer_registrations")
                 .document(registration.getId())
-                .update("status", "rejected", "rejectionReason", reason, "rejectedAt", System.currentTimeMillis())
+                .update(
+                        "status", "rejected",
+                        "rejectionReason", reason,
+                        "rejectedAt", System.currentTimeMillis()
+                )
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Đã từ chối!", Toast.LENGTH_SHORT).show();
                     adapter.removeItem(position);
                     updateTitle();
+
+                    // Gửi thông báo cho TNV
+                    sendNotificationToVolunteer(registration, false, reason);
                 });
     }
+    private void sendNotificationToVolunteer(VolunteerRegistration registration, boolean isApproved, String reason) {
+        String title;
+        String message;
+        String type;
+
+        if (isApproved) {
+            title = "Đăng ký được duyệt!";
+            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" đã được duyệt. Xem mã QR điểm danh ngay!";
+            type = "REGISTRATION_APPROVED";
+        } else {
+            title = "Đăng ký bị từ chối";
+            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" bị từ chối. Lý do: " + reason;
+            type = "REGISTRATION_REJECTED";
+        }
+
+        Map<String, Object> notification = new HashMap<>();
+        notification.put("userId", registration.getUserId());
+        notification.put("title", title);
+        notification.put("message", message);
+        notification.put("type", type);
+        notification.put("referenceId", registration.getId());
+        notification.put("isRead", false);
+        notification.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+        db.collection("notifications")
+                .add(notification)
+                .addOnSuccessListener(doc -> {
+                    Log.d(TAG, "Notification sent to: " + registration.getUserId());
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Failed to send notification: " + e.getMessage());
+                });
+    }
+
 
     private void updateTitle() {
         tvTitle.setText(registrationList.isEmpty()

@@ -43,15 +43,19 @@ public class VolunteerRegistrationAdapter extends RecyclerView.Adapter<Volunteer
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         VolunteerRegistration reg = registrations.get(position);
 
-        // Tên (dùng tvSponsorName theo layout của bạn)
+        // Họ tên
         String name = reg.getUserName();
         holder.tvSponsorName.setText(name != null && !name.isEmpty() ? name : "Tình nguyện viên");
 
-        // Vai trò
-        holder.tvJob.setText(reg.getRoleName());
+        // Email
+        String email = reg.getUserEmail();
+        holder.tvEmail.setText(email != null && !email.isEmpty() ? email : "Chưa có email");
 
-        // Ngày và ca
-        holder.tvDate.setText(reg.getDate() + " - " + reg.getShiftTime());
+        // Vai trò
+        holder.tvJob.setText("Vai trò: " + reg.getRoleName());
+
+        // Ngày và ca làm
+        holder.tvDate.setText("Ngày: " + reg.getDate() + " | Ca: " + reg.getShiftTime());
 
         // Click events
         holder.btnApprove.setOnClickListener(v -> {
@@ -76,12 +80,13 @@ public class VolunteerRegistrationAdapter extends RecyclerView.Adapter<Volunteer
     }
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView tvSponsorName, tvJob, tvDate;
+        TextView tvSponsorName, tvEmail, tvJob, tvDate;
         ImageView btnApprove, btnReject;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             tvSponsorName = itemView.findViewById(R.id.tvSponsorName);
+            tvEmail = itemView.findViewById(R.id.tvEmail);
             tvJob = itemView.findViewById(R.id.tvJob);
             tvDate = itemView.findViewById(R.id.tvDate);
             btnApprove = itemView.findViewById(R.id.btnApprove);

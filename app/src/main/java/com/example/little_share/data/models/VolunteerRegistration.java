@@ -24,10 +24,18 @@ public class VolunteerRegistration {
     private Long createdAt;
     private Long approvedAt;
     private Long rejectedAt;
+    private String userEmail;
+    private String qrCode;
+
+    // Getter & Setter
+    public String getUserEmail() { return userEmail; }
+    public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
+
+    public String getQrCode() { return qrCode; }
+    public void setQrCode(String qrCode) { this.qrCode = qrCode; }
 
     public VolunteerRegistration() {}
 
-    // Getters & Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
     public String getOderId() { return oderId; }

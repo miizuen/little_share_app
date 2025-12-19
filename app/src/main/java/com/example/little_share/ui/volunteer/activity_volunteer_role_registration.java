@@ -123,18 +123,44 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             return;
         }
 
-        // Lấy thông tin user
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Vui lòng đăng nhập", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Tạo mã đăng ký unique
+        // Disable button
+        btnConfirm.setEnabled(false);
+        btnConfirm.setText("Đang xử lý...");
+
         String oderId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String note = etNote.getText().toString().trim();
+        String userId = currentUser.getUid();
+        String userEmail = currentUser.getEmail() != null ? currentUser.getEmail() : "";
 
-        // Tạo dữ liệu đăng ký
+        // Lấy fullName từ collection users
+        db.collection("users").document(userId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String userName = "";
+                    if (documentSnapshot.exists()) {
+                        userName = documentSnapshot.getString("fullName");
+                    }
+                    if (userName == null || userName.isEmpty()) {
+                        userName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "";
+                    }
+
+                    // Lưu đăng ký với userName đã lấy được
+                    saveRegistration(oderId, note, userId, userName, userEmail);
+                })
+                .addOnFailureListener(e -> {
+                    // Nếu lỗi, vẫn lưu với displayName
+                    String userName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "";
+                    saveRegistration(oderId, note, userId, userName, userEmail);
+                });
+    }
+
+    private void saveRegistration(String oderId, String note, String userId, String userName, String userEmail) {
         Map<String, Object> registration = new HashMap<>();
         registration.put("oderId", oderId);
         registration.put("campaignId", campaignId);
@@ -142,8 +168,9 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         registration.put("organizationId", campaign != null ? campaign.getOrganizationId() : "");
         registration.put("roleId", role != null ? role.getId() : "");
         registration.put("roleName", role != null ? role.getRoleName() : "");
-        registration.put("userId", currentUser.getUid());
-        registration.put("userName", currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "");
+        registration.put("userId", userId);
+        registration.put("userName", userName);
+        registration.put("userEmail", userEmail);
         registration.put("date", selectedDate);
         registration.put("shiftId", selectedShift.getId());
         registration.put("shiftName", selectedShift.getShiftName());
@@ -151,18 +178,13 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         registration.put("note", note);
         registration.put("status", "pending");
         registration.put("rejectionReason", "");
-        registration.put("qrCode", oderId);
+        registration.put("qrCode", "");
         registration.put("createdAt", System.currentTimeMillis());
 
-        // Disable button
-        btnConfirm.setEnabled(false);
-        btnConfirm.setText("Đang xử lý...");
-
-        // Lưu vào Firebase
         db.collection("volunteer_registrations")
                 .add(registration)
                 .addOnSuccessListener(documentReference -> {
-                    showSuccessDialog(false, oderId); // false = chờ duyệt
+                    showSuccessDialog(false, oderId);
                 })
                 .addOnFailureListener(e -> {
                     btnConfirm.setEnabled(true);
@@ -170,6 +192,7 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     Toast.makeText(this, "Đăng ký thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
     private void getDataFromIntent() {
         role = (CampaignRole) getIntent().getSerializableExtra("role");
         campaignId = getIntent().getStringExtra("campaignId");

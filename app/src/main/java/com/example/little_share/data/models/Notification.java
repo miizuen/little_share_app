@@ -29,6 +29,8 @@ public class Notification implements Serializable {
         DONATION_CONFIRMED("Quyên góp xác nhận"),
         GIFT_AVAILABLE("Quà mới"),
         SPONSORSHIP_SUCCESS("Tài trợ thành công"),
+        REGISTRATION_APPROVED("Đăng ký được duyệt"),  // THÊM
+        REGISTRATION_REJECTED("Đăng ký bị từ chối"),  // THÊM
         GENERAL("Thông báo chung");
 
         private String displayName;
