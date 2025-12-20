@@ -88,6 +88,12 @@ public class frm_ngo_volunteer_list extends Fragment {
     }
 
     private void setupTabFilters() {
+        // Đổi text cho tab
+        tabJoining.setText("Đã đăng ký");
+        tabCompleted.setText("Đang tham gia");
+        tabStopped.setText("Hoàn thành");
+        tabStopped.setVisibility(View.VISIBLE); // Hiện tab này
+
         tabAll.setOnClickListener(v -> {
             currentFilter = "all";
             updateTabUI();
@@ -101,15 +107,17 @@ public class frm_ngo_volunteer_list extends Fragment {
         });
 
         tabCompleted.setOnClickListener(v -> {
-            currentFilter = "completed";
+            currentFilter = "joined";
             updateTabUI();
             filterData();
         });
 
-        // Ẩn tab "Đã dừng" nếu không cần
-        tabStopped.setVisibility(View.GONE);
+        tabStopped.setOnClickListener(v -> {
+            currentFilter = "completed";
+            updateTabUI();
+            filterData();
+        });
     }
-
     private void updateTabUI() {
         // Reset tất cả tabs
         tabAll.setBackgroundResource(R.drawable.bg_default);
@@ -118,12 +126,15 @@ public class frm_ngo_volunteer_list extends Fragment {
         tabJoining.setTextColor(0xFF666666);
         tabCompleted.setBackgroundResource(R.drawable.bg_default);
         tabCompleted.setTextColor(0xFF666666);
+        tabStopped.setBackgroundResource(R.drawable.bg_default);
+        tabStopped.setTextColor(0xFF666666);
 
         // Highlight tab được chọn
         TextView selectedTab;
         switch (currentFilter) {
             case "approved": selectedTab = tabJoining; break;
-            case "completed": selectedTab = tabCompleted; break;
+            case "joined": selectedTab = tabCompleted; break;
+            case "completed": selectedTab = tabStopped; break;
             default: selectedTab = tabAll;
         }
         selectedTab.setBackgroundResource(R.drawable.bg_chip_selected);
@@ -151,21 +162,64 @@ public class frm_ngo_volunteer_list extends Fragment {
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
                     allRegistrations.clear();
+
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
                         reg.setId(doc.getId());
 
-                        // Chỉ lấy approved và completed
                         String status = reg.getStatus();
-                        if ("approved".equals(status) || "completed".equals(status)) {
+                        if ("approved".equals(status) || "joined".equals(status) || "completed".equals(status)) {
                             allRegistrations.add(reg);
                         }
                     }
-                    filterData();
+
+                    // Load tên user từ users collection
+                    loadUserNames();
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void loadUserNames() {
+        if (allRegistrations.isEmpty()) {
+            filterData();
+            return;
+        }
+
+        final int[] loadedCount = {0};
+        int total = allRegistrations.size();
+
+        for (VolunteerRegistration reg : allRegistrations) {
+            String userId = reg.getUserId();
+            if (userId != null && (reg.getUserName() == null || reg.getUserName().isEmpty())) {
+                db.collection("users").document(userId)
+                        .get()
+                        .addOnSuccessListener(userDoc -> {
+                            if (userDoc.exists()) {
+                                String fullName = userDoc.getString("fullName");
+                                if (fullName != null && !fullName.isEmpty()) {
+                                    reg.setUserName(fullName);
+                                }
+                            }
+                            loadedCount[0]++;
+                            if (loadedCount[0] >= total) {
+                                filterData();
+                            }
+                        })
+                        .addOnFailureListener(e -> {
+                            loadedCount[0]++;
+                            if (loadedCount[0] >= total) {
+                                filterData();
+                            }
+                        });
+            } else {
+                loadedCount[0]++;
+                if (loadedCount[0] >= total) {
+                    filterData();
+                }
+            }
+        }
     }
 
     private void filterData() {

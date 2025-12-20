@@ -72,8 +72,17 @@ public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdap
         }
 
         void bind(VolunteerRegistration reg) {
-            // Tên và email
-            tvVolunteerName.setText(reg.getUserName() != null ? reg.getUserName() : "N/A");
+            // Tên - nếu null thì hiển thị phần đầu email
+            String name = reg.getUserName();
+            if (name == null || name.isEmpty()) {
+                String email = reg.getUserEmail();
+                if (email != null && email.contains("@")) {
+                    name = email.substring(0, email.indexOf("@"));
+                } else {
+                    name = "N/A";
+                }
+            }
+            tvVolunteerName.setText(name);
             tvVolunteerEmail.setText(reg.getUserEmail() != null ? reg.getUserEmail() : "N/A");
 
             // Thông tin chiến dịch
@@ -84,21 +93,30 @@ public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdap
             // Trạng thái
             String status = reg.getStatus();
             if ("approved".equals(status)) {
-                tvStatus.setText("Đang tham gia");
-                tvStatus.setBackgroundResource(R.drawable.bg_quickaction_calendar);
-                tvStatus.setTextColor(Color.parseColor("#1976D2"));
+                tvStatus.setText("Đã đăng ký");
+                tvStatus.setBackgroundColor(Color.parseColor("#FFF3E0")); // Nền cam nhạt
+                tvStatus.setTextColor(Color.parseColor("#FF9800")); // Chữ cam
+            } else if ("joined".equals(status)) {
+                tvStatus.setText("Đã tham gia");
+                tvStatus.setBackgroundColor(Color.parseColor("#E3F2FD")); // Nền xanh nhạt
+                tvStatus.setTextColor(Color.parseColor("#1976D2")); // Chữ xanh
             } else if ("completed".equals(status)) {
                 tvStatus.setText("Hoàn thành");
-                tvStatus.setBackgroundResource(R.drawable.bg_chip_selected);
-                tvStatus.setTextColor(Color.WHITE);
+                tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9")); // Nền xanh lá nhạt
+                tvStatus.setTextColor(Color.parseColor("#4CAF50")); // Chữ xanh lá
             }
-
-            // Button click
-            btnAction.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onViewDetailClick(reg);
-                }
-            });
+            // Button
+            // Button - chỉ hiện khi "joined"
+            if ("joined".equals(status)) {
+                btnAction.setVisibility(View.VISIBLE);
+                btnAction.setOnClickListener(v -> {
+                    if (listener != null) {
+                        listener.onViewDetailClick(reg);
+                    }
+                });
+            } else {
+                btnAction.setVisibility(View.GONE);
+            }
         }
     }
 }
