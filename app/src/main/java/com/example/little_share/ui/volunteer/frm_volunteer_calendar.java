@@ -110,7 +110,8 @@ public class frm_volunteer_calendar extends Fragment {
                         reg.setId(doc.getId());
 
                         // Filter theo status nếu cần
-                        if ("approved".equals(reg.getStatus()) || "completed".equals(reg.getStatus())) {
+                        if ("approved".equals(reg.getStatus())) {
+                            // CHỈ HIỂN THỊ CÁC ĐĂNG KÝ ĐÃ DUYỆT NHƯNG CHƯA HOÀN THÀNH
                             tempList.add(reg);
                         }
                     }

@@ -751,78 +751,143 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
                                   OnAttendanceListener listener) {
 
         android.util.Log.d("ATTENDANCE", "=== CONFIRMING ATTENDANCE ===");
-        android.util.Log.d("ATTENDANCE", "Registration ID: " + registrationId);
-        android.util.Log.d("ATTENDANCE", "User ID: " + userId);
-        android.util.Log.d("ATTENDANCE", "Campaign ID: " + campaignId);
 
-        // Kiểm tra registration có tồn tại không
+        // Bước 1: Kiểm tra registration
         db.collection("volunteer_registrations")
                 .document(registrationId)
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (!doc.exists()) {
-                        android.util.Log.e("ATTENDANCE", "Registration not found");
                         listener.onFailure("Không tìm thấy thông tin đăng ký");
                         return;
                     }
 
-                    // Parse registration data
                     String status = doc.getString("status");
                     Long attendedAt = doc.getLong("attendedAt");
                     String regUserId = doc.getString("userId");
                     String regCampaignId = doc.getString("campaignId");
 
-                    android.util.Log.d("ATTENDANCE", "Current status: " + status);
-                    android.util.Log.d("ATTENDANCE", "Already attended: " + (attendedAt != null));
-                    android.util.Log.d("ATTENDANCE", "User ID match: " + userId.equals(regUserId));
-                    android.util.Log.d("ATTENDANCE", "Campaign ID match: " + campaignId.equals(regCampaignId));
-
-                    // Validate registration
+                    // Validate
                     if (!"approved".equals(status)) {
-                        listener.onFailure("Đăng ký chưa được duyệt (Status: " + status + ")");
+                        listener.onFailure("Đăng ký chưa được duyệt");
                         return;
                     }
 
                     if (attendedAt != null) {
-                        listener.onFailure("Đã điểm danh trước đó vào lúc " + new java.util.Date(attendedAt));
+                        listener.onFailure("Đã điểm danh trước đó");
                         return;
                     }
 
-                    if (!userId.equals(regUserId)) {
-                        listener.onFailure("QR code không thuộc về user này");
+                    if (!userId.equals(regUserId) || !campaignId.equals(regCampaignId)) {
+                        listener.onFailure("QR code không hợp lệ");
                         return;
                     }
 
-                    if (!campaignId.equals(regCampaignId)) {
-                        listener.onFailure("QR code không thuộc về chiến dịch này");
-                        return;
-                    }
-
-                    // Cập nhật điểm danh
-                    java.util.Map<String, Object> updates = new java.util.HashMap<>();
-                    updates.put("status", "attended");
-                    updates.put("attendedAt", System.currentTimeMillis());
-                    updates.put("isAttended", true);
-
-                    android.util.Log.d("ATTENDANCE", "Updating registration with attendance data");
-
-                    db.collection("volunteer_registrations")
-                            .document(registrationId)
-                            .update(updates)
-                            .addOnSuccessListener(aVoid -> {
-                                android.util.Log.d("ATTENDANCE", "✓ Attendance confirmed successfully");
-                                listener.onSuccess("Điểm danh thành công");
-                            })
-                            .addOnFailureListener(e -> {
-                                android.util.Log.e("ATTENDANCE", "✗ Failed to update attendance: " + e.getMessage());
-                                listener.onFailure("Lỗi cập nhật: " + e.getMessage());
-                            });
+                    // Bước 2: Lấy điểm từ campaign
+                    getCampaignPoints(campaignId, points -> {
+                        // Bước 3: Cập nhật attendance + cộng điểm
+                        updateAttendanceAndPoints(registrationId, userId, points, listener);
+                    });
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("ATTENDANCE", "✗ Failed to query registration: " + e.getMessage());
                     listener.onFailure("Lỗi truy vấn: " + e.getMessage());
                 });
     }
+
+    // Method phụ: Lấy điểm từ campaign
+    private void getCampaignPoints(String campaignId, OnPointsListener pointsListener) {
+        db.collection("campaigns")
+                .document(campaignId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    int points = 0;
+                    if (doc.exists()) {
+                        Long pointsReward = doc.getLong("pointsReward");
+                        if (pointsReward != null) {
+                            points = pointsReward.intValue();
+                        }
+                    }
+                    android.util.Log.d("ATTENDANCE", "Campaign points: " + points);
+                    pointsListener.onPointsReceived(points);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("ATTENDANCE", "Error getting points: " + e.getMessage());
+                    pointsListener.onPointsReceived(0); // Fallback: 0 điểm
+                });
+    }
+
+    // Method phụ: Cập nhật attendance và cộng điểm
+    private void updateAttendanceAndPoints(String registrationId, String userId, int points,
+                                           OnAttendanceListener listener) {
+
+        // Cập nhật registration status
+        java.util.Map<String, Object> regUpdates = new java.util.HashMap<>();
+        regUpdates.put("status", "completed"); // THAY ĐỔI: completed thay vì attended
+        regUpdates.put("attendedAt", System.currentTimeMillis());
+        regUpdates.put("isAttended", true);
+        regUpdates.put("pointsEarned", points); // Lưu điểm đã nhận
+
+        db.collection("volunteer_registrations")
+                .document(registrationId)
+                .update(regUpdates)
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("ATTENDANCE", "✓ Registration updated to completed");
+
+                    // Cộng điểm vào user
+                    if (points > 0) {
+                        addPointsToUser(userId, points, listener);
+                    } else {
+                        listener.onSuccess("Điểm danh thành công (0 điểm)");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    listener.onFailure("Lỗi cập nhật đăng ký: " + e.getMessage());
+                });
+    }
+
+    // Method phụ: Cộng điểm vào user
+    private void addPointsToUser(String userId, int points, OnAttendanceListener listener) {
+        android.util.Log.d("ATTENDANCE", "Adding " + points + " points to user: " + userId);
+
+        db.collection("users")
+                .document(userId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    int currentPoints = 0;
+                    if (doc.exists()) {
+                        Long existingPoints = doc.getLong("totalPoints");
+                        if (existingPoints != null) {
+                            currentPoints = existingPoints.intValue();
+                        }
+                    }
+
+                    int newPoints = currentPoints + points;
+                    android.util.Log.d("ATTENDANCE", "Current points: " + currentPoints + " → New points: " + newPoints);
+
+                    // Cập nhật điểm
+                    db.collection("users")
+                            .document(userId)
+                            .update("totalPoints", newPoints)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("ATTENDANCE", "✓ Points added successfully");
+                                listener.onSuccess("Điểm danh thành công! Đã cộng " + points + " điểm");
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("ATTENDANCE", "✗ Failed to add points: " + e.getMessage());
+                                listener.onSuccess("Điểm danh thành công nhưng lỗi cộng điểm");
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("ATTENDANCE", "✗ Failed to get user points: " + e.getMessage());
+                    listener.onSuccess("Điểm danh thành công nhưng lỗi cộng điểm");
+                });
+    }
+
+    // Interface phụ
+    private interface OnPointsListener {
+        void onPointsReceived(int points);
+    }
+
 
     public interface OnAttendanceListener {
         void onSuccess(String message);
