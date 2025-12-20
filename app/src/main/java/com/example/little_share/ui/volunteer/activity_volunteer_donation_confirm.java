@@ -344,13 +344,10 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
 
         switch (type) {
             case "BOOKS":
-            case "BOOK":
                 return Donation.DonationType.BOOKS;
             case "CLOTHES":
-            case "SHIRT":
                 return Donation.DonationType.CLOTHES;
             case "TOYS":
-            case "TOY":
                 return Donation.DonationType.TOYS;
             case "ESSENTIALS":
                 return Donation.DonationType.ESSENTIALS;

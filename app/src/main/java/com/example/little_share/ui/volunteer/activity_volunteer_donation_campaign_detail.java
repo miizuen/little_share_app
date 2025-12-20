@@ -2,135 +2,119 @@ package com.example.little_share.ui.volunteer;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Button;
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.cardview.widget.CardView;
 
-import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
-import com.google.android.material.appbar.MaterialToolbar;
-
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 
 public class activity_volunteer_donation_campaign_detail extends AppCompatActivity {
 
     private Campaign campaign;
-    private TextView tvCampaignName, tvDescription, tvLocation, tvWorkingHours;
-    private TextView tvStartDate, tvEndDate, tvContact, tvPoints;
-    private ImageView ivCampaignImage;
-    private Button btnDonate;
+    private TextView tvCampaignName, tvOrganizationName, tvLocation, tvDescription, tvCategory;
+    private CardView btnDonateNow;
+    private ImageView btnBack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_volunteer_donation_campaign_detail);
 
         // Get campaign from intent
         campaign = (Campaign) getIntent().getSerializableExtra("campaign");
+        if (campaign == null) {
+            Toast.makeText(this, "Lỗi tải thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
         initViews();
-        setupToolbar();
-        displayCampaignInfo();
-        setupDonateButton();
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
+        setupData();
+        setupClickListeners();
     }
 
     private void initViews() {
+        btnBack = findViewById(R.id.btnBack);
         tvCampaignName = findViewById(R.id.tvCampaignName);
-        tvDescription = findViewById(R.id.tvDescription);
+        tvOrganizationName = findViewById(R.id.tvOrganizationName);
         tvLocation = findViewById(R.id.tvLocation);
-        tvWorkingHours = findViewById(R.id.tvWorkingHours);
-        tvStartDate = findViewById(R.id.tvStartDate);
-        tvEndDate = findViewById(R.id.tvEndDate);
-        tvContact = findViewById(R.id.tvContact);
-        tvPoints = findViewById(R.id.tvPoints);
-        ivCampaignImage = findViewById(R.id.ivCampaignImage);
-        btnDonate = findViewById(R.id.btnDonate);
+        tvDescription = findViewById(R.id.tvDescription);
+        tvCategory = findViewById(R.id.tvCategory);
+        btnDonateNow = findViewById(R.id.btnDonateNow);
     }
 
-    private void setupToolbar() {
-        MaterialToolbar toolbar = findViewById(R.id.toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationOnClickListener(v -> finish());
-    }
-
-    private void displayCampaignInfo() {
-        if (campaign == null) return;
-
+    private void setupData() {
         tvCampaignName.setText(campaign.getName());
+        tvOrganizationName.setText(campaign.getOrganizationName());
         tvDescription.setText(campaign.getDescription());
-        tvLocation.setText(campaign.getLocation());
-        tvWorkingHours.setText("Thời gian: " + campaign.getSpecificLocation()); // Working hours
-        tvContact.setText(campaign.getContactPhone());
-        tvPoints.setText("+" + campaign.getPointsReward() + " điểm");
 
-        // Format dates
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        if (campaign.getStartDate() != null) {
-            tvStartDate.setText(dateFormat.format(campaign.getStartDate()));
+        // Format location with working hours
+        String locationText = campaign.getLocation();
+        if (campaign.getSpecificLocation() != null && !campaign.getSpecificLocation().isEmpty()) {
+            locationText += " • " + campaign.getSpecificLocation();
         }
-        if (campaign.getEndDate() != null) {
-            tvEndDate.setText(dateFormat.format(campaign.getEndDate()));
-        }
+        tvLocation.setText(locationText);
 
-        // Load image
-        if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
-            Glide.with(this)
-                    .load(campaign.getImageUrl())
-                    .placeholder(R.drawable.ic_clothes_3d)
-                    .into(ivCampaignImage);
-        }
+        // Set category display
+        String categoryDisplay = getCategoryDisplayName(campaign.getCategory());
+        tvCategory.setText(categoryDisplay);
     }
 
-    private void setupDonateButton() {
-        btnDonate.setOnClickListener(v -> {
-            // Xác định donation type dựa trên category của campaign
-            String donationType = getDonationTypeFromCampaign(campaign);
+    private void setupClickListeners() {
+        btnBack.setOnClickListener(v -> finish());
 
-            // Chuyển đến trang donation form với type tương ứng
+        btnDonateNow.setOnClickListener(v -> {
+            // Navigate to appropriate donation form based on campaign category
+            String donationType = getDonationTypeFromCategory(campaign.getCategory());
+            
             Intent intent = new Intent(this, activity_volunteer_donation_form.class);
             intent.putExtra("DONATION_TYPE", donationType);
-            intent.putExtra("campaign", campaign); // Truyền thêm campaign info
+            intent.putExtra("CAMPAIGN_ID", campaign.getId());
+            intent.putExtra("ORGANIZATION_ID", campaign.getOrganizationId());
+            intent.putExtra("ORGANIZATION_NAME", campaign.getOrganizationName());
             startActivity(intent);
         });
     }
 
-    private String getDonationTypeFromCampaign(Campaign campaign) {
-        if (campaign == null) return "BOOKS";
-
-        String category = campaign.getCategory();
-        if (category == null) return "BOOKS";
-
-        // Logic để map category thành donation type
-        switch (category) {
+    private String getCategoryDisplayName(String category) {
+        if (category == null) return "Khác";
+        
+        switch (category.toUpperCase()) {
+            case "BOOKS":
             case "EDUCATION":
-                return "BOOKS"; // Giáo dục -> Sách vở
-            case "HEALTH":
-                return "ESSENTIALS"; // Y tế -> Nhu yếu phẩm
+                return "Sách vở";
+            case "CLOTHES":
+                return "Quần áo";
+            case "TOYS":
+                return "Đồ chơi";
+            case "ESSENTIALS":
             case "FOOD":
-                return "ESSENTIALS"; // Nấu ăn -> Nhu yếu phẩm
-            case "ENVIRONMENT":
-                return "ESSENTIALS"; // Môi trường -> Nhu yếu phẩm
-            case "URGENT":
-                // Với urgent, có thể cho user chọn hoặc mặc định
-                return "ESSENTIALS"; // Hoặc mở dialog cho user chọn
+                return "Nhu yếu phẩm";
             default:
-                return "BOOKS";
+                return "Khác";
         }
     }
 
+    private String getDonationTypeFromCategory(String category) {
+        if (category == null) return "ESSENTIALS";
+        
+        switch (category.toUpperCase()) {
+            case "BOOKS":
+            case "EDUCATION":
+                return "BOOKS";
+            case "CLOTHES":
+                return "CLOTHES";
+            case "TOYS":
+                return "TOYS";
+            case "ESSENTIALS":
+            case "FOOD":
+            default:
+                return "ESSENTIALS";
+        }
+    }
 }

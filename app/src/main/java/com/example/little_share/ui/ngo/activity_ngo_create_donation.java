@@ -28,6 +28,7 @@ import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.NotificationRepository;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
@@ -273,7 +274,7 @@ public class activity_ngo_create_donation extends AppCompatActivity {
                     Toast.makeText(activity_ngo_create_donation.this,
                             "Tạo chiến dịch quyên góp thành công!", Toast.LENGTH_LONG).show();
                     NotificationRepository notificationRepo = new NotificationRepository();
-                    notificationRepo.notifyVolunteerAboutNewCampaign(
+                    notificationRepo.notifyVolunteersAboutNewCampaign(
                             campaign.getId(),
                             campaign.getName(),
                             campaign.getOrganizationName(),
