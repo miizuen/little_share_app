@@ -8,27 +8,33 @@ import java.util.Date;
 
 public class Notification implements Serializable {
     
-    // Enum for notification types to support existing adapter
+    // Enum for notification types
     public enum NotificationType {
-        CAMPAIGN_NEW("CAMPAIGN_NEW"),
-        CAMPAIGN_APPROVED("CAMPAIGN_APPROVED"),
-        CAMPAIGN_REMINDER("CAMPAIGN_REMINDER"),
-        DONATION_CONFIRMED("DONATION_CONFIRMED"),
-        DONATION_SUCCESS("DONATION_SUCCESS"),
-        GIFT_AVAILABLE("GIFT_AVAILABLE"),
-        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS"),
-        CAMPAIGN_UPDATE("CAMPAIGN_UPDATE"),
-        SYSTEM("SYSTEM"),
-        GENERAL("GENERAL");
+        CAMPAIGN_NEW("CAMPAIGN_NEW", "Chiến dịch mới"),
+        CAMPAIGN_APPROVED("CAMPAIGN_APPROVED", "Đã được duyệt"),
+        CAMPAIGN_REMINDER("CAMPAIGN_REMINDER", "Nhắc nhở"),
+        DONATION_CONFIRMED("DONATION_CONFIRMED", "Quyên góp xác nhận"),
+        DONATION_SUCCESS("DONATION_SUCCESS", "Quyên góp thành công"),
+        GIFT_AVAILABLE("GIFT_AVAILABLE", "Quà mới"),
+        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS", "Tài trợ thành công"),
+        CAMPAIGN_UPDATE("CAMPAIGN_UPDATE", "Cập nhật chiến dịch"),
+        SYSTEM("SYSTEM", "Hệ thống"),
+        GENERAL("GENERAL", "Thông báo chung");
 
         private String value;
+        private String displayName;
         
-        NotificationType(String value) {
+        NotificationType(String value, String displayName) {
             this.value = value;
+            this.displayName = displayName;
         }
         
         public String getValue() {
             return value;
+        }
+        
+        public String getDisplayName() {
+            return displayName;
         }
         
         public static NotificationType fromString(String value) {
@@ -56,21 +62,6 @@ public class Notification implements Serializable {
     
     @ServerTimestamp
     private Date createdAt;
-    public enum NotificationType {
-        CAMPAIGN_NEW("Chiến dịch mới"),
-        CAMPAIGN_APPROVED("Đã được duyệt"),
-        CAMPAIGN_REMINDER("Nhắc nhở"),
-        DONATION_CONFIRMED("Quyên góp xác nhận"),
-        GIFT_AVAILABLE("Quà mới"),
-        SPONSORSHIP_SUCCESS("Tài trợ thành công"),
-        REGISTRATION_APPROVED("Đăng ký được duyệt"),  // THÊM
-        REGISTRATION_REJECTED("Đăng ký bị từ chối"),  // THÊM
-        GENERAL("Thông báo chung");
-
-        private String displayName;
-        NotificationType(String displayName) { this.displayName = displayName; }
-        public String getDisplayName() { return displayName; }
-    }
 
     public Notification() {
         this.isRead = false;

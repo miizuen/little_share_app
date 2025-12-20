@@ -52,7 +52,7 @@ public class GiftRepository {
 
                     List<Gift> gifts = new ArrayList<>();
                     if (snapshots != null) {
-                        for (var doc : snapshots.getDocuments()) {
+                        for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             Gift gift = doc.toObject(Gift.class);
                             if (gift != null) {
                                 gift.setId(doc.getId());
@@ -88,7 +88,7 @@ public class GiftRepository {
                     if (snapshots != null && !snapshots.isEmpty()) {
                         android.util.Log.d(TAG, "Found " + snapshots.size() + " documents");
 
-                        for (var doc : snapshots.getDocuments()) {
+                        for (DocumentSnapshot doc : snapshots.getDocuments()) {
                             try {
                                 Gift gift = doc.toObject(Gift.class);
                                 if (gift != null) {

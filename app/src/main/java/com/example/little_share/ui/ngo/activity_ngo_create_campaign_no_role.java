@@ -58,7 +58,8 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
     }
 
     private void sendNotificationToVolunteers(String campaginId){
-        new NotificationRepository().notifyVolunteerAboutNewCampaign(
+        new NotificationRepository().notifyVolunteersAboutNewCampaign
+                (
                 campaginId,
                 tempCampaign.getName(),
                 tempCampaign.getOrganizationName(),

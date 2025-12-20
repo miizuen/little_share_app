@@ -7,6 +7,7 @@ import androidx.lifecycle.MutableLiveData;
 import com.example.little_share.data.models.Campain.CampaignRegistration;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.models.SponsorDonation;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -556,7 +557,7 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
 
                                 // ===== THÊM PHẦN NÀY: Gửi notification cho volunteers =====
                                 NotificationRepository notificationRepo = new NotificationRepository();
-                                notificationRepo.notifyVolunteerAboutNewCampaign(
+                                notificationRepo.notifyVolunteersAboutNewCampaign(
                                         campaign.getId(),
                                         campaign.getName(),
                                         orgName,

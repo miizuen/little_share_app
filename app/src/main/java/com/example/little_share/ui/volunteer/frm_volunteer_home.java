@@ -75,8 +75,6 @@ public class frm_volunteer_home extends Fragment {
         chipUrgent = view.findViewById(R.id.chipUrgent);
         layoutUrgentSection = view.findViewById(R.id.layoutUrgentSection);
         rvUrgentCampaigns = view.findViewById(R.id.rvUrgentCampaigns);
-        tvUrgentTitle = view.findViewById(R.id.tvUrgentTitle);
-        tvUrgentLocation = view.findViewById(R.id.tvUrgentLocation);
 
         loadCurrentUserData();
 

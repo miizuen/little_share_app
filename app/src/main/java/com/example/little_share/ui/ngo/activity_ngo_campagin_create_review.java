@@ -480,7 +480,8 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
 
     private void onCampaignCreatedSuccess(String campaignId, String campaginName, String orgName) {
 
-        new NotificationRepository().notifyVolunteerAboutNewCampaign(
+        new NotificationRepository().notifyVolunteersAboutNewCampaign
+                (
                 campaignId,
                 campaginName,
                 orgName,

@@ -58,9 +58,9 @@ public class frm_volunteer_donation extends Fragment {
     }
 
     private void setupDonationButtons() {
-        btnBook.setOnClickListener(v -> openDonationForm("BOOK"));
-        btnShirt.setOnClickListener(v -> openDonationForm("SHIRT"));
-        btnToy.setOnClickListener(v -> openDonationForm("TOY"));
+        btnBook.setOnClickListener(v -> openDonationForm("BOOKS"));
+        btnShirt.setOnClickListener(v -> openDonationForm("CLOTHES"));
+        btnToy.setOnClickListener(v -> openDonationForm("TOYS"));
         btEssential.setOnClickListener(v -> openDonationForm("ESSENTIALS"));
     }
 

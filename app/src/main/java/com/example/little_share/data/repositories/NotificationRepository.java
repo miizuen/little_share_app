@@ -204,8 +204,8 @@ public class NotificationRepository {
     }
 
     // Thông báo cho tất cả volunteers về campaign mới
-    public void notifyVolunteerAboutNewCampaign(String campaignId, String campaignName, String orgName, OnNotificationListener listener) {
-        // Query tất cả users có role là volunteer
+    public void notifyVolunteersAboutNewCampaign(String campaignId, String campaignName, String orgName, OnNotificationListener listener) {
+        // Query tất cả users có role là "volunteer"
         db.collection("users")
                 .whereEqualTo("role", "volunteer")
                 .get()
@@ -224,7 +224,7 @@ public class NotificationRepository {
                     int[] completedCount = {0};
 
                     // Tạo notification cho từng volunteer
-                    for (QueryDocumentSnapshot doc : snapshots) {
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snapshots) {
                         String userId = doc.getId();
                         
                         Notification notification = new Notification(userId, title, description, 
