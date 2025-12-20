@@ -4,7 +4,9 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -39,6 +41,7 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
     private OrganizationRepository organizationRepository;
     private MaterialButton btnConfirm;
     private FirebaseFirestore db;
+    private LinearLayout locationContainer;
 
     // Data from previous activity
     private String donationType;
@@ -47,14 +50,19 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
     private String condition;
     private int points;
     private String note;
+    private String campaignId;
 
     // Selected location data
     private String selectedOrganizationId;
     private String selectedOrganizationName;
     private String selectedLocation;
 
-    // Available campaigns
-    private List<Campaign> availableCampaigns = new ArrayList<>();
+    // Campaign data
+    private Campaign selectedCampaign;
+
+    // Organization list
+    private List<Organization> organizationList = new ArrayList<>();
+    private MaterialCardView selectedCardView = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,17 +76,11 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         organizationRepository = new OrganizationRepository();
         db = FirebaseFirestore.getInstance();
 
-
-        // Ánh xạ views
-        TextView tvCampaignName = findViewById(R.id.tvCampaignName);
-        TextView tvType = findViewById(R.id.tvType);
-        TextView tvCategory = findViewById(R.id.tvCategory);
-        TextView tvQuantity = findViewById(R.id.tvQuantity);
-        TextView tvCondition = findViewById(R.id.tvCondition);
-        TextView tvTotalPoints = findViewById(R.id.tvTotalPoints);
+        // Initialize views
+        locationContainer = findViewById(R.id.locationContainer);
         btnConfirm = findViewById(R.id.btnConfirm);
 
-        // Nhận dữ liệu từ Intent
+        // Get data from intent
         Intent intent = getIntent();
         donationType = intent.getStringExtra("DONATION_TYPE");
         category = intent.getStringExtra("CATEGORY");
@@ -86,26 +88,23 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         condition = intent.getStringExtra("CONDITION");
         points = intent.getIntExtra("POINTS", 0);
         note = intent.getStringExtra("NOTE");
+        campaignId = intent.getStringExtra("CAMPAIGN_ID");
 
-        // Convert donation type to display text
-        String typeText = convertDonationTypeToText(donationType);
-
-        // Update UI
-        tvCampaignName.setText(typeText);
-        tvType.setText(typeText);
-        tvCategory.setText(category);
-        tvQuantity.setText(String.valueOf(quantity));
-        tvCondition.setText(condition != null ? condition.replace("(100%)", "100%").replace("80%-90%", "80-90%").replace("60%-70%", "60-70%") : "Không xác định");
-        tvTotalPoints.setText("+" + points);
+        // Setup UI with donation info
+        setupDonationInfo();
 
         // Setup buttons
         findViewById(R.id.btnBack2).setOnClickListener(v -> finish());
         btnConfirm.setOnClickListener(v -> confirmDonation());
 
-        loadAllOrganizations();
-
-        // Setup location selection listeners
-        setupLocationListeners();
+        // Load appropriate data based on campaign ID
+        if (campaignId != null && !campaignId.isEmpty()) {
+            Log.d(TAG, "Campaign ID found: " + campaignId + " - Loading campaign data");
+            loadCampaignAndOrganization();
+        } else {
+            Log.d(TAG, "No campaign ID - Loading all organizations");
+            loadAllOrganizations();
+        }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -114,296 +113,236 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         });
     }
 
+    private void setupDonationInfo() {
+        TextView tvCampaignName = findViewById(R.id.tvCampaignName);
+        TextView tvType = findViewById(R.id.tvType);
+        TextView tvCategory = findViewById(R.id.tvCategory);
+        TextView tvQuantity = findViewById(R.id.tvQuantity);
+        TextView tvCondition = findViewById(R.id.tvCondition);
+        TextView tvTotalPoints = findViewById(R.id.tvTotalPoints);
+
+        String typeText = convertDonationTypeToText(donationType);
+
+        tvCampaignName.setText(typeText);
+        tvType.setText(typeText);
+        tvCategory.setText(category);
+        tvQuantity.setText(String.valueOf(quantity));
+        tvCondition.setText(condition != null ?
+                condition.replace("(100%)", "100%")
+                        .replace("80%-90%", "80-90%")
+                        .replace("60%-70%", "60-70%")
+                : "Không xác định");
+        tvTotalPoints.setText("+" + points);
+    }
+
+    // ========== LOAD CAMPAIGN & ORGANIZATION ==========
+    private void loadCampaignAndOrganization() {
+        Log.d(TAG, "Loading campaign: " + campaignId);
+
+        db.collection("campaigns").document(campaignId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        selectedCampaign = documentSnapshot.toObject(Campaign.class);
+                        if (selectedCampaign != null) {
+                            selectedCampaign.setId(documentSnapshot.getId());
+                            loadOrganizationDetails(selectedCampaign.getOrganizationId());
+                        } else {
+                            Log.e(TAG, "Failed to parse campaign data");
+                            showError("Lỗi đọc dữ liệu chiến dịch");
+                        }
+                    } else {
+                        Log.e(TAG, "Campaign not found: " + campaignId);
+                        showError("Không tìm thấy chiến dịch");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading campaign: " + e.getMessage());
+                    showError("Lỗi tải thông tin chiến dịch: " + e.getMessage());
+                });
+    }
+
+    private void loadOrganizationDetails(String organizationId) {
+        Log.d(TAG, "Loading organization: " + organizationId);
+
+        db.collection("organization").document(organizationId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        Organization organization = documentSnapshot.toObject(Organization.class);
+                        if (organization != null) {
+                            organization.setId(documentSnapshot.getId());
+                            displaySingleOrganization(organization);
+                        } else {
+                            Log.e(TAG, "Failed to parse organization data");
+                            showError("Lỗi đọc dữ liệu tổ chức");
+                        }
+                    } else {
+                        Log.e(TAG, "Organization not found: " + organizationId);
+                        showError("Không tìm thấy tổ chức");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading organization: " + e.getMessage());
+                    showError("Lỗi tải thông tin tổ chức: " + e.getMessage());
+                });
+    }
+
+    private void displaySingleOrganization(Organization organization) {
+        Log.d(TAG, "Displaying single organization: " + organization.getName());
+
+        // Clear container
+        locationContainer.removeAllViews();
+
+        // Inflate location card
+        View locationCard = LayoutInflater.from(this)
+                .inflate(R.layout.item_donation_location, locationContainer, false);
+
+        TextView tvCampaignTitle = locationCard.findViewById(R.id.tv_campaign_title);
+        TextView tvCampaignAddress = locationCard.findViewById(R.id.tv_campaign_address);
+        TextView tvCampaignTime = locationCard.findViewById(R.id.tv_campaign_time);
+
+        // Set data
+        String title = selectedCampaign != null ?
+                selectedCampaign.getName() + " - " + organization.getName() :
+                organization.getName();
+        String address = organization.getAddress() != null ?
+                organization.getAddress() : "Địa chỉ chưa cập nhật";
+        String workingHours = selectedCampaign != null && selectedCampaign.getSpecificLocation() != null ?
+                selectedCampaign.getSpecificLocation() : "8:00 - 17:00 (T2-T7)";
+
+        tvCampaignTitle.setText(title);
+        tvCampaignAddress.setText(address);
+        tvCampaignTime.setText(workingHours);
+
+        // Auto-select this organization
+        if (locationCard instanceof MaterialCardView) {
+            MaterialCardView cardView = (MaterialCardView) locationCard;
+            cardView.setCardBackgroundColor(Color.parseColor("#E8F5E8"));
+            cardView.setStrokeColor(Color.parseColor("#4CAF50"));
+            cardView.setStrokeWidth(6);
+            selectedCardView = cardView;
+        }
+
+        // Set selected data
+        selectedOrganizationId = organization.getId();
+        selectedOrganizationName = organization.getName();
+        selectedLocation = address;
+
+        locationContainer.addView(locationCard);
+
+        Log.d(TAG, "Organization displayed successfully");
+        Log.d(TAG, "ID: " + selectedOrganizationId);
+        Log.d(TAG, "Name: " + selectedOrganizationName);
+    }
+
+    // ========== LOAD ALL ORGANIZATIONS ==========
     private void loadAllOrganizations() {
+        Log.d(TAG, "Loading all organizations from Firestore");
+
         db.collection("organization")
-                .whereEqualTo("isActive", true)
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
-                    availableCampaigns.clear();
+                    organizationList.clear();
 
                     for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
                         Organization org = doc.toObject(Organization.class);
                         org.setId(doc.getId());
+                        organizationList.add(org);
 
-                        // Convert Organization thành Campaign để hiển thị
-                        Campaign campaign = new Campaign();
-                        campaign.setOrganizationId(org.getId());
-                        campaign.setOrganizationName(org.getName());
-                        campaign.setLocation(extractCityFromAddress(org.getAddress()));
-                        campaign.setSpecificLocation(org.getAddress());
-
-                        availableCampaigns.add(campaign);
+                        Log.d(TAG, "Organization loaded: " + org.getName() + " | " + org.getAddress());
                     }
 
-                    Log.d(TAG, "Loaded " + availableCampaigns.size() + " organizations");
+                    Log.d(TAG, "Total organizations loaded: " + organizationList.size());
 
-                    // Update UI
-                    updateLocationItems();
+                    if (organizationList.isEmpty()) {
+                        showError("Không tìm thấy tổ chức nào");
+                    } else {
+                        displayOrganizationList();
+                    }
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error loading organizations: " + e.getMessage());
+                    showError("Lỗi tải danh sách tổ chức: " + e.getMessage());
                 });
     }
 
-    // Helper method để extract thành phố từ địa chỉ
-    private String extractCityFromAddress(String fullAddress) {
-        if (fullAddress == null || fullAddress.isEmpty()) {
-            return "Chưa xác định";
-        }
+    private void displayOrganizationList() {
+        Log.d(TAG, "Displaying " + organizationList.size() + " organizations");
 
-        // Tách địa chỉ theo dấu phẩy và lấy phần cuối (thường là tỉnh/thành phố)
-        String[] parts = fullAddress.split(",");
-        if (parts.length > 0) {
-            String lastPart = parts[parts.length - 1].trim();
+        // Clear container
+        locationContainer.removeAllViews();
 
-            // Loại bỏ các từ không cần thiết
-            lastPart = lastPart.replace("tỉnh", "").replace("thành phố", "").replace("TP.", "").trim();
+        for (Organization org : organizationList) {
+            View locationCard = LayoutInflater.from(this)
+                    .inflate(R.layout.item_donation_location, locationContainer, false);
 
-            return lastPart;
-        }
-        return fullAddress;
-    }
+            TextView tvCampaignTitle = locationCard.findViewById(R.id.tv_campaign_title);
+            TextView tvCampaignAddress = locationCard.findViewById(R.id.tv_campaign_address);
+            TextView tvCampaignTime = locationCard.findViewById(R.id.tv_campaign_time);
 
-    // Method để update UI cho tất cả organizations
-    private void updateLocationItems() {
-        int maxItems = Math.min(availableCampaigns.size(), 3); // Hiển thị tối đa 3 items
-
-        for (int i = 0; i < maxItems; i++) {
-            int includeId = getLocationIncludeId(i);
-            updateLocationItem(includeId, i);
-        }
-
-        // Ẩn các item không sử dụng
-        for (int i = maxItems; i < 3; i++) {
-            int includeId = getLocationIncludeId(i);
-            View locationView = findViewById(includeId);
-            if (locationView != null) {
-                locationView.setVisibility(View.GONE);
-            }
-        }
-    }
-
-    private int getLocationIncludeId(int index) {
-        switch (index) {
-            case 0: return R.id.includeLocation1;
-            case 1: return R.id.includeLocation2;
-            case 2: return R.id.includeLocation3;
-            default: return R.id.includeLocation1;
-        }
-    }
-
-    private void updateLocationItem(int includeId, int campaignIndex) {
-        View locationView = findViewById(includeId);
-        if (locationView == null) {
-            Log.e(TAG, "Location view is NULL for includeId: " + includeId);
-            return;
-        }
-
-        TextView tvCampaignTitle = locationView.findViewById(R.id.tv_campaign_title);
-        TextView tvCampaignAddress = locationView.findViewById(R.id.tv_campaign_address);
-        TextView tvCampaignTime = locationView.findViewById(R.id.tv_campaign_time);
-
-        if (campaignIndex < availableCampaigns.size()) {
-            Campaign campaign = availableCampaigns.get(campaignIndex);
-
-            // Kiểm tra null và set dữ liệu
-            String orgName = campaign.getOrganizationName();
-            String location = campaign.getLocation();
-            String specificLocation = campaign.getSpecificLocation();
-
-            if (orgName == null) orgName = "Tổ chức từ thiện";
-            if (location == null) location = "Chưa xác định";
-            if (specificLocation == null) specificLocation = "Địa chỉ cụ thể chưa cập nhật";
-
-            tvCampaignTitle.setText(orgName + " - " + location);
-            tvCampaignAddress.setText(specificLocation);
+            // Set organization data
+            tvCampaignTitle.setText(org.getName());
+            tvCampaignAddress.setText(org.getAddress() != null ? org.getAddress() : "Địa chỉ chưa cập nhật");
             tvCampaignTime.setText("8:00 - 17:00 (T2-T7)");
 
-            // Store campaign data in view tag
-            locationView.setTag(campaign);
-            locationView.setVisibility(View.VISIBLE);
+            // Setup click listener for selection
+            MaterialCardView cardView = (MaterialCardView) locationCard;
+            cardView.setOnClickListener(v -> selectOrganization(cardView, org));
 
-            Log.d(TAG, "Updated location " + campaignIndex + ": " + orgName + " - " + location +
-                    " (ID: " + campaign.getOrganizationId() + ")");
-        } else {
-            // Hide unused location items
-            locationView.setVisibility(View.GONE);
-        }
-    }
-
-    private void setupLocationListeners() {
-        // Setup click listeners for location items
-        setupLocationClickListener(R.id.includeLocation1, 0);
-        setupLocationClickListener(R.id.includeLocation2, 1);
-        setupLocationClickListener(R.id.includeLocation3, 2);
-    }
-
-    private void setupLocationClickListener(int includeId, int campaignIndex) {
-        View locationView = findViewById(includeId);
-
-        if (locationView == null) {
-            Log.e(TAG, "Location view is NULL for includeId: " + includeId);
-            return;
+            locationContainer.addView(locationCard);
         }
 
-        locationView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Log.d(TAG, "=== Location clicked ===");
-                Log.d(TAG, "Include ID: " + includeId + ", Campaign Index: " + campaignIndex);
-
-                // Clear previous selections
-                clearLocationSelections();
-
-                // Mark this as selected
-                v.setSelected(true);
-
-                // Thay đổi màu CardView
-                if (v instanceof MaterialCardView) {
-                    MaterialCardView cardView = (MaterialCardView) v;
-
-                    // Đổi màu background thành xanh nhẹ
-                    cardView.setCardBackgroundColor(Color.parseColor("#E8F5E8"));
-                    // Đổi viền thành xanh đậm
-                    cardView.setStrokeColor(Color.parseColor("#4CAF50"));
-                    cardView.setStrokeWidth(6);
-
-                    Log.d(TAG, "CardView color changed to green");
-                }
-
-                // Get campaign data - DIRECT ACCESS BY INDEX
-                if (campaignIndex >= 0 && campaignIndex < availableCampaigns.size()) {
-                    Campaign selectedCampaign = availableCampaigns.get(campaignIndex);
-
-                    selectedOrganizationId = selectedCampaign.getOrganizationId();
-                    selectedOrganizationName = selectedCampaign.getOrganizationName();
-                    selectedLocation = selectedCampaign.getLocation();
-
-                    if (selectedCampaign.getSpecificLocation() != null) {
-                        selectedLocation += " - " + selectedCampaign.getSpecificLocation();
-                    }
-
-                    Log.d(TAG, "=== SELECTION SUCCESS ===");
-                    Log.d(TAG, "ID: [" + selectedOrganizationId + "]");
-                    Log.d(TAG, "Name: [" + selectedOrganizationName + "]");
-                    Log.d(TAG, "Location: [" + selectedLocation + "]");
-
-                    Toast.makeText(activity_volunteer_donation_confirm.this,
-                            "Đã chọn: " + selectedOrganizationName, Toast.LENGTH_SHORT).show();
-                } else {
-                    Log.e(TAG, "=== SELECTION FAILED ===");
-                    Log.e(TAG, "Invalid campaign index: " + campaignIndex +
-                            ", available campaigns: " + availableCampaigns.size());
-
-                    Toast.makeText(activity_volunteer_donation_confirm.this,
-                            "Lỗi: Không tìm thấy thông tin địa điểm", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
+        Log.d(TAG, "Organization list displayed successfully");
     }
 
-    private void clearLocationSelections() {
-        // Clear all location selections
-        clearLocationSelection(R.id.includeLocation1);
-        clearLocationSelection(R.id.includeLocation2);
-        clearLocationSelection(R.id.includeLocation3);
-    }
-
-    private void clearLocationSelection(int includeId) {
-        View locationView = findViewById(includeId);
-        if (locationView != null) {
-            locationView.setSelected(false);
-
-            // Reset CardView về màu mặc định
-            if (locationView instanceof MaterialCardView) {
-                MaterialCardView cardView = (MaterialCardView) locationView;
-
-                // Reset về màu trắng
-                cardView.setCardBackgroundColor(Color.parseColor("#FFFFFF"));
-                // Reset viền về màu cam
-                cardView.setStrokeColor(Color.parseColor("#FFAD00"));
-                cardView.setStrokeWidth(4);
-            }
-        }
-    }
-
-    private String convertDonationTypeToText(String type) {
-        if (type == null) return "SÁCH VỞ";
-
-        switch (type) {
-            case "BOOKS": return "SÁCH VỞ";
-            case "CLOTHES": return "QUẦN ÁO";
-            case "TOYS": return "ĐỒ CHƠI";
-            case "ESSENTIALS": return "NHU YẾU PHẨM";
-            default: return "SÁCH VỞ";
-        }
-    }
-
-    private Donation.DonationType convertStringToEnum(String type) {
-        if (type == null) return Donation.DonationType.BOOKS;
-
-        switch (type) {
-            case "BOOKS":
-                return Donation.DonationType.BOOKS;
-            case "CLOTHES":
-                return Donation.DonationType.CLOTHES;
-            case "TOYS":
-                return Donation.DonationType.TOYS;
-            case "ESSENTIALS":
-                return Donation.DonationType.ESSENTIALS;
-            default:
-                Log.w(TAG, "Unknown donation type: " + type + ", using BOOKS as default");
-                return Donation.DonationType.BOOKS;
-        }
-    }
-
-    private DonationItem.ItemCondition convertConditionToEnum(String conditionText) {
-        if (conditionText == null || conditionText.isEmpty()) {
-            Log.w(TAG, "Condition text is null or empty, using ACCEPTABLE as default");
-            return DonationItem.ItemCondition.ACCEPTABLE;
+    private void selectOrganization(MaterialCardView clickedCard, Organization organization) {
+        // Deselect previous card
+        if (selectedCardView != null) {
+            selectedCardView.setCardBackgroundColor(Color.parseColor("#FFFFFF"));
+            selectedCardView.setStrokeColor(Color.parseColor("#E0E0E0"));
+            selectedCardView.setStrokeWidth(2);
         }
 
-        Log.d(TAG, "Converting condition: " + conditionText);
+        // Select new card
+        clickedCard.setCardBackgroundColor(Color.parseColor("#E8F5E8"));
+        clickedCard.setStrokeColor(Color.parseColor("#4CAF50"));
+        clickedCard.setStrokeWidth(6);
+        selectedCardView = clickedCard;
 
-        String lowerCondition = conditionText.toLowerCase().trim();
+        // Update selected data
+        selectedOrganizationId = organization.getId();
+        selectedOrganizationName = organization.getName();
+        selectedLocation = organization.getAddress();
 
-        if (lowerCondition.contains("mới") || lowerCondition.contains("100%") || lowerCondition.contains("new")) {
-            return DonationItem.ItemCondition.NEW;
-        } else if (lowerCondition.contains("tốt") || lowerCondition.contains("80") || lowerCondition.contains("90") || lowerCondition.contains("good")) {
-            return DonationItem.ItemCondition.GOOD;
-        } else if (lowerCondition.contains("khá") || lowerCondition.contains("60") || lowerCondition.contains("70") || lowerCondition.contains("fair")) {
-            return DonationItem.ItemCondition.FAIR;
-        } else {
-            Log.w(TAG, "Unknown condition: " + conditionText + ", using ACCEPTABLE as default");
-            return DonationItem.ItemCondition.ACCEPTABLE;
-        }
+        Log.d(TAG, "Organization selected: " + selectedOrganizationName);
+        Toast.makeText(this, "Đã chọn: " + selectedOrganizationName, Toast.LENGTH_SHORT).show();
     }
 
+    // ========== CONFIRM DONATION ==========
     private void confirmDonation() {
         Log.d(TAG, "========================================");
         Log.d(TAG, "CONFIRM DONATION CLICKED");
         Log.d(TAG, "========================================");
         Log.d(TAG, "selectedOrganizationId: [" + selectedOrganizationId + "]");
         Log.d(TAG, "selectedOrganizationName: [" + selectedOrganizationName + "]");
-        Log.d(TAG, "selectedLocation: [" + selectedLocation + "]");
+        Log.d(TAG, "campaignId: [" + campaignId + "]");
         Log.d(TAG, "========================================");
 
-        // Kiểm tra xem đã chọn địa điểm chưa
+        // Validate organization selection
         if (selectedOrganizationId == null || selectedOrganizationName == null) {
-            Log.w(TAG, "VALIDATION FAILED: NULL values");
-            Toast.makeText(this, "Vui lòng chọn địa điểm giao đồ quyên góp", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Vui lòng chọn tổ chức để quyên góp", Toast.LENGTH_SHORT).show();
             return;
         }
 
         if (selectedOrganizationId.trim().isEmpty() || selectedOrganizationName.trim().isEmpty()) {
-            Log.w(TAG, "VALIDATION FAILED: EMPTY values");
-            Toast.makeText(this, "Vui lòng chọn địa điểm giao đồ quyên góp", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Thông tin tổ chức không hợp lệ", Toast.LENGTH_SHORT).show();
             return;
         }
 
         Log.d(TAG, "VALIDATION PASSED - Proceeding with donation");
 
-        // Disable button to prevent double click
+        // Disable button
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang xử lý...");
 
@@ -417,7 +356,7 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
                 throw new IllegalArgumentException("Danh mục không hợp lệ");
             }
 
-            // Convert donation type to enum using safe method
+            // Convert donation type
             Donation.DonationType typeEnum = convertStringToEnum(donationType);
 
             // Create donation item
@@ -430,12 +369,14 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
             List<DonationItem> items = new ArrayList<>();
             items.add(item);
 
-            Log.d(TAG, "Creating donation with type: " + typeEnum +
-                    ", condition: " + item.getCondition() +
-                    ", organization: " + selectedOrganizationName +
-                    ", location: " + selectedLocation);
+            Log.d(TAG, "Creating donation:");
+            Log.d(TAG, "  Type: " + typeEnum);
+            Log.d(TAG, "  Organization: " + selectedOrganizationName);
+            Log.d(TAG, "  Category: " + category);
+            Log.d(TAG, "  Quantity: " + quantity);
+            Log.d(TAG, "  Condition: " + item.getCondition());
 
-            // Create donation using repository with selected organization
+            // Create donation
             donationRepository.createVolunteerDonation(
                     selectedOrganizationId,
                     selectedOrganizationName,
@@ -446,13 +387,21 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
                         public void onSuccess(String donationId) {
                             runOnUiThread(() -> {
                                 Log.d(TAG, "Donation created successfully: " + donationId);
+
+                                String successMessage = campaignId != null && !campaignId.isEmpty() ?
+                                        "Quyên góp thành công cho chiến dịch: " +
+                                                (selectedCampaign != null ? selectedCampaign.getName() : selectedOrganizationName) +
+                                                "!\nBạn sẽ nhận " + points + " điểm sau khi được xác nhận" :
+                                        "Quyên góp thành công cho " + selectedOrganizationName +
+                                                "!\nBạn sẽ nhận " + points + " điểm sau khi được xác nhận";
+
                                 Toast.makeText(activity_volunteer_donation_confirm.this,
-                                        "Quyên góp thành công tại " + selectedOrganizationName +
-                                                "!\nBạn sẽ nhận " + points + " điểm sau khi được xác nhận",
+                                        successMessage,
                                         Toast.LENGTH_LONG).show();
 
-                                // Về lại trang home của volunteer
-                                Intent homeIntent = new Intent(activity_volunteer_donation_confirm.this, activity_volunteer_main.class);
+                                // Return to home
+                                Intent homeIntent = new Intent(activity_volunteer_donation_confirm.this,
+                                        activity_volunteer_main.class);
                                 homeIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                                 startActivity(homeIntent);
                                 finish();
@@ -482,6 +431,56 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
             // Re-enable button
             btnConfirm.setEnabled(true);
             btnConfirm.setText("XÁC NHẬN");
+        }
+    }
+
+    // ========== HELPER METHODS ==========
+    private void showError(String message) {
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+        finish();
+    }
+
+    private String convertDonationTypeToText(String type) {
+        if (type == null) return "SÁCH VỞ";
+
+        switch (type) {
+            case "BOOKS": return "SÁCH VỞ";
+            case "CLOTHES": return "QUẦN ÁO";
+            case "TOYS": return "ĐỒ CHƠI";
+            case "ESSENTIALS": return "NHU YẾU PHẨM";
+            default: return "SÁCH VỞ";
+        }
+    }
+
+    private Donation.DonationType convertStringToEnum(String type) {
+        if (type == null) return Donation.DonationType.BOOKS;
+
+        switch (type) {
+            case "BOOKS": return Donation.DonationType.BOOKS;
+            case "CLOTHES": return Donation.DonationType.CLOTHES;
+            case "TOYS": return Donation.DonationType.TOYS;
+            case "ESSENTIALS": return Donation.DonationType.ESSENTIALS;
+            default:
+                Log.w(TAG, "Unknown donation type: " + type + ", using BOOKS as default");
+                return Donation.DonationType.BOOKS;
+        }
+    }
+
+    private DonationItem.ItemCondition convertConditionToEnum(String conditionText) {
+        if (conditionText == null || conditionText.isEmpty()) {
+            return DonationItem.ItemCondition.ACCEPTABLE;
+        }
+
+        String lowerCondition = conditionText.toLowerCase().trim();
+
+        if (lowerCondition.contains("mới") || lowerCondition.contains("100%")) {
+            return DonationItem.ItemCondition.NEW;
+        } else if (lowerCondition.contains("tốt") || lowerCondition.contains("80") || lowerCondition.contains("90")) {
+            return DonationItem.ItemCondition.GOOD;
+        } else if (lowerCondition.contains("khá") || lowerCondition.contains("60") || lowerCondition.contains("70")) {
+            return DonationItem.ItemCondition.FAIR;
+        } else {
+            return DonationItem.ItemCondition.ACCEPTABLE;
         }
     }
 }

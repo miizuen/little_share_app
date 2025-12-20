@@ -46,6 +46,8 @@ public class Campaign implements Serializable {
 
     private List<CampaignRole> roles;
 
+    private String campaignType;
+
     @ServerTimestamp
     private Date createdAt;
 
@@ -62,6 +64,65 @@ public class Campaign implements Serializable {
         private String displayName;
         CampaignCategory(String displayName) { this.displayName = displayName; }
         public String getDisplayName() { return displayName; }
+    }
+
+    public enum CampaignType {
+        VOLUNTEER("Tình nguyện"),
+        DONATION("Quyên góp vật phẩm");
+
+        private String displayName;
+        CampaignType(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
+
+    public enum DonationType {
+        BOOKS("Sách vở"),
+        CLOTHES("Quần áo"),
+        TOYS("Đồ chơi"),
+        ESSENTIALS("Nhu yếu phẩm"),
+        MIXED("Hỗn hợp"); // Cho các chiến dịch nhận nhiều loại
+
+        private String displayName;
+        DonationType(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
+    }
+
+    // Thêm field
+    private String donationType;
+
+    // Thêm getter/setter
+    public String getDonationType() { return donationType; }
+    public void setDonationType(String donationType) { this.donationType = donationType; }
+
+    public void setDonationTypeEnum(DonationType type) {
+        if (type != null) {
+            this.donationType = type.name();
+        }
+    }
+
+    public DonationType getDonationTypeEnum() {
+        try {
+            return DonationType.valueOf(donationType);
+        } catch (Exception e) {
+            return DonationType.MIXED; // Default
+        }
+    }
+
+    public String getCampaignType() { return campaignType; }
+    public void setCampaignType(String campaignType) { this.campaignType = campaignType; }
+
+    public void setTypeCampaign(CampaignType type) {
+        if (type != null) {
+            this.campaignType = type.name();
+        }
+    }
+
+    public CampaignType getTypeEnum() {
+        try {
+            return CampaignType.valueOf(campaignType);
+        } catch (Exception e) {
+            return CampaignType.VOLUNTEER; // Default
+        }
     }
 
     public void setCategoryCampaign(CampaignCategory categoryEnum) {
@@ -86,6 +147,7 @@ public class Campaign implements Serializable {
         this.currentVolunteers = 0;
         this.currentBudget = 0;
         this.roles = new ArrayList<>();
+        this.campaignType = CampaignType.VOLUNTEER.name();
     }
 
     public Campaign(String name, CampaignCategory category, String organizationName, String location) {

@@ -27,7 +27,6 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
 
     private static final String TAG = "DonationForm";
 
-    // Views - CHỈ CÓ NHỮNG VIEW CÓ TRONG LAYOUT
     private ImageButton btnBack;
     private TextView tvDonationType, tvQuantity, tvPoints;
     private MaterialButton btnSachGiaoKhoa, btnSachKyNang, btnSachThieuNhi, btnTaiLieu;
@@ -45,6 +44,9 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
     private int quantity = 5;
     private String donationTypeKey = "BOOK";
 
+    // THÊM BIẾN CAMPAIGN ID
+    private String campaignId;
+
     // User data
     private User currentUser;
 
@@ -54,8 +56,21 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_volunteer_donation_form);
 
+        // NHẬN CAMPAIGN ID TỪ INTENT
         donationTypeKey = getIntent().getStringExtra("DONATION_TYPE");
         if (donationTypeKey == null) donationTypeKey = "BOOK";
+
+        campaignId = getIntent().getStringExtra("CAMPAIGN_ID");
+
+        // Log để debug
+        Log.d(TAG, "Received DONATION_TYPE: " + donationTypeKey);
+        Log.d(TAG, "Received CAMPAIGN_ID: " + campaignId);
+
+        // CHO PHÉP CAMPAIGN ID NULL - không bắt buộc nữa
+        if (campaignId == null || campaignId.isEmpty()) {
+            Log.w(TAG, "Campaign ID is null - proceeding without campaign");
+            campaignId = ""; // Gán giá trị rỗng thay vì finish()
+        }
 
         initRepositories();
         initViews();
@@ -159,13 +174,13 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
                 btnTaiLieu.setText("Lego");
                 selectedCategory = "Xếp hình";
                 break;
-            case "MONEY":
-                tvDonationType.setText("TIỀN MẶT");
-                btnSachGiaoKhoa.setText("50.000đ");
-                btnSachKyNang.setText("100.000đ");
-                btnSachThieuNhi.setText("200.000đ");
-                btnTaiLieu.setText("500.000đ");
-                selectedCategory = "50.000đ";
+            case "ESSENTIALS":
+                tvDonationType.setText("NHU YẾU PHẨM");
+                btnSachGiaoKhoa.setText("Thực phẩm khô");
+                btnSachKyNang.setText("Đồ dùng nhà ở");
+                btnSachThieuNhi.setText("Vật dụng vệ sinh");
+                btnTaiLieu.setText("Thuốc");
+                selectedCategory = "Thực phẩm khô";
                 break;
         }
 
@@ -329,6 +344,10 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
                     intent.putExtra("CONDITION", selectedCondition);
                     intent.putExtra("POINTS", totalPoints);
                     intent.putExtra("NOTE", note);
+                    intent.putExtra("CAMPAIGN_ID", campaignId);
+
+                    Log.d(TAG, "Passing CAMPAIGN_ID to confirm activity: " + campaignId);
+
                     startActivity(intent);
                 })
                 .setNegativeButton("Hủy", null)

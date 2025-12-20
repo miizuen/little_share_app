@@ -13,6 +13,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.WriteBatch;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -127,12 +128,28 @@ public class DonationRepository {
 
     // ========== GET DONATION ITEMS ==========
     public void getDonationItems(String donationId, OnDonationItemsListener listener) {
+        Log.d(TAG, "Getting items for donation: " + donationId);
+
         db.collection(DONATION_ITEMS_COLLECTION)
                 .whereEqualTo("donationId", donationId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    List<DonationItem> items = querySnapshot.toObjects(DonationItem.class);
-                    Log.d(TAG, "Retrieved " + items.size() + " items for donation: " + donationId);
+                    List<DonationItem> items = new ArrayList<>();
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        DonationItem item = doc.toObject(DonationItem.class);
+                        if (item != null) {
+                            item.setId(doc.getId());  // ← Set ID
+                            items.add(item);
+
+                            Log.d(TAG, "Loaded item: " + doc.getId() +
+                                    " | Category: " + item.getCategory() +
+                                    " | Quantity: " + item.getQuantity() +
+                                    " | Condition: " + item.getCondition());
+                        }
+                    }
+
+                    Log.d(TAG, "Total items loaded: " + items.size());
                     listener.onSuccess(items);
                 })
                 .addOnFailureListener(e -> {
@@ -206,13 +223,28 @@ public class DonationRepository {
 
     // ========== GET DONATIONS FOR NGO ==========
     public void getDonationsForOrganization(String organizationId, OnDonationListListener listener) {
+        Log.d(TAG, "Getting donations for organization: " + organizationId);
+
         db.collection(DONATIONS_COLLECTION)
                 .whereEqualTo("organizationId", organizationId)
                 .orderBy("donationDate", Query.Direction.DESCENDING)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    List<Donation> donations = querySnapshot.toObjects(Donation.class);
-                    Log.d(TAG, "Retrieved " + donations.size() + " donations for org: " + organizationId);
+                    List<Donation> donations = new ArrayList<>();
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        Donation donation = doc.toObject(Donation.class);
+                        if (donation != null) {
+                            donation.setId(doc.getId());  // ← QUAN TRỌNG: Set ID
+                            donations.add(donation);
+
+                            Log.d(TAG, "Loaded donation: " + doc.getId() +
+                                    " | User: " + donation.getUserName() +
+                                    " | Status: " + donation.getStatus());
+                        }
+                    }
+
+                    Log.d(TAG, "Total donations loaded: " + donations.size());
                     listener.onSuccess(donations);
                 })
                 .addOnFailureListener(e -> {
@@ -227,16 +259,16 @@ public class DonationRepository {
         for (DonationItem item : items) {
             int itemPoints = 0;
             switch (item.getCondition()) {
-                case NEW:
+                case "NEW":
                     itemPoints = Constants.POINTS_PER_ITEM_NEW;
                     break;
-                case GOOD:
+                case "GOOD":
                     itemPoints = Constants.POINTS_PER_ITEM_GOOD;
                     break;
-                case FAIR:
+                case "FAIR":
                     itemPoints = Constants.POINTS_PER_ITEM_FAIR;
                     break;
-                case ACCEPTABLE:
+                case "ACCEPTABLE":
                     itemPoints = Constants.POINTS_PER_ITEM_ACCEPTABLE;
                     break;
             }
@@ -264,8 +296,9 @@ public class DonationRepository {
         data.put("donationId", item.getDonationId());
         data.put("category", item.getCategory());
         data.put("quantity", item.getQuantity());
-        data.put("condition", item.getCondition().name());
+        data.put("condition", item.getCondition());
         data.put("notes", item.getNotes());
+        data.put("createdAt", FieldValue.serverTimestamp());
         return data;
     }
 

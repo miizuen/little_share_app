@@ -117,6 +117,46 @@ public class CampaignRepository {
                     listener.onSuccess(0, 0);
                 });
     }
+    public LiveData<List<Campaign>> getDonationCampaigns() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        Log.d(TAG, "Setting up getDonationCampaigns listener");
+
+        db.collection(COLLECTION)
+                .whereEqualTo("campaignType", "DONATION")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting donation campaigns", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        Log.d(TAG, "Firestore returned " + snapshots.size() + " documents");
+
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());
+                            campaigns.add(campaign);
+
+                            Log.d(TAG, "Document: " + doc.getId());
+                            Log.d(TAG, "  campaignType: " + doc.getString("campaignType"));
+                            Log.d(TAG, "  name: " + doc.getString("name"));
+                        }
+
+                        liveData.setValue(campaigns);
+                        Log.d(TAG, "Loaded " + campaigns.size() + " donation campaigns");
+                    } else {
+                        Log.w(TAG, "Snapshots is null");
+                        liveData.setValue(new ArrayList<>());
+                    }
+                });
+
+        return liveData;
+    }
+
 
     // Thêm interface mới
     public interface OnRegistrationStatsListener {
@@ -195,63 +235,63 @@ public class CampaignRepository {
                 });
     }
 
-public LiveData<List<Campaign>> getAllCampaigns() {
-    MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+    public LiveData<List<Campaign>> getAllCampaigns() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
-    db.collection(COLLECTION)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener((snapshots, error) -> {
-                if (error != null) {
-                    Log.e(TAG, "Error getting campaigns", error);
-                    liveData.setValue(new ArrayList<>());
-                    return;
-                }
-
-                if (snapshots != null) {
-                    List<Campaign> campaigns = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        Campaign campaign = doc.toObject(Campaign.class);
-                        campaign.setId(doc.getId());  // Set document ID
-                        campaigns.add(campaign);
+        db.collection(COLLECTION)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting campaigns", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
                     }
-                    liveData.setValue(campaigns);
-                    Log.d(TAG, "Loaded " + campaigns.size() + " campaigns");
-                } else {
-                    liveData.setValue(new ArrayList<>());
-                }
-            });
 
-    return liveData;
-}
-
-public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
-    MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
-
-    db.collection(COLLECTION)
-            .whereEqualTo("category", category)
-            .orderBy("createdAt", Query.Direction.DESCENDING)
-            .addSnapshotListener((snapshots, error) -> {
-                if (error != null) {
-                    Log.e(TAG, "Error getting campaigns by category", error);
-                    liveData.setValue(new ArrayList<>());
-                    return;
-                }
-
-                if (snapshots != null) {
-                    List<Campaign> campaigns = new ArrayList<>();
-                    for (QueryDocumentSnapshot doc : snapshots) {
-                        Campaign campaign = doc.toObject(Campaign.class);
-                        campaign.setId(doc.getId());  // Set document ID
-                        campaigns.add(campaign);
+                    if (snapshots != null) {
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());  // Set document ID
+                            campaigns.add(campaign);
+                        }
+                        liveData.setValue(campaigns);
+                        Log.d(TAG, "Loaded " + campaigns.size() + " campaigns");
+                    } else {
+                        liveData.setValue(new ArrayList<>());
                     }
-                    liveData.setValue(campaigns);
-                } else {
-                    liveData.setValue(new ArrayList<>());
-                }
-            });
+                });
 
-    return liveData;
-}
+        return liveData;
+    }
+
+    public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        db.collection(COLLECTION)
+                .whereEqualTo("category", category)
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting campaigns by category", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    if (snapshots != null) {
+                        List<Campaign> campaigns = new ArrayList<>();
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Campaign campaign = doc.toObject(Campaign.class);
+                            campaign.setId(doc.getId());  // Set document ID
+                            campaigns.add(campaign);
+                        }
+                        liveData.setValue(campaigns);
+                    } else {
+                        liveData.setValue(new ArrayList<>());
+                    }
+                });
+
+        return liveData;
+    }
 
 
     public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
@@ -479,7 +519,7 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
 
         return campaigns;
     }
-    
+
     public interface OnCampaignListener {
         void onSuccess(String result);
         void onFailure(String error);
@@ -487,9 +527,9 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
 
     public LiveData<List<Campaign>> getCampaignsBySponsor(String sponsorId) {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
-        
+
         Log.d(TAG, "Getting campaigns for sponsor: " + sponsorId);
-        
+
         db.collection(COLLECTION)
                 .whereArrayContains("sponsorIds", sponsorId)
                 .addSnapshotListener((snapshots, error) -> {
@@ -513,11 +553,11 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
                             }
                         }
                     }
-                    
+
                     Log.d(TAG, "Found " + campaigns.size() + " sponsored campaigns");
                     liveData.setValue(campaigns);
                 });
-        
+
         return liveData;
     }
 
@@ -678,27 +718,27 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
     public void saveDonation(SponsorDonation donation, OnDonationSaveListener listener) {
         // Lưu donation vào collection "sponsorDonations"
         db.collection("sponsorDonations")
-            .add(donation)
-            .addOnSuccessListener(documentReference -> {
-                Log.d(TAG, "Donation saved with ID: " + documentReference.getId());
-                
-                // Cập nhật currentBudget của campaign
-                updateCampaignBudget(donation.getCampaignId(), donation.getAmount(), listener);
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error saving donation", e);
-                listener.onFailure("Lỗi lưu thông tin donation: " + e.getMessage());
-            });
+                .add(donation)
+                .addOnSuccessListener(documentReference -> {
+                    Log.d(TAG, "Donation saved with ID: " + documentReference.getId());
+
+                    // Cập nhật currentBudget của campaign
+                    updateCampaignBudget(donation.getCampaignId(), donation.getAmount(), listener);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error saving donation", e);
+                    listener.onFailure("Lỗi lưu thông tin donation: " + e.getMessage());
+                });
     }
 
     private void updateCampaignBudget(String campaignId, double donationAmount, OnDonationSaveListener listener) {
         DocumentReference campaignRef = db.collection("campaigns").document(campaignId);
-        
+
         db.runTransaction(transaction -> {
             DocumentSnapshot snapshot = transaction.get(campaignRef);
             double currentBudget = snapshot.getDouble("currentBudget");
             double newBudget = currentBudget + donationAmount;
-            
+
             transaction.update(campaignRef, "currentBudget", newBudget);
             return null;
         }).addOnSuccessListener(aVoid -> {
@@ -723,24 +763,24 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
         }
 
         db.collection("sponsorDonations")
-            .whereEqualTo("sponsorId", currentUserId)
-            .whereEqualTo("campaignId", campaignId)
-            .whereEqualTo("status", "COMPLETED")
-            .get()
-            .addOnSuccessListener(snapshots -> {
-                double totalAmount = 0.0;
-                for (QueryDocumentSnapshot doc : snapshots) {
-                    Double amount = doc.getDouble("amount");
-                    if (amount != null) {
-                        totalAmount += amount;
+                .whereEqualTo("sponsorId", currentUserId)
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("status", "COMPLETED")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    double totalAmount = 0.0;
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        Double amount = doc.getDouble("amount");
+                        if (amount != null) {
+                            totalAmount += amount;
+                        }
                     }
-                }
-                listener.onResult(totalAmount);
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error getting donation amount", e);
-                listener.onResult(0.0);
-            });
+                    listener.onResult(totalAmount);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting donation amount", e);
+                    listener.onResult(0.0);
+                });
     }
 
     public interface OnDonationAmountListener {

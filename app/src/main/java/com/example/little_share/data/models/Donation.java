@@ -12,32 +12,56 @@ import com.google.firebase.firestore.ServerTimestamp;
 public class Donation implements Serializable {
     @DocumentId
     private String id;
-
     private String userId;
-
     private String userName;
     private String type;
-
     private String organizationId;
-
     private String organizationName;
     private String status;
-
     private int pointsEarned;
-
     private Date donationDate;
+    private String campaignId;
+    private String campaignName;
+    private String itemDescription;
+    private int quantity;
+    private String note;
+    private String phoneNumber;
+    private String address;
     @ServerTimestamp
     private Date createdAt;
 
+    // Thêm enum mới cho donation type
     public enum DonationType {
         BOOKS("Sách vở"),
         CLOTHES("Quần áo"),
         TOYS("Đồ chơi"),
-        ESSENTIALS("Nhu yếu phẩm");
+        ESSENTIALS("Nhu yếu phẩm"),
+        MIXED("Hỗn hợp"); // Cho các chiến dịch nhận nhiều loại
 
         private String displayName;
         DonationType(String displayName) { this.displayName = displayName; }
         public String getDisplayName() { return displayName; }
+    }
+
+    // Thêm field
+    private String donationType;
+
+    // Thêm getter/setter
+    public String getDonationType() { return donationType; }
+    public void setDonationType(String donationType) { this.donationType = donationType; }
+
+    public void setDonationTypeEnum(DonationType type) {
+        if (type != null) {
+            this.donationType = type.name();
+        }
+    }
+
+    public DonationType getDonationTypeEnum() {
+        try {
+            return DonationType.valueOf(donationType);
+        } catch (Exception e) {
+            return DonationType.MIXED; // Default
+        }
     }
 
     public enum DonationStatus {
@@ -107,6 +131,27 @@ public class Donation implements Serializable {
     public Date getCreatedAt() { return createdAt; }
 
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
+
+    public String getCampaignId() { return campaignId; }
+    public void setCampaignId(String campaignId) { this.campaignId = campaignId; }
+
+    public String getCampaignName() { return campaignName; }
+    public void setCampaignName(String campaignName) { this.campaignName = campaignName; }
+
+    public String getItemDescription() { return itemDescription; }
+    public void setItemDescription(String itemDescription) { this.itemDescription = itemDescription; }
+
+    public int getQuantity() { return quantity; }
+    public void setQuantity(int quantity) { this.quantity = quantity; }
+
+    public String getNote() { return note; }
+    public void setNote(String note) { this.note = note; }
+
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
+
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
 
     public DonationType getTypeEnum() {
         try {
