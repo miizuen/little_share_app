@@ -7,7 +7,41 @@ import java.io.Serializable;
 import java.util.Date;
 
 public class Notification implements Serializable {
+    
+    // Enum for notification types to support existing adapter
+    public enum NotificationType {
+        CAMPAIGN_NEW("CAMPAIGN_NEW"),
+        CAMPAIGN_APPROVED("CAMPAIGN_APPROVED"),
+        CAMPAIGN_REMINDER("CAMPAIGN_REMINDER"),
+        DONATION_CONFIRMED("DONATION_CONFIRMED"),
+        DONATION_SUCCESS("DONATION_SUCCESS"),
+        GIFT_AVAILABLE("GIFT_AVAILABLE"),
+        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS"),
+        CAMPAIGN_UPDATE("CAMPAIGN_UPDATE"),
+        SYSTEM("SYSTEM"),
+        GENERAL("GENERAL");
 
+        private String value;
+        
+        NotificationType(String value) {
+            this.value = value;
+        }
+        
+        public String getValue() {
+            return value;
+        }
+        
+        public static NotificationType fromString(String value) {
+            if (value == null) return GENERAL;
+            
+            for (NotificationType type : NotificationType.values()) {
+                if (type.value.equalsIgnoreCase(value)) {
+                    return type;
+                }
+            }
+            return GENERAL;
+        }
+    }
 
     @DocumentId
     private String id;
@@ -23,47 +57,20 @@ public class Notification implements Serializable {
     @ServerTimestamp
     private Date createdAt;
     public enum NotificationType {
-        CAMPAIGN_NEW("CAMPAIGN_NEW", "Chiến dịch mới"),
-        CAMPAIGN_APPROVED("CAMPAIGN_APPROVED", "Đã được duyệt"),
-        CAMPAIGN_REMINDER("CAMPAIGN_REMINDER", "Nhắc nhở"),
-        DONATION_CONFIRMED("DONATION_CONFIRMED", "Quyên góp xác nhận"),
-        DONATION_SUCCESS("DONATION_SUCCESS", "Quyên góp thành công"),
-        GIFT_AVAILABLE("GIFT_AVAILABLE", "Quà mới"),
-        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS", "Tài trợ thành công"),
-        CAMPAIGN_UPDATE("CAMPAIGN_UPDATE", "Cập nhật chiến dịch"),
-        REGISTRATION_APPROVED("REGISTRATION_APPROVED", "Đăng ký được duyệt"),
-        REGISTRATION_REJECTED("REGISTRATION_REJECTED", "Đăng ký bị từ chối"),
-        SYSTEM("SYSTEM", "Hệ thống"),
-        GENERAL("GENERAL", "Thông báo chung");
+        CAMPAIGN_NEW("Chiến dịch mới"),
+        CAMPAIGN_APPROVED("Đã được duyệt"),
+        CAMPAIGN_REMINDER("Nhắc nhở"),
+        DONATION_CONFIRMED("Quyên góp xác nhận"),
+        GIFT_AVAILABLE("Quà mới"),
+        SPONSORSHIP_SUCCESS("Tài trợ thành công"),
+        REGISTRATION_APPROVED("Đăng ký được duyệt"),  // THÊM
+        REGISTRATION_REJECTED("Đăng ký bị từ chối"),  // THÊM
+        GENERAL("Thông báo chung");
 
-        private String value;
         private String displayName;
-
-        NotificationType(String value, String displayName) {
-            this.value = value;
-            this.displayName = displayName;
-        }
-
-        public String getValue() {
-            return value;
-        }
-
-        public String getDisplayName() {
-            return displayName;
-        }
-
-        public static NotificationType fromString(String value) {
-            if (value == null) return GENERAL;
-
-            for (NotificationType type : NotificationType.values()) {
-                if (type.value.equalsIgnoreCase(value)) {
-                    return type;
-                }
-            }
-            return GENERAL;
-        }
+        NotificationType(String displayName) { this.displayName = displayName; }
+        public String getDisplayName() { return displayName; }
     }
-
 
     public Notification() {
         this.isRead = false;

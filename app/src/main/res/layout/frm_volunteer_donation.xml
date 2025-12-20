@@ -199,7 +199,7 @@
                     android:backgroundTint="#FFFFFF">
 
                     <LinearLayout
-                        android:id="@+id/btnMoney"
+                        android:id="@+id/btnEssentials"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
@@ -209,13 +209,13 @@
                         <ImageView
                             android:layout_width="80dp"
                             android:layout_height="80dp"
-                            android:src="@drawable/ic_money_3d"
-                            android:contentDescription="Tiền mặt" />
+                            android:src="@drawable/ic_stuff"
+                            android:contentDescription="Nhu yếu phẩm" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Tiền mặt"
+                            android:text="Nhu yếu phẩm"
                             android:textSize="18sp"
                             android:textStyle="bold"
                             android:layout_marginTop="12dp"
@@ -224,7 +224,7 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Ủng hộ trực tiếp"
+                            android:text="Đồ dùng hằng ngày"
                             android:textSize="14sp"
                             android:textColor="#888888"/>
                     </LinearLayout>

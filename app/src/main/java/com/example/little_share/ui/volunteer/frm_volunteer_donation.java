@@ -26,7 +26,7 @@ public class frm_volunteer_donation extends Fragment {
     private static final String TAG = "frm_volunteer_donation";
 
     // Views for donation types
-    private LinearLayout btnBook, btnMoney, btnToy, btnShirt;
+    private LinearLayout btnBook, btEssential, btnToy, btnShirt;
 
     // Repositories
     private DonationRepository donationRepository;
@@ -49,7 +49,7 @@ public class frm_volunteer_donation extends Fragment {
         btnBook = view.findViewById(R.id.btnBook);
         btnShirt = view.findViewById(R.id.btnShirt);
         btnToy = view.findViewById(R.id.btnToy);
-        btnMoney = view.findViewById(R.id.btnMoney);
+        btEssential = view.findViewById(R.id.btnEssentials);
     }
 
     private void initRepositories() {
@@ -58,10 +58,10 @@ public class frm_volunteer_donation extends Fragment {
     }
 
     private void setupDonationButtons() {
-        btnBook.setOnClickListener(v -> openDonationForm("BOOK"));
-        btnShirt.setOnClickListener(v -> openDonationForm("SHIRT"));
-        btnToy.setOnClickListener(v -> openDonationForm("TOY"));
-        btnMoney.setOnClickListener(v -> openDonationForm("MONEY"));
+        btnBook.setOnClickListener(v -> openDonationForm("BOOKS"));
+        btnShirt.setOnClickListener(v -> openDonationForm("CLOTHES"));
+        btnToy.setOnClickListener(v -> openDonationForm("TOYS"));
+        btEssential.setOnClickListener(v -> openDonationForm("ESSENTIALS"));
     }
 
     private void loadUserData() {
@@ -73,11 +73,6 @@ public class frm_volunteer_donation extends Fragment {
                 Log.d(TAG, "User data loaded: " + user.getFullName());
                 Log.d(TAG, "Total points: " + user.getTotalPoints());
                 Log.d(TAG, "Total donations: " + user.getTotalDonations());
-
-                // Có thể hiển thị toast chào mừng
-                Toast.makeText(getContext(),
-                        "Xin chào " + user.getFullName() + "! Bạn có " + user.getTotalPoints() + " điểm",
-                        Toast.LENGTH_SHORT).show();
             }
 
             @Override

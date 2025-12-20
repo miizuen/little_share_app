@@ -18,10 +18,14 @@ import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.models.Donation;
 import com.example.little_share.data.models.DonationItem;
+import com.example.little_share.data.models.Organization;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.DonationRepository;
+import com.example.little_share.data.repositories.OrganizationRepository;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,7 +36,9 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
 
     private DonationRepository donationRepository;
     private CampaignRepository campaignRepository;
+    private OrganizationRepository organizationRepository;
     private MaterialButton btnConfirm;
+    private FirebaseFirestore db;
 
     // Data from previous activity
     private String donationType;
@@ -59,6 +65,9 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         // Initialize repositories
         donationRepository = new DonationRepository();
         campaignRepository = new CampaignRepository();
+        organizationRepository = new OrganizationRepository();
+        db = FirebaseFirestore.getInstance();
+
 
         // Ánh xạ views
         TextView tvCampaignName = findViewById(R.id.tvCampaignName);
@@ -93,8 +102,7 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         findViewById(R.id.btnBack2).setOnClickListener(v -> finish());
         btnConfirm.setOnClickListener(v -> confirmDonation());
 
-        // Tạo dữ liệu mặc định ngay lập tức
-        createDefaultCampaigns();
+        loadAllOrganizations();
 
         // Setup location selection listeners
         setupLocationListeners();
@@ -106,37 +114,82 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         });
     }
 
-    private void createDefaultCampaigns() {
-        // Tạo dữ liệu mặc định ngay lập tức
-        Campaign defaultCampaign1 = new Campaign();
-        defaultCampaign1.setOrganizationName("Tổ chức từ thiện Ánh Sáng");
-        defaultCampaign1.setLocation("Đà Nẵng");
-        defaultCampaign1.setSpecificLocation("123 Nguyễn Tất Thành, thành phố Đà Nẵng");
-        defaultCampaign1.setOrganizationId("org_anh_sang_dn");
+    private void loadAllOrganizations() {
+        db.collection("organization")
+                .whereEqualTo("isActive", true)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    availableCampaigns.clear();
 
-        Campaign defaultCampaign2 = new Campaign();
-        defaultCampaign2.setOrganizationName("Nhóm tình nguyện niềm tin");
-        defaultCampaign2.setLocation("Hà Nội");
-        defaultCampaign2.setSpecificLocation("456 Hoàng Diệu, quận Ba Đình");
-        defaultCampaign2.setOrganizationId("org_niem_tin_hn");
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        Organization org = doc.toObject(Organization.class);
+                        org.setId(doc.getId());
 
-        Campaign defaultCampaign3 = new Campaign();
-        defaultCampaign3.setOrganizationName("Hội Chữ thập đỏ");
-        defaultCampaign3.setLocation("TP. Hồ Chí Minh");
-        defaultCampaign3.setSpecificLocation("789 Lê Lợi, quận 1");
-        defaultCampaign3.setOrganizationId("org_chu_thap_do_hcm");
+                        // Convert Organization thành Campaign để hiển thị
+                        Campaign campaign = new Campaign();
+                        campaign.setOrganizationId(org.getId());
+                        campaign.setOrganizationName(org.getName());
+                        campaign.setLocation(extractCityFromAddress(org.getAddress()));
+                        campaign.setSpecificLocation(org.getAddress());
 
-        availableCampaigns.clear();
-        availableCampaigns.add(defaultCampaign1);
-        availableCampaigns.add(defaultCampaign2);
-        availableCampaigns.add(defaultCampaign3);
+                        availableCampaigns.add(campaign);
+                    }
 
-        // Cập nhật UI ngay lập tức
-        updateLocationItem(R.id.includeLocation1, 0);
-        updateLocationItem(R.id.includeLocation2, 1);
-        updateLocationItem(R.id.includeLocation3, 2);
+                    Log.d(TAG, "Loaded " + availableCampaigns.size() + " organizations");
 
-        Log.d(TAG, "Created " + availableCampaigns.size() + " default campaigns");
+                    // Update UI
+                    updateLocationItems();
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading organizations: " + e.getMessage());
+                });
+    }
+
+    // Helper method để extract thành phố từ địa chỉ
+    private String extractCityFromAddress(String fullAddress) {
+        if (fullAddress == null || fullAddress.isEmpty()) {
+            return "Chưa xác định";
+        }
+
+        // Tách địa chỉ theo dấu phẩy và lấy phần cuối (thường là tỉnh/thành phố)
+        String[] parts = fullAddress.split(",");
+        if (parts.length > 0) {
+            String lastPart = parts[parts.length - 1].trim();
+
+            // Loại bỏ các từ không cần thiết
+            lastPart = lastPart.replace("tỉnh", "").replace("thành phố", "").replace("TP.", "").trim();
+
+            return lastPart;
+        }
+        return fullAddress;
+    }
+
+    // Method để update UI cho tất cả organizations
+    private void updateLocationItems() {
+        int maxItems = Math.min(availableCampaigns.size(), 3); // Hiển thị tối đa 3 items
+
+        for (int i = 0; i < maxItems; i++) {
+            int includeId = getLocationIncludeId(i);
+            updateLocationItem(includeId, i);
+        }
+
+        // Ẩn các item không sử dụng
+        for (int i = maxItems; i < 3; i++) {
+            int includeId = getLocationIncludeId(i);
+            View locationView = findViewById(includeId);
+            if (locationView != null) {
+                locationView.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    private int getLocationIncludeId(int index) {
+        switch (index) {
+            case 0: return R.id.includeLocation1;
+            case 1: return R.id.includeLocation2;
+            case 2: return R.id.includeLocation3;
+            default: return R.id.includeLocation1;
+        }
     }
 
     private void updateLocationItem(int includeId, int campaignIndex) {
@@ -281,7 +334,7 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
             case "BOOKS": return "SÁCH VỞ";
             case "CLOTHES": return "QUẦN ÁO";
             case "TOYS": return "ĐỒ CHƠI";
-            case "MONEY": return "TIỀN MẶT";
+            case "ESSENTIALS": return "NHU YẾU PHẨM";
             default: return "SÁCH VỞ";
         }
     }
@@ -291,16 +344,13 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
 
         switch (type) {
             case "BOOKS":
-            case "BOOK":
                 return Donation.DonationType.BOOKS;
             case "CLOTHES":
-            case "SHIRT":
                 return Donation.DonationType.CLOTHES;
             case "TOYS":
-            case "TOY":
                 return Donation.DonationType.TOYS;
-            case "MONEY":
-                return Donation.DonationType.MONEY;
+            case "ESSENTIALS":
+                return Donation.DonationType.ESSENTIALS;
             default:
                 Log.w(TAG, "Unknown donation type: " + type + ", using BOOKS as default");
                 return Donation.DonationType.BOOKS;
