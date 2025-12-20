@@ -6,62 +6,75 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.viewpager2.widget.ViewPager2;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Donation;
 import com.example.little_share.data.models.User;
 import com.example.little_share.data.repositories.DonationRepository;
 import com.example.little_share.data.repositories.UserRepository;
+import com.example.little_share.ui.volunteer.adapter.DonationPagerAdapter; // THÊM DÒNG NÀY
+import com.google.android.material.tabs.TabLayout;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.util.List;
 
 public class frm_volunteer_donation extends Fragment {
 
     private static final String TAG = "frm_volunteer_donation";
-
-    // Views for donation types
-    private LinearLayout btnBook, btEssential, btnToy, btnShirt;
+    private TabLayout tabLayout;
+    private ViewPager2 viewPager;
+    private DonationPagerAdapter pagerAdapter;
 
     // Repositories
     private DonationRepository donationRepository;
     private UserRepository userRepository;
 
     @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.frm_volunteer_donation, container, false);
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        initViews(view);
         initRepositories();
-        setupDonationButtons();
-
-        // Load user data để hiển thị thống kê (nếu cần)
-        loadUserData();
+        initViews(view);
+        setupTabsAndViewPager();
     }
 
-    private void initViews(View view) {
-        // Donation type buttons
-        btnBook = view.findViewById(R.id.btnBook);
-        btnShirt = view.findViewById(R.id.btnShirt);
-        btnToy = view.findViewById(R.id.btnToy);
-        btEssential = view.findViewById(R.id.btnEssentials);
-    }
-
+    // THÊM METHOD NÀY
     private void initRepositories() {
         donationRepository = new DonationRepository();
         userRepository = new UserRepository();
     }
 
-    private void setupDonationButtons() {
-        btnBook.setOnClickListener(v -> openDonationForm("BOOKS"));
-        btnShirt.setOnClickListener(v -> openDonationForm("CLOTHES"));
-        btnToy.setOnClickListener(v -> openDonationForm("TOYS"));
-        btEssential.setOnClickListener(v -> openDonationForm("ESSENTIALS"));
+    private void initViews(View view) {
+        tabLayout = view.findViewById(R.id.tabLayout);
+        viewPager = view.findViewById(R.id.viewPager);
+    }
+
+    private void setupTabsAndViewPager() {
+        pagerAdapter = new DonationPagerAdapter(this);
+        viewPager.setAdapter(pagerAdapter);
+
+        new TabLayoutMediator(tabLayout, viewPager, (tab, position) -> {
+            switch (position) {
+                case 0:
+                    tab.setText("Bạn muốn quyên góp gì?");
+                    break;
+                case 1:
+                    tab.setText("Chiến dịch quyên góp");
+                    break;
+            }
+        }).attach();
     }
 
     private void loadUserData() {
@@ -86,7 +99,6 @@ public class frm_volunteer_donation extends Fragment {
     }
 
     private void loadDonationHistory() {
-        // Method để load lịch sử quyên góp (có thể dùng sau)
         donationRepository.getVolunteerDonations(new DonationRepository.OnDonationListListener() {
             @Override
             public void onSuccess(List<Donation> donations) {
@@ -94,7 +106,6 @@ public class frm_volunteer_donation extends Fragment {
 
                 Log.d(TAG, "Loaded " + donations.size() + " donations");
 
-                // Hiển thị thống kê đơn giản
                 if (!donations.isEmpty()) {
                     Toast.makeText(getContext(),
                             "Bạn đã quyên góp " + donations.size() + " lần",
@@ -120,15 +131,7 @@ public class frm_volunteer_donation extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh data when returning from donation form
         loadUserData();
         loadDonationHistory();
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.frm_volunteer_donation, container, false);
     }
 }

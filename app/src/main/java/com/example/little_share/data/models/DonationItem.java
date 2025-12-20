@@ -3,19 +3,23 @@ package com.example.little_share.data.models;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.IgnoreExtraProperties;
 import com.google.firebase.firestore.PropertyName;
+import com.google.firebase.firestore.ServerTimestamp;
 
 import java.io.Serializable;
+import java.util.Date;
+
 @IgnoreExtraProperties
 public class DonationItem implements Serializable {
     @DocumentId
     private String id;
-
     private String donationId;
-
     private String category;
     private int quantity;
-    private ItemCondition condition;
+    private String condition;
     private String notes;
+
+    @ServerTimestamp
+    private Date createdAt;
 
     public enum ItemCondition {
         NEW("Mới"),
@@ -39,7 +43,7 @@ public class DonationItem implements Serializable {
         this.donationId = donationId;
         this.category = category;
         this.quantity = quantity;
-        this.condition = condition;
+        this.condition = condition.name();
     }
 
     // Getters and Setters
@@ -55,9 +59,24 @@ public class DonationItem implements Serializable {
     public int getQuantity() { return quantity; }
     public void setQuantity(int quantity) { this.quantity = quantity; }
 
-    public ItemCondition getCondition() { return condition; }
-    public void setCondition(ItemCondition condition) { this.condition = condition; }
+
+    public String getCondition() { return condition; }
+
+    public void setCondition(ItemCondition condition) {
+        this.condition = condition.name();
+    }
+
+    public ItemCondition getConditionEnum() {
+        try {
+            return ItemCondition.valueOf(condition);
+        } catch (Exception e) {
+            return ItemCondition.ACCEPTABLE;  // Default
+        }
+    }
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public Date getCreatedAt() { return createdAt; }
+    public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 }

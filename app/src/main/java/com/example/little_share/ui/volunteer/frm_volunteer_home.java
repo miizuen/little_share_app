@@ -249,17 +249,17 @@ public class frm_volunteer_home extends Fragment {
     private void loadUrgentDonationCampaigns() {
         repository.getAllCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
             if (campaigns != null) {
-                List<Campaign> urgentDonationCampaigns = new ArrayList<>();
+                List<Campaign> urgentCampaigns = new ArrayList<>();
 
-                // Tìm tất cả campaigns urgent (donation campaigns)
+                // Tìm tất cả campaigns urgent
                 for (Campaign campaign : campaigns) {
-                    if ("URGENT".equals(campaign.getCategory()) && !campaign.isNeedsSponsor()) {
-                        urgentDonationCampaigns.add(campaign);
+                    if ("URGENT".equals(campaign.getCategory())) {
+                        urgentCampaigns.add(campaign);
                     }
                 }
 
-                if (!urgentDonationCampaigns.isEmpty()) {
-                    urgentAdapter.updateData(urgentDonationCampaigns);
+                if (!urgentCampaigns.isEmpty()) {
+                    urgentAdapter.updateData(urgentCampaigns);
                     layoutUrgentSection.setVisibility(View.VISIBLE);
                 } else {
                     layoutUrgentSection.setVisibility(View.GONE);
@@ -267,6 +267,7 @@ public class frm_volunteer_home extends Fragment {
             }
         });
     }
+
 
     private void displayUrgentCampaign(Campaign campaign) {
         currentUrgentCampaign = campaign;

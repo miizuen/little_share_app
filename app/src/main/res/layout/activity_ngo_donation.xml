@@ -7,6 +7,8 @@
     android:layout_height="match_parent"
     tools:context=".ui.ngo.activity_ngo_donation">
 
+    <!-- Nút Back -->
+    <!-- Header -->
     <LinearLayout
         android:id="@+id/headerLayout"
         android:layout_width="0dp"
@@ -35,10 +37,22 @@
             android:text="Xác nhận quyên góp"
             android:textColor="#FFFFFF"
             android:textSize="14sp" />
-
     </LinearLayout>
 
-    <!-- Nội dung chính - bắt đầu từ dưới header -->
+    <ImageView
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/icon_back"
+        android:contentDescription="Quay lại"
+        android:background="?android:attr/selectableItemBackgroundBorderless"
+        app:tint="#FFFFFF"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/headerLayout"
+        app:layout_constraintBottom_toBottomOf="@id/headerLayout" />
+
+    <!-- Nội dung chính -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollView"
         android:layout_width="0dp"
@@ -59,7 +73,6 @@
             android:paddingTop="24dp"
             android:paddingBottom="100dp">
 
-            <!-- Tiêu đề phần xác nhận -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -77,7 +90,7 @@
                 android:nestedScrollingEnabled="false"
                 tools:listitem="@layout/item_donation_confirmed" />
 
-            <!-- Danh sách đang chờ (nếu có) -->
+            <!-- Danh sách đang chờ -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvDonationsPending"
                 android:layout_width="match_parent"
