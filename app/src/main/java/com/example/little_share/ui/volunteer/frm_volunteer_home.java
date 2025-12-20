@@ -24,17 +24,23 @@ import com.example.little_share.data.models.User;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.UserRepository;
 import com.example.little_share.ui.volunteer.adapter.CampaignAdapter;
+import com.example.little_share.ui.volunteer.adapter.UrgentCampaignAdapter;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.imageview.ShapeableImageView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class frm_volunteer_home extends Fragment {
     LinearLayout btnDonation, btnSchedule, btnHistory, btnGifts;
     private TextView tvUserName, tvTotalPoints, tvTotalDonations, tvTotalCampaigns, tvCampaignCount;
+    private TextView tvUrgentTitle, tvUrgentLocation;
+    private Campaign currentUrgentCampaign;
     private ImageView ivUserAvatar;
     private Chip chipAll, chipEducation, chipFood, chipEnvironment, chipHealth, chipUrgent;
-    private RecyclerView rvCampaigns;
+    private RecyclerView rvCampaigns, rvUrgentCampaigns;
+    private LinearLayout layoutUrgentSection;
+    private UrgentCampaignAdapter urgentAdapter;
     private UserRepository userRepository;
     private CampaignAdapter adapter;
     private CampaignRepository repository;
@@ -67,6 +73,10 @@ public class frm_volunteer_home extends Fragment {
         chipEnvironment = view.findViewById(R.id.chipEnvironment);
         chipHealth = view.findViewById(R.id.chipHealth);
         chipUrgent = view.findViewById(R.id.chipUrgent);
+        layoutUrgentSection = view.findViewById(R.id.layoutUrgentSection);
+        rvUrgentCampaigns = view.findViewById(R.id.rvUrgentCampaigns);
+        tvUrgentTitle = view.findViewById(R.id.tvUrgentTitle);
+        tvUrgentLocation = view.findViewById(R.id.tvUrgentLocation);
 
         loadCurrentUserData();
 
@@ -74,9 +84,22 @@ public class frm_volunteer_home extends Fragment {
 
         setupRecyclerView();
 
+        setupUrgentRecyclerView();
+
         setupChips();
 
         loadCampaigns();
+
+        loadUrgentDonationCampaigns();
+    }
+
+    private void setupUrgentRecyclerView() {
+        urgentAdapter = new UrgentCampaignAdapter(getContext(), new ArrayList<>(),
+                campaign -> openDonationCampaignDetail(campaign));
+
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        rvUrgentCampaigns.setLayoutManager(layoutManager);
+        rvUrgentCampaigns.setAdapter(urgentAdapter);
     }
 
     private void setupChips() {
@@ -223,6 +246,49 @@ public class frm_volunteer_home extends Fragment {
                 }
             }
         });
+    }
+
+    private void loadUrgentDonationCampaigns() {
+        repository.getAllCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
+            if (campaigns != null) {
+                List<Campaign> urgentDonationCampaigns = new ArrayList<>();
+
+                // Tìm tất cả campaigns urgent (donation campaigns)
+                for (Campaign campaign : campaigns) {
+                    if ("URGENT".equals(campaign.getCategory()) && !campaign.isNeedsSponsor()) {
+                        urgentDonationCampaigns.add(campaign);
+                    }
+                }
+
+                if (!urgentDonationCampaigns.isEmpty()) {
+                    urgentAdapter.updateData(urgentDonationCampaigns);
+                    layoutUrgentSection.setVisibility(View.VISIBLE);
+                } else {
+                    layoutUrgentSection.setVisibility(View.GONE);
+                }
+            }
+        });
+    }
+
+    private void displayUrgentCampaign(Campaign campaign) {
+        currentUrgentCampaign = campaign;
+        tvUrgentTitle.setText(campaign.getName());
+
+        // Format location với working hours
+        String locationText = campaign.getLocation();
+        if (campaign.getSpecificLocation() != null && !campaign.getSpecificLocation().isEmpty()) {
+            locationText += " • " + campaign.getSpecificLocation();
+        }
+        locationText += " • Cần gấp";
+
+        tvUrgentLocation.setText(locationText);
+    }
+
+    private void openDonationCampaignDetail(Campaign campaign) {
+        // Mở activity đặc biệt cho donation campaign thay vì campaign detail thông thường
+        Intent intent = new Intent(getContext(), activity_volunteer_donation_campaign_detail.class);
+        intent.putExtra("campaign", campaign);
+        startActivity(intent);
     }
     private void replaceFragment(Fragment fragment) {
         if (getActivity() != null) {

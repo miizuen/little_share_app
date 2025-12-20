@@ -484,72 +484,51 @@
                         </LinearLayout>
                     </HorizontalScrollView>
 
-                    <!-- Urgent Campaign -->
-                    <androidx.cardview.widget.CardView
-                        android:id="@+id/cvUrgentCampaign"
+                    <LinearLayout
+                        android:id="@+id/layoutUrgentSection"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        app:cardCornerRadius="20dp"
-                        app:cardElevation="2dp"
-                        app:cardBackgroundColor="#FFFFFF">
+                        android:orientation="vertical"
+                        android:visibility="gone">
 
+                        <!-- Header -->
                         <LinearLayout
                             android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:orientation="vertical"
-                            android:padding="16dp"
-                            android:background="@drawable/bg_urgent_campaign_border">
+                            android:orientation="horizontal"
+                            android:gravity="center_vertical"
+                            android:layout_marginBottom="12dp">
 
-                            <LinearLayout
-                                android:layout_width="match_parent"
+                            <ImageView
+                                android:layout_width="24dp"
+                                android:layout_height="24dp"
+                                android:src="@drawable/ic_urgent_alert"
+                                app:tint="#F44336"
+                                android:layout_marginEnd="8dp" />
+
+                            <TextView
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:orientation="horizontal"
-                                android:gravity="center_vertical">
-
-                                <ImageView
-                                    android:layout_width="56dp"
-                                    android:layout_height="56dp"
-                                    android:src="@drawable/ic_urgent_alert"
-                                    android:background="@drawable/bg_urgent_icon" />
-
-                                <LinearLayout
-                                    android:layout_width="0dp"
-                                    android:layout_height="wrap_content"
-                                    android:layout_weight="1"
-                                    android:layout_marginStart="16dp"
-                                    android:orientation="vertical">
-
-                                    <TextView
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Chiến dịch khẩn cấp"
-                                        android:textColor="#F44336"
-                                        android:textSize="13sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:id="@+id/tvUrgentTitle"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Mùa đông ấm áp"
-                                        android:layout_marginTop="4dp"
-                                        android:textColor="#212121"
-                                        android:textSize="17sp"
-                                        android:textStyle="bold" />
-
-                                    <TextView
-                                        android:id="@+id/tvUrgentLocation"
-                                        android:layout_width="wrap_content"
-                                        android:layout_height="wrap_content"
-                                        android:text="Miền Bắc • Cần gấp"
-                                        android:layout_marginTop="4dp"
-                                        android:textColor="#757575"
-                                        android:textSize="12sp" />
-                                </LinearLayout>
-                            </LinearLayout>
+                                android:layout_weight="1"
+                                android:text="Chiến dịch khẩn cấp"
+                                android:textColor="#F44336"
+                                android:textSize="18sp"
+                                android:textStyle="bold" />
                         </LinearLayout>
-                    </androidx.cardview.widget.CardView>
+
+                        <!-- Horizontal RecyclerView -->
+                        <androidx.recyclerview.widget.RecyclerView
+                            android:id="@+id/rvUrgentCampaigns"
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:clipToPadding="false"
+                            android:paddingStart="0dp"
+                            android:paddingEnd="16dp"
+                            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+                            tools:listitem="@layout/item_urgent_campaign" />
+                    </LinearLayout>
 
                     <!-- Tiêu đề danh sách chiến dịch -->
                     <LinearLayout
