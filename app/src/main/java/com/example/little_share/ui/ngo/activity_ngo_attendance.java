@@ -210,29 +210,24 @@ public class activity_ngo_attendance extends AppCompatActivity {
      * Xác nhận điểm danh và cập nhật database
      */
     private void confirmAttendance(String registrationId, String userId, String campaignId) {
-        // Hiển thị loading
         Toast.makeText(this, "Đang xử lý điểm danh...", Toast.LENGTH_SHORT).show();
 
-        // TODO: Gọi phương thức điểm danh từ CampaignRepository
-        // Tạm thời hiển thị thành công
-        showSuccessDialog(registrationId, userId);
+        // Gọi CampaignRepository với method mới
+        campaignRepository.confirmAttendance(registrationId, userId, campaignId,
+                new CampaignRepository.OnAttendanceListener() {
+                    @Override
+                    public void onSuccess(String message) {
+                        showSuccessDialog(registrationId, userId);
+                        loadTodayShifts(); // Refresh danh sách
+                    }
 
-        /*
-        // Code này sẽ được implement sau khi có phương thức trong CampaignRepository
-        campaignRepository.confirmAttendance(registrationId, userId, campaignId, new CampaignRepository.OnAttendanceListener() {
-            @Override
-            public void onSuccess(String message) {
-                showSuccessDialog(registrationId, userId);
-                loadTodayShifts(); // Refresh danh sách
-            }
-
-            @Override
-            public void onFailure(String error) {
-                showErrorDialog("Lỗi điểm danh", error);
-            }
-        });
-        */
+                    @Override
+                    public void onFailure(String error) {
+                        showErrorDialog("Lỗi điểm danh", error);
+                    }
+                });
     }
+
 
     /**
      * Hiển thị dialog thành công

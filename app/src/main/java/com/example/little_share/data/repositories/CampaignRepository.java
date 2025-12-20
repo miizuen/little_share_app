@@ -746,5 +746,87 @@ public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
     public interface OnDonationAmountListener {
         void onResult(double amount);
     }
+    // THÊM METHOD MỚI CHO ĐIỂM DANH
+    public void confirmAttendance(String registrationId, String userId, String campaignId,
+                                  OnAttendanceListener listener) {
+
+        android.util.Log.d("ATTENDANCE", "=== CONFIRMING ATTENDANCE ===");
+        android.util.Log.d("ATTENDANCE", "Registration ID: " + registrationId);
+        android.util.Log.d("ATTENDANCE", "User ID: " + userId);
+        android.util.Log.d("ATTENDANCE", "Campaign ID: " + campaignId);
+
+        // Kiểm tra registration có tồn tại không
+        db.collection("volunteer_registrations")
+                .document(registrationId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (!doc.exists()) {
+                        android.util.Log.e("ATTENDANCE", "Registration not found");
+                        listener.onFailure("Không tìm thấy thông tin đăng ký");
+                        return;
+                    }
+
+                    // Parse registration data
+                    String status = doc.getString("status");
+                    Long attendedAt = doc.getLong("attendedAt");
+                    String regUserId = doc.getString("userId");
+                    String regCampaignId = doc.getString("campaignId");
+
+                    android.util.Log.d("ATTENDANCE", "Current status: " + status);
+                    android.util.Log.d("ATTENDANCE", "Already attended: " + (attendedAt != null));
+                    android.util.Log.d("ATTENDANCE", "User ID match: " + userId.equals(regUserId));
+                    android.util.Log.d("ATTENDANCE", "Campaign ID match: " + campaignId.equals(regCampaignId));
+
+                    // Validate registration
+                    if (!"approved".equals(status)) {
+                        listener.onFailure("Đăng ký chưa được duyệt (Status: " + status + ")");
+                        return;
+                    }
+
+                    if (attendedAt != null) {
+                        listener.onFailure("Đã điểm danh trước đó vào lúc " + new java.util.Date(attendedAt));
+                        return;
+                    }
+
+                    if (!userId.equals(regUserId)) {
+                        listener.onFailure("QR code không thuộc về user này");
+                        return;
+                    }
+
+                    if (!campaignId.equals(regCampaignId)) {
+                        listener.onFailure("QR code không thuộc về chiến dịch này");
+                        return;
+                    }
+
+                    // Cập nhật điểm danh
+                    java.util.Map<String, Object> updates = new java.util.HashMap<>();
+                    updates.put("status", "attended");
+                    updates.put("attendedAt", System.currentTimeMillis());
+                    updates.put("isAttended", true);
+
+                    android.util.Log.d("ATTENDANCE", "Updating registration with attendance data");
+
+                    db.collection("volunteer_registrations")
+                            .document(registrationId)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d("ATTENDANCE", "✓ Attendance confirmed successfully");
+                                listener.onSuccess("Điểm danh thành công");
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e("ATTENDANCE", "✗ Failed to update attendance: " + e.getMessage());
+                                listener.onFailure("Lỗi cập nhật: " + e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("ATTENDANCE", "✗ Failed to query registration: " + e.getMessage());
+                    listener.onFailure("Lỗi truy vấn: " + e.getMessage());
+                });
+    }
+
+    public interface OnAttendanceListener {
+        void onSuccess(String message);
+        void onFailure(String error);
+    }
 
 }

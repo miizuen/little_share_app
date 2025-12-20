@@ -52,6 +52,7 @@ android {
 dependencies {
     // Core
     implementation(libs.core.ktx)
+    implementation("androidx.core:core:1.12.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
@@ -95,12 +96,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.google.material)
 
-    implementation(fileTree(mapOf(
-        "dir" to "D:\\Ky125\\Zalopay",
-        "dir" to "${projectDir}\\zalopay",
-        "include" to listOf("*.aar", "*.jar"),
-        "exclude" to listOf("")
-    )))
+    implementation(files("libs/zpdk-release-v3.1.aar"))
     annotationProcessor(libs.glide.compiler)
 
     // QR Code

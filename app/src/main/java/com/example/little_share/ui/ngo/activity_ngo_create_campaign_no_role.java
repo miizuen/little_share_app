@@ -1,5 +1,6 @@
 package com.example.little_share.ui.ngo;
 
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.TextUtils;
@@ -200,13 +201,16 @@ public class activity_ngo_create_campaign_no_role extends AppCompatActivity {
         new CampaignRepository().getOrganizationNameAndCreate(tempCampaign, new CampaignRepository.OnCampaignListener() {
             @Override
             public void onSuccess(String campaignId) {
-
                 sendNotificationToVolunteers(campaignId);
-
                 Toast.makeText(activity_ngo_create_campaign_no_role.this, "Tạo chiến dịch thành công!", Toast.LENGTH_LONG).show();
-                setResult(RESULT_OK);
+
+                // Chuyển đến danh sách chiến dịch
+                Intent intent = new Intent(activity_ngo_create_campaign_no_role.this, activity_ngo_main.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                startActivity(intent);
                 finish();
             }
+
 
             @Override
             public void onFailure(String error) {

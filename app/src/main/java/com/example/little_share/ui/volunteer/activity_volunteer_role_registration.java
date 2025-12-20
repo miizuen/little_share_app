@@ -6,19 +6,13 @@ import android.widget.TextView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.view.View;
-import android.widget.LinearLayout;
-import android.app.Dialog;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.view.Window;
 import android.widget.EditText;
 import android.widget.Toast;
 import com.google.android.material.button.MaterialButton;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -32,31 +26,24 @@ import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.models.Shift;
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
-import android.app.Dialog;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
-import android.view.View;
-import android.view.Window;
-import android.widget.EditText;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.Toast;
-import androidx.cardview.widget.CardView;
-import com.google.android.material.button.MaterialButton;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.auth.FirebaseUser;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+
+import android.app.Dialog;
 import android.graphics.Bitmap;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.view.Window;
+import android.widget.ImageView;
+import androidx.cardview.widget.CardView;
 
 public class activity_volunteer_role_registration extends AppCompatActivity {
 
@@ -73,10 +60,8 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
     private MaterialButton btnConfirm;
     private EditText etNote;
 
-
     private ImageButton btnBack;
     private TextView tvRoleName, tvCampaignName;
-    private TextView tvConfirmRole, tvConfirmPoints;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -112,8 +97,8 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         tvSummaryDate = findViewById(R.id.tvSummaryDate);
         tvSummaryShift = findViewById(R.id.tvSummaryShift);
     }
+
     private void registerVolunteer() {
-        // Validate
         if (selectedDate == null) {
             Toast.makeText(this, "Vui lòng chọn ngày tham gia", Toast.LENGTH_SHORT).show();
             return;
@@ -129,7 +114,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             return;
         }
 
-        // Disable button
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang xử lý...");
 
@@ -138,7 +122,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         String userId = currentUser.getUid();
         String userEmail = currentUser.getEmail() != null ? currentUser.getEmail() : "";
 
-        // Lấy fullName từ collection users
         db.collection("users").document(userId)
                 .get()
                 .addOnSuccessListener(documentSnapshot -> {
@@ -149,25 +132,78 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     if (userName == null || userName.isEmpty()) {
                         userName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "";
                     }
-
-                    // Lưu đăng ký với userName đã lấy được
-                    saveRegistration(oderId, note, userId, userName, userEmail);
+                    saveRegistrationWithOrgId(oderId, note, userId, userName, userEmail);
                 })
                 .addOnFailureListener(e -> {
-                    // Nếu lỗi, vẫn lưu với displayName
                     String userName = currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "";
-                    saveRegistration(oderId, note, userId, userName, userEmail);
+                    saveRegistrationWithOrgId(oderId, note, userId, userName, userEmail);
                 });
     }
 
-    private void saveRegistration(String oderId, String note, String userId, String userName, String userEmail) {
+    // === HÀM MỚI: Lấy organizationId (ưu tiên từ campaign object, fallback query Firestore) ===
+    private void saveRegistrationWithOrgId(String oderId, String note, String userId, String userName, String userEmail) {
+        android.util.Log.d("REG_DEBUG", "=== SAVING REGISTRATION ===");
+
+        // Ưu tiên 1: Lấy từ campaign object
+        if (campaign != null) {
+            android.util.Log.d("REG_DEBUG", "Campaign object exists");
+            android.util.Log.d("REG_DEBUG", "Campaign.organizationId: " + campaign.getOrganizationId());
+            android.util.Log.d("REG_DEBUG", "Campaign.organizationName: " + campaign.getOrganizationName());
+
+            if (campaign.getOrganizationId() != null && !campaign.getOrganizationId().isEmpty()) {
+                saveRegistration(oderId, note, userId, userName, userEmail, campaign.getOrganizationId());
+                return;
+            }
+        } else {
+            android.util.Log.e("REG_DEBUG", "Campaign object is NULL!");
+        }
+
+        // Ưu tiên 2: Query từ Firestore
+        if (campaignId == null || campaignId.isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+            resetConfirmButton();
+            android.util.Log.e("REG_DEBUG", "campaignId is null or empty!");
+            return;
+        }
+
+        android.util.Log.d("REG_DEBUG", "Querying Firestore for campaignId: " + campaignId);
+
+        db.collection("campaigns").document(campaignId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    String orgId = "";
+                    if (documentSnapshot.exists()) {
+                        android.util.Log.d("REG_DEBUG", "Campaign document found");
+                        android.util.Log.d("REG_DEBUG", "Document data: " + documentSnapshot.getData());
+
+                        orgId = documentSnapshot.getString("organizationId");
+                        android.util.Log.d("REG_DEBUG", "Extracted organizationId: " + orgId);
+
+                        if (orgId == null) {
+                            orgId = "";
+                            android.util.Log.e("REG_DEBUG", "organizationId field is NULL in campaign!");
+                        }
+                    } else {
+                        android.util.Log.e("REG_DEBUG", "Campaign document not found!");
+                    }
+                    saveRegistration(oderId, note, userId, userName, userEmail, orgId);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("REG_DEBUG", "Query failed: " + e.getMessage());
+                    e.printStackTrace();
+                    saveRegistration(oderId, note, userId, userName, userEmail, "");
+                });
+    }
+
+    // === HÀM CŨ ĐÃ SỬA THAM SỐ: thêm organizationId ===
+    private void saveRegistration(String oderId, String note, String userId, String userName, String userEmail, String organizationId) {
         Map<String, Object> registration = new HashMap<>();
         registration.put("oderId", oderId);
         registration.put("campaignId", campaignId);
         registration.put("campaignName", campaignName);
-        registration.put("organizationId", campaign != null ? campaign.getOrganizationId() : "");
+        registration.put("organizationId", organizationId); // <<< Đảm bảo luôn có giá trị đúng
         registration.put("roleId", role != null ? role.getId() : "");
-        registration.put("roleName", role != null ? role.getRoleName() : "");
+        registration.put("roleName", role != null ? role.getRoleName() : "Tình nguyện viên");
         registration.put("userId", userId);
         registration.put("userName", userName);
         registration.put("userEmail", userEmail);
@@ -187,10 +223,14 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     showSuccessDialog(false, oderId);
                 })
                 .addOnFailureListener(e -> {
-                    btnConfirm.setEnabled(true);
-                    btnConfirm.setText("Xác nhận đăng kí");
+                    resetConfirmButton();
                     Toast.makeText(this, "Đăng ký thất bại: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
+    }
+
+    private void resetConfirmButton() {
+        btnConfirm.setEnabled(true);
+        btnConfirm.setText("Xác nhận đăng kí");
     }
 
     private void getDataFromIntent() {
@@ -198,7 +238,23 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         campaignId = getIntent().getStringExtra("campaignId");
         campaignName = getIntent().getStringExtra("campaignName");
         campaign = (Campaign) getIntent().getSerializableExtra("campaign");
+
+        android.util.Log.d("GetData", "role: " + (role != null ? role.getRoleName() : "null"));
+        android.util.Log.d("GetData", "campaignId: " + campaignId);
+        android.util.Log.d("GetData", "campaignName: " + campaignName);
+        android.util.Log.d("GetData", "campaign: " + (campaign != null ? campaign.getName() : "null"));
+
+        if (campaignId == null && campaign != null) {
+            campaignId = campaign.getId();
+        }
+
+        if (campaignName == null && campaign != null) {
+            campaignName = campaign.getName();
+        }
     }
+
+    // === Các hàm còn lại giữ nguyên (showSuccessDialog, generateQrCode, displayData, loadDates, loadShifts, displayShifts, updateSummary) ===
+
     private void showSuccessDialog(boolean isApproved, String qrContent) {
         Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -206,7 +262,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         dialog.getWindow().setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         dialog.setCancelable(false);
 
-        // Bind views
         ImageView ivSuccessIcon = dialog.findViewById(R.id.ivSuccessIcon);
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
         TextView tvRoleInfo = dialog.findViewById(R.id.tvRoleInfo);
@@ -217,29 +272,23 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         MaterialButton btnComplete = dialog.findViewById(R.id.btnComplete);
         ImageButton btnBack = dialog.findViewById(R.id.btnBack);
 
-        // Set data chung
-        tvRoleInfo.setText("Bạn đã đăng kí với vai trò: " + role.getRoleName());
+        tvRoleInfo.setText("Bạn đã đăng kí với vai trò: " + (role != null ? role.getRoleName() : "Tình nguyện viên"));
         tvDateTime.setText("Ngày: " + selectedDate + " · " + selectedShift.getTimeRange());
 
         if (isApproved) {
-            // Đã được duyệt - Hiển thị QR Code
             tvTitle.setText("Đăng ký thành công");
             cardQRCode.setVisibility(View.VISIBLE);
             tvNote.setText("Lưu ý: Vui lòng chụp màn hình lại mã QR này hoặc lưu vào ảnh. Bạn sẽ cần xuất trình mã khi điểm danh.");
-
-            // Generate QR Code
             Bitmap qrBitmap = generateQrCode(qrContent);
             if (qrBitmap != null) {
                 ivQRCode.setImageBitmap(qrBitmap);
             }
         } else {
-            // Chờ duyệt - Ẩn QR Code
             tvTitle.setText("Đăng ký thành công!");
             cardQRCode.setVisibility(View.GONE);
             tvNote.setText("Đơn đăng ký của bạn đang chờ tổ chức thiện nguyện duyệt.\nBạn sẽ nhận được thông báo khi có kết quả.");
         }
 
-        // Button events
         btnBack.setOnClickListener(v -> {
             dialog.dismiss();
             finish();
@@ -252,6 +301,7 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
 
         dialog.show();
     }
+
     private Bitmap generateQrCode(String content) {
         try {
             com.google.zxing.qrcode.QRCodeWriter writer = new com.google.zxing.qrcode.QRCodeWriter();
@@ -275,6 +325,8 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
     private void displayData() {
         if (role != null) {
             tvRoleName.setText("Đăng kí: " + role.getRoleName());
+        } else {
+            tvRoleName.setText("Đăng ký tham gia chiến dịch");
         }
 
         if (campaignName != null) {
@@ -307,11 +359,10 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             Chip chip = new Chip(this);
             Date currentDate = calendar.getTime();
             chip.setText(sdf.format(currentDate));
-            chip.setTag(fullSdf.format(currentDate)); // Lưu ngày đầy đủ vào tag
+            chip.setTag(fullSdf.format(currentDate));
             chip.setCheckable(true);
             chip.setClickable(true);
 
-            // Style cho chip chưa chọn
             chip.setChipBackgroundColorResource(R.color.gray_light);
             chip.setTextColor(getResources().getColor(R.color.text_primary));
 
@@ -319,20 +370,17 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                 chip.setChecked(true);
                 chip.setChipBackgroundColorResource(R.color.primary_orange);
                 chip.setTextColor(getResources().getColor(android.R.color.white));
-                selectedDate = fullSdf.format(currentDate); // Lưu ngày được chọn
+                selectedDate = fullSdf.format(currentDate);
                 isFirst = false;
             }
 
-            // Xử lý sự kiện khi chọn chip
             chip.setOnCheckedChangeListener((buttonView, isChecked) -> {
                 if (isChecked) {
-                    // Đổi màu chip được chọn
                     chip.setChipBackgroundColorResource(R.color.primary_orange);
                     chip.setTextColor(getResources().getColor(android.R.color.white));
                     selectedDate = (String) chip.getTag();
-                    updateSummary(); // Cập nhật card xác nhận
+                    updateSummary();
                 } else {
-                    // Đổi màu chip không được chọn
                     chip.setChipBackgroundColorResource(R.color.gray_light);
                     chip.setTextColor(getResources().getColor(R.color.text_primary));
                 }
@@ -342,8 +390,12 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
     }
+
     private void loadShifts() {
-        if (campaignId == null) return;
+        if (campaignId == null) {
+            android.util.Log.e("LoadShifts", "campaignId is null!");
+            return;
+        }
 
         db.collection("shifts")
                 .whereEqualTo("campaignId", campaignId)
@@ -356,15 +408,26 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                         shiftList.add(shift);
                     }
                     displayShifts();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("LoadShifts", "Error loading shifts: " + e.getMessage());
                 });
     }
+
     private void displayShifts() {
         RadioGroup radioGroupShifts = findViewById(R.id.radioGroupShifts);
         radioGroupShifts.removeAllViews();
 
-        for (int i = 0; i < shiftList.size(); i++) {
-            Shift shift = shiftList.get(i);
+        if (shiftList.isEmpty()) {
+            TextView noShiftText = new TextView(this);
+            noShiftText.setText("Chưa có ca làm việc nào");
+            noShiftText.setPadding(16, 16, 16, 16);
+            noShiftText.setTextSize(16);
+            radioGroupShifts.addView(noShiftText);
+            return;
+        }
 
+        for (Shift shift : shiftList) {
             RadioButton radioButton = new RadioButton(this);
             radioButton.setId(View.generateViewId());
             radioButton.setText(shift.getShiftName() + " (" + shift.getTimeRange() + ") - Còn "
@@ -381,19 +444,22 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             radioGroupShifts.addView(radioButton);
         }
 
-        // Xử lý khi chọn ca
         radioGroupShifts.setOnCheckedChangeListener((group, checkedId) -> {
             RadioButton selected = findViewById(checkedId);
             if (selected != null) {
                 selectedShift = (Shift) selected.getTag();
-                updateSummary(); // Cập nhật card xác nhận
+                updateSummary();
             }
         });
     }
+
     private void updateSummary() {
         if (role != null) {
             tvSummaryRole.setText(role.getRoleName());
             tvSummaryPoints.setText(role.getPointsReward() + " điểm");
+        } else {
+            tvSummaryRole.setText("Tình nguyện viên");
+            tvSummaryPoints.setText(campaign != null ? campaign.getPointsReward() + " điểm" : "0 điểm");
         }
 
         if (selectedDate != null) {

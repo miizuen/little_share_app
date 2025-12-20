@@ -87,7 +87,7 @@ public class VolunteerHistoryAdapter extends RecyclerView.Adapter<VolunteerHisto
 
             // Set points
             tvPoints.setText(String.valueOf(history.getPoints()));
-
+            android.util.Log.d("ADAPTER_DEBUG", "Binding: " + history.getCampaignTitle() + " - Points: " + history.getPoints());
             // Set campaign title
             tvCampaignTitle.setText(history.getCampaignTitle());
 

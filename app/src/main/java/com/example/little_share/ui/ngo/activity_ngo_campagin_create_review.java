@@ -499,6 +499,11 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         );
         progressDialog.dismiss();
         Toast.makeText(this, "Tạo chiến dịch thành công!", Toast.LENGTH_SHORT).show();
+
+        // Chuyển đến trang chính NGO
+        Intent intent = new Intent(this, activity_ngo_main.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent);
         finish();
     }
 

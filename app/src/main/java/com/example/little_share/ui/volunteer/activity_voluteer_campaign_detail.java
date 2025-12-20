@@ -53,6 +53,30 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             campaign = (Campaign) getIntent().getSerializableExtra("campaign");
         }
     }
+    private void checkCampaignHasRoles() {
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("campaign_roles")
+                .whereEqualTo("campaignId", campaign.getId())
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    if (queryDocumentSnapshots.isEmpty()) {
+                        // KHÔNG có vai trò → Chuyển đến đăng ký trực tiếp
+                        Intent intent = new Intent(this, activity_volunteer_role_registration.class);
+                        intent.putExtra("campaign", campaign);
+                        startActivity(intent);
+                    } else {
+                        // CÓ vai trò → Chuyển đến chọn vai trò
+                        Intent intent = new Intent(this, activity_volunteer_role_selection.class);
+                        intent.putExtra("campaignId", campaign.getId());
+                        intent.putExtra("campaignName", campaign.getName());
+                        intent.putExtra("campaign", campaign);
+                        startActivity(intent);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.widget.Toast.makeText(this, "Lỗi kiểm tra thông tin chiến dịch", android.widget.Toast.LENGTH_SHORT).show();
+                });
+    }
 
     private void bindData() {
         tvCampaignTitle.setText(campaign.getName());
@@ -77,14 +101,12 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
         tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
 
+        // Thêm lại logic đăng ký
         btnRegister.setOnClickListener(v -> {
-            Intent intent = new Intent(activity_voluteer_campaign_detail.this, activity_volunteer_role_selection.class);
-            intent.putExtra("campaignId", campaign.getId());
-            intent.putExtra("campaignName", campaign.getName());
-            intent.putExtra("campaign", campaign);
-            startActivity(intent);
+            checkCampaignHasRoles();
         });
     }
+
 
     private void initView() {
         imgFood = findViewById(R.id.imgFood);
@@ -99,5 +121,12 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation = findViewById(R.id.tvLocation);
         tvActivity = findViewById(R.id.tvActivity);
         btnRegister = findViewById(R.id.btnRegister);
+
+        // Thêm nút back
+        ImageView btnBack = findViewById(R.id.btnBack);
+        if (btnBack != null) {
+            btnBack.setOnClickListener(v -> finish());
+        }
     }
+
 }

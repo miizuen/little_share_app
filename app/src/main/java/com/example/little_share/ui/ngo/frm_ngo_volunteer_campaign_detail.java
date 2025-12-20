@@ -17,16 +17,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
+import com.example.little_share.data.models.Notification;
 import com.example.little_share.data.models.VolunteerRegistration;
 import com.example.little_share.ui.ngo.adapter.VolunteerRegistrationAdapter;
+import com.example.little_share.utils.QRCodeGenerator;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
 
 public class frm_ngo_volunteer_campaign_detail extends Fragment implements VolunteerRegistrationAdapter.OnActionListener {
 
@@ -125,15 +124,24 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
     }
 
     private void approveRegistration(VolunteerRegistration registration, int position) {
-        // Sinh mã QR unique
-        String qrCode = "LS-" + registration.getId().substring(0, 8).toUpperCase() + "-" + System.currentTimeMillis() % 10000;
+        // THAY ĐỔI: Dùng QRCodeGenerator thay vì tạo tùy ý
+        String qrCode = QRCodeGenerator.generateCampaignRegistrationCode(
+                registration.getUserId(),
+                registration.getCampaignId(),
+                registration.getId()
+        );
+
+        android.util.Log.d("APPROVE_DEBUG", "Generated QR: " + qrCode);
+        android.util.Log.d("APPROVE_DEBUG", "Registration ID: " + registration.getId());
+        android.util.Log.d("APPROVE_DEBUG", "User ID: " + registration.getUserId());
+        android.util.Log.d("APPROVE_DEBUG", "Campaign ID: " + registration.getCampaignId());
 
         db.collection("volunteer_registrations")
                 .document(registration.getId())
                 .update(
                         "status", "approved",
                         "approvedAt", System.currentTimeMillis(),
-                        "qrCode", qrCode  // LƯU MÃ QR
+                        "qrCode", qrCode  // QR code với format đúng
                 )
                 .addOnSuccessListener(aVoid -> {
                     Toast.makeText(getContext(), "Đã duyệt!", Toast.LENGTH_SHORT).show();
@@ -142,8 +150,13 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
 
                     // Gửi thông báo cho TNV
                     sendNotificationToVolunteer(registration, true, "");
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi duyệt: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error approving registration", e);
                 });
     }
+
 
     private void rejectRegistration(VolunteerRegistration registration, int position, String reason) {
         db.collection("volunteer_registrations")
@@ -160,42 +173,52 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
 
                     // Gửi thông báo cho TNV
                     sendNotificationToVolunteer(registration, false, reason);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi từ chối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error rejecting registration", e);
                 });
     }
+
+    /**
+     * Gửi thông báo cho tình nguyện viên - SỬA LẠI ĐỂ KHỚP VỚI MODEL
+     */
     private void sendNotificationToVolunteer(VolunteerRegistration registration, boolean isApproved, String reason) {
         String title;
-        String message;
+        String description;
         String type;
 
         if (isApproved) {
-            title = "Đăng ký được duyệt!";
-            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" đã được duyệt. Xem mã QR điểm danh ngay!";
+            title = "Đăng ký được duyệt! ✓";
+            description = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" đã được duyệt. Nhấn để xem mã QR điểm danh!";
             type = "REGISTRATION_APPROVED";
         } else {
             title = "Đăng ký bị từ chối";
-            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" bị từ chối. Lý do: " + reason;
+            description = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" bị từ chối. Lý do: " + reason;
             type = "REGISTRATION_REJECTED";
         }
 
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("userId", registration.getUserId());
-        notification.put("title", title);
-        notification.put("message", message);
-        notification.put("type", type);
-        notification.put("referenceId", registration.getId());
-        notification.put("isRead", false);
-        notification.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        // SỬA: Sử dụng Notification model thay vì Map
+        Notification notification = new Notification(
+                registration.getUserId(),    // userId
+                title,                       // title
+                description,                 // description
+                type,                        // type
+                registration.getId()         // relatedId - QUAN TRỌNG: phải là registration ID
+        );
 
         db.collection("notifications")
                 .add(notification)
                 .addOnSuccessListener(doc -> {
-                    Log.d(TAG, "Notification sent to: " + registration.getUserId());
+                    Log.d(TAG, "✓ Notification sent successfully to user: " + registration.getUserId());
+                    Log.d(TAG, "  - Type: " + type);
+                    Log.d(TAG, "  - RelatedId: " + registration.getId());
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to send notification: " + e.getMessage());
+                    Log.e(TAG, "✗ Failed to send notification: " + e.getMessage(), e);
+                    // Không hiển thị Toast lỗi để không làm phiền người dùng
                 });
     }
-
 
     private void updateTitle() {
         tvTitle.setText(registrationList.isEmpty()
