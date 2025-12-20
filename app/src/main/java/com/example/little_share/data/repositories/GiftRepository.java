@@ -2,6 +2,9 @@ package com.example.little_share.data.repositories;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
+import com.example.little_share.data.models.GiftRedemption;
+import com.example.little_share.data.models.User;
+import com.example.little_share.utils.QRCodeGenerator;
 
 import com.example.little_share.data.models.Gift;
 import com.google.firebase.auth.FirebaseAuth;
@@ -14,6 +17,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import com.example.little_share.data.models.GiftRedemption;
+import com.example.little_share.utils.QRCodeGenerator;
+import java.util.UUID;
 
 public class GiftRepository {
     private static final String TAG = "GiftRepository";
@@ -27,6 +33,139 @@ public class GiftRepository {
     public GiftRepository() {
         this.db = FirebaseFirestore.getInstance();
     }
+
+    // THÊM method này vào GiftRepository.java
+    public LiveData<List<Gift>> getAllAvailableGifts() {
+        MutableLiveData<List<Gift>> liveData = new MutableLiveData<>();
+
+        db.collection(COLLECTION)
+                .whereGreaterThan("availableQuantity", 0) // Chỉ lấy quà còn hàng
+                .orderBy("availableQuantity")
+                .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        android.util.Log.e(TAG, "Error listening to gifts", error);
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Gift> gifts = new ArrayList<>();
+                    if (snapshots != null) {
+                        for (var doc : snapshots.getDocuments()) {
+                            Gift gift = doc.toObject(Gift.class);
+                            if (gift != null) {
+                                gift.setId(doc.getId());
+                                gifts.add(gift);
+                            }
+                        }
+                    }
+                    android.util.Log.d(TAG, "Loaded " + gifts.size() + " available gifts for volunteers");
+                    liveData.setValue(gifts);
+                });
+
+        return liveData;
+    }
+
+    // HOẶC method lấy tất cả gifts (kể cả hết hàng)
+    public LiveData<List<Gift>> getAllGifts() {
+        MutableLiveData<List<Gift>> liveData = new MutableLiveData<>();
+
+        android.util.Log.d(TAG, "Starting getAllGifts query...");
+
+        db.collection(COLLECTION)
+                // BỎ orderBy để tránh lỗi nếu không có createdAt field
+                // .orderBy("createdAt", Query.Direction.DESCENDING)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        android.util.Log.e(TAG, "Error listening to all gifts", error);
+                        // Trả về empty list thay vì null
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    List<Gift> gifts = new ArrayList<>();
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        android.util.Log.d(TAG, "Found " + snapshots.size() + " documents");
+
+                        for (var doc : snapshots.getDocuments()) {
+                            try {
+                                Gift gift = doc.toObject(Gift.class);
+                                if (gift != null) {
+                                    gift.setId(doc.getId());
+                                    gifts.add(gift);
+                                    android.util.Log.d(TAG, "Added gift: " + gift.getName());
+                                }
+                            } catch (Exception e) {
+                                android.util.Log.e(TAG, "Error parsing gift document: " + doc.getId(), e);
+                            }
+                        }
+                    } else {
+                        android.util.Log.d(TAG, "No documents found in Firebase");
+                    }
+
+                    android.util.Log.d(TAG, "Loaded " + gifts.size() + " total gifts");
+                    liveData.setValue(gifts);
+                });
+
+        return liveData;
+    }
+
+
+    public void redeemGift(String userId, String userName, String giftId, String giftName,
+                           int pointsSpent, OnRedemptionListener listener) {
+
+        // Tạo redemption ID unique
+        String redemptionId = UUID.randomUUID().toString();
+
+        // Tạo QR code sử dụng QRCodeGenerator hiện có
+        String qrCode = QRCodeGenerator.generateGiftRedemptionCode(userId, giftId, redemptionId);
+
+        // Tạo redemption record
+        GiftRedemption redemption = new GiftRedemption(userId, giftId, pointsSpent);
+        redemption.setUserName(userName);
+        redemption.setGiftName(giftName);
+        redemption.setQrCode(qrCode);
+        redemption.setStatus(GiftRedemption.RedemptionStatus.PENDING);
+
+        // Bắt đầu transaction để đảm bảo tính nhất quán
+        db.runTransaction(transaction -> {
+                    // 1. Lưu redemption record
+                    Map<String, Object> redemptionData = new HashMap<>();
+                    redemptionData.put("userId", redemption.getUserId());
+                    redemptionData.put("userName", redemption.getUserName());
+                    redemptionData.put("giftId", redemption.getGiftId());
+                    redemptionData.put("giftName", redemption.getGiftName());
+                    redemptionData.put("pointsSpent", redemption.getPointsSpent());
+                    redemptionData.put("qrCode", redemption.getQrCode());
+                    redemptionData.put("status", redemption.getStatus().name());
+                    redemptionData.put("redemptionDate", FieldValue.serverTimestamp());
+                    redemptionData.put("createdAt", FieldValue.serverTimestamp());
+
+                    transaction.set(db.collection("gift_redemptions").document(redemptionId), redemptionData);
+
+                    // 2. Trừ điểm của user
+                    transaction.update(db.collection(USER_COLLECTION).document(userId),
+                            "totalPoints", FieldValue.increment(-pointsSpent),
+                            "updatedAt", FieldValue.serverTimestamp());
+
+                    // 3. Giảm số lượng quà có sẵn
+                    transaction.update(db.collection(COLLECTION).document(giftId),
+                            "availableQuantity", FieldValue.increment(-1),
+                            "updatedAt", FieldValue.serverTimestamp());
+
+                    return redemptionId;
+                })
+                .addOnSuccessListener(result -> {
+                    android.util.Log.d(TAG, "Gift redeemed successfully: " + redemptionId);
+                    listener.onSuccess(redemptionId, qrCode);
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e(TAG, "Error redeeming gift", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
+    // Thêm interface mới cho redemption
 
    public void createGift(Gift gift, OnGiftListener listener){
         String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
@@ -184,6 +323,179 @@ public class GiftRepository {
                             .addOnFailureListener(e -> listener.onSuccess(0,0,0));
                 })
                 .addOnFailureListener(e -> listener.onSuccess(0,0,0));
+    }
+    // Tạo yêu cầu đổi quà (không trừ điểm ngay)
+    public void createGiftRedemptionRequest(String giftId, String giftName, int pointsRequired, OnRedemptionListener listener) {
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        if (userId == null) {
+            listener.onFailure("Vui lòng đăng nhập");
+            return;
+        }
+
+        android.util.Log.d(TAG, "Creating redemption request - GiftId: " + giftId + ", Points: " + pointsRequired);
+
+        // Lấy thông tin user
+        db.collection(USER_COLLECTION)
+                .document(userId)
+                .get()
+                .addOnSuccessListener(userDoc -> {
+                    User user = userDoc.toObject(User.class);
+                    if (user == null) {
+                        listener.onFailure("Không tìm thấy thông tin người dùng");
+                        return;
+                    }
+
+                    // Kiểm tra điểm có đủ không
+                    if (user.getTotalPoints() < pointsRequired) {
+                        listener.onFailure("Điểm không đủ để đổi quà này");
+                        return;
+                    }
+
+                    // Tạo GiftRedemption với status PENDING
+                    Map<String, Object> redemptionData = new HashMap<>();
+                    redemptionData.put("userId", userId);
+                    redemptionData.put("userName", user.getFullName());
+                    redemptionData.put("giftId", giftId);
+                    redemptionData.put("giftName", giftName);
+                    redemptionData.put("pointsSpent", pointsRequired);
+                    redemptionData.put("status", "PENDING");
+                    redemptionData.put("createdAt", FieldValue.serverTimestamp());
+                    redemptionData.put("redemptionDate", FieldValue.serverTimestamp());
+
+                    android.util.Log.d(TAG, "Saving redemption data: " + redemptionData);
+
+                    db.collection("gift_redemptions")
+                            .add(redemptionData)
+                            .addOnSuccessListener(docRef -> {
+                                String redemptionId = docRef.getId();
+                                android.util.Log.d(TAG, "Redemption saved with ID: " + redemptionId);
+
+                                // Tạo QR code
+                                String qrContent = QRCodeGenerator.generateGiftRedemptionCode(userId, giftId, redemptionId);
+                                android.util.Log.d(TAG, "Generated QR code: " + qrContent);
+
+                                // Cập nhật QR code vào redemption
+                                docRef.update("qrCode", qrContent)
+                                        .addOnSuccessListener(aVoid -> {
+                                            android.util.Log.d(TAG, "QR code updated successfully");
+                                            listener.onSuccess(redemptionId, qrContent);
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            android.util.Log.e(TAG, "Error updating QR code", e);
+                                            listener.onFailure(e.getMessage());
+                                        });
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e(TAG, "Error creating redemption", e);
+                                listener.onFailure(e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e(TAG, "Error getting user data", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
+
+    // Xử lý khi tổ chức quét QR (hoàn thành đổi quà)
+    public void completeGiftRedemption(String qrContent, OnRedemptionListener listener) {
+        android.util.Log.d(TAG, "completeGiftRedemption called with QR: " + qrContent);
+        // Parse QR code
+        QRCodeGenerator.QRCodeData qrData = QRCodeGenerator.parseQRCode(qrContent);
+        if (qrData == null || !"gift".equals(qrData.type)) {
+            listener.onFailure("QR code không hợp lệ");
+            return;
+        }
+
+        String redemptionId = qrData.getRegistrationId();
+        String userId = qrData.getUserId();
+        String giftId = qrData.getReferenceId();
+
+        // Lấy thông tin redemption
+        db.collection("gift_redemptions")
+                .document(redemptionId)
+                .get()
+                .addOnSuccessListener(redemptionDoc -> {
+                    if (!redemptionDoc.exists()) {
+                        listener.onFailure("Không tìm thấy yêu cầu đổi quà");
+                        return;
+                    }
+
+                    GiftRedemption redemption = redemptionDoc.toObject(GiftRedemption.class);
+                    if (redemption == null) {
+                        listener.onFailure("Dữ liệu không hợp lệ");
+                        return;
+                    }
+
+                    // Kiểm tra trạng thái
+                    if (redemption.getStatus() == GiftRedemption.RedemptionStatus.COMPLETED) {
+                        listener.onFailure("Quà này đã được trao rồi");
+                        return;
+                    }
+
+                    if (redemption.getStatus() == GiftRedemption.RedemptionStatus.CANCELLED) {
+                        listener.onFailure("Yêu cầu đổi quà đã bị hủy");
+                        return;
+                    }
+
+                    // Trừ điểm user và cập nhật trạng thái
+                    db.runTransaction(transaction -> {
+                                // Trừ điểm user
+                                transaction.update(
+                                        db.collection(USER_COLLECTION).document(userId),
+                                        "totalPoints", FieldValue.increment(-redemption.getPointsSpent())
+                                );
+
+                                // Giảm số lượng quà có sẵn
+                                transaction.update(
+                                        db.collection(COLLECTION).document(giftId),
+                                        "availableQuantity", FieldValue.increment(-1)
+                                );
+
+                                // Cập nhật trạng thái redemption
+                                transaction.update(
+                                        db.collection("gift_redemptions").document(redemptionId),
+                                        "status", GiftRedemption.RedemptionStatus.COMPLETED.name(),
+                                        "pickupDate", FieldValue.serverTimestamp()
+                                );
+
+                                return null;
+                            })
+                            .addOnSuccessListener(aVoid -> {
+                                android.util.Log.d(TAG, "Gift redemption completed: " + redemptionId);
+
+                                // Gửi thông báo cho user
+                                sendRedemptionCompletedNotification(userId, redemption.getGiftName());
+
+                                listener.onSuccess(redemptionId, "Đã trao quà thành công!");
+                            })
+                            .addOnFailureListener(e -> {
+                                android.util.Log.e(TAG, "Error getting redemption document", e);
+                                listener.onFailure(e.getMessage());
+                            });
+                })
+                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
+    }
+
+    // Gửi thông báo khi hoàn thành đổi quà
+    private void sendRedemptionCompletedNotification(String userId, String giftName) {
+        Map<String, Object> notificationData = new HashMap<>();
+        notificationData.put("userId", userId);
+        notificationData.put("title", "Đổi quà thành công");
+        notificationData.put("message", "Bạn đã nhận được quà: " + giftName);
+        notificationData.put("type", "GIFT_REDEEMED");
+        notificationData.put("isRead", false);
+        notificationData.put("createdAt", FieldValue.serverTimestamp());
+
+        db.collection("notifications")
+                .add(notificationData)
+                .addOnSuccessListener(docRef -> android.util.Log.d(TAG, "Notification sent"))
+                .addOnFailureListener(e -> android.util.Log.e(TAG, "Failed to send notification", e));
+    }
+
+    public interface OnRedemptionListener {
+        void onSuccess(String redemptionId, String message);
+        void onFailure(String error);
     }
 
     public interface OnGiftListener {

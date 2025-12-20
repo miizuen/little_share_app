@@ -18,8 +18,10 @@
         <!-- Nội dung card -->
 
         <ImageView
-            android:layout_width="wrap_content"
+            android:id="@+id/imgCampaign"
+            android:layout_width="match_parent"
             android:layout_height="110dp"
+            android:scaleType="centerCrop"
             android:adjustViewBounds="true"
             android:src="@drawable/logo_buacomnghiatinh" />
 
@@ -93,6 +95,7 @@
 
             <!-- Đóng góp -->
             <TextView
+                android:id="@+id/tvDonation"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"

@@ -1,6 +1,7 @@
 package com.example.little_share.ui.ngo.adapter;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,6 +14,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Gift;
+import com.example.little_share.ui.volunteer.activity_volunteer_gift_detail;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 
 import java.util.List;
@@ -32,6 +35,22 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         this.listener = listener;
     }
 
+    public static class GiftViewHolder extends RecyclerView.ViewHolder {
+        ImageView ivGiftImage, btnDelete;
+        TextView tvGiftName, tvGiftPoints, tvStock;
+        Chip chipCategory;
+
+        public GiftViewHolder(@NonNull View itemView) {
+            super(itemView);
+            ivGiftImage = itemView.findViewById(R.id.ivGiftImage);
+            tvGiftName = itemView.findViewById(R.id.tvGiftName);
+            tvGiftPoints = itemView.findViewById(R.id.tvGiftPoints);
+            chipCategory = itemView.findViewById(R.id.chipCategory);
+            tvStock = itemView.findViewById(R.id.tvStock);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
+        }
+    }
+
     @NonNull
     @Override
     public GiftAdapter.GiftViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -40,50 +59,48 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
     }
 
     @Override
-    public void onBindViewHolder(@NonNull GiftAdapter.GiftViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull GiftViewHolder holder, int position) {
         Gift gift = giftList.get(position);
 
         holder.tvGiftName.setText(gift.getName());
+        holder.tvGiftPoints.setText(gift.getPointsRequired() + " điểm");
 
-        holder.tvGiftPoints.setText(String.valueOf(gift.getPointsRequired()));
-
-
-        holder.chipCategory.setText(gift.getCategory());
-
-
-        switch (gift.getCategory()) {
-            case "Đồ lưu niệm":
-                holder.chipCategory.setChipBackgroundColorResource(android.R.color.holo_green_light);
-                break;
-            case "Quà gia dụng":
-                holder.chipCategory.setChipBackgroundColorResource(android.R.color.holo_blue_light);
-                break;
-            case "Văn phòng phẩm":
-                holder.chipCategory.setChipBackgroundColorResource(android.R.color.holo_orange_light);
-                break;
-            default:
-                holder.chipCategory.setChipBackgroundColorResource(android.R.color.darker_gray);
-                break;
-        }
-
-        // Số lượng còn lại
+        // Hiển thị số lượng còn lại
         holder.tvStock.setText("Còn " + gift.getAvailableQuantity() + "/" + gift.getTotalQuantity());
 
-        // Load ảnh
+        // Hiển thị category
+        holder.chipCategory.setText(gift.getCategory());
+
+        // Load image từ URL bằng Glide
         if (gift.getImageUrl() != null && !gift.getImageUrl().isEmpty()) {
             Glide.with(context)
                     .load(gift.getImageUrl())
-                    .placeholder(R.drawable.teddy)
-                    .error(R.drawable.teddy)
+                    .placeholder(R.drawable.gift_teddy_bear)
+                    .error(R.drawable.gift_teddy_bear)
                     .into(holder.ivGiftImage);
         } else {
-            holder.ivGiftImage.setImageResource(R.drawable.teddy);
+            holder.ivGiftImage.setImageResource(R.drawable.gift_teddy_bear);
         }
 
-        // Xóa
+        // Đổi màu text số lượng khi hết hàng
+        if (!gift.isAvailable()) {
+            holder.tvStock.setTextColor(context.getResources().getColor(android.R.color.holo_red_dark));
+        } else {
+            holder.tvStock.setTextColor(context.getResources().getColor(android.R.color.darker_gray));
+        }
+
+        // Click delete
         holder.btnDelete.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onDeleteClick(gift);
+            }
+        });
+
+        // Click item
+        holder.itemView.setOnClickListener(v -> {
+            // Có thể mở dialog xem chi tiết hoặc chỉnh sửa
+            if (listener != null) {
+                // listener.onItemClick(gift);
             }
         });
     }
@@ -98,19 +115,19 @@ public class GiftAdapter extends RecyclerView.Adapter<GiftAdapter.GiftViewHolder
         notifyDataSetChanged();
     }
 
+    public void updateGiftList(List<Gift> newGiftList) {
+        this.giftList.clear();
+        this.giftList.addAll(newGiftList);
+        notifyDataSetChanged();
+    }
 
-    static class GiftViewHolder extends RecyclerView.ViewHolder {
-        ImageView ivGiftImage, btnDelete;
-        TextView tvGiftName, tvGiftPoints, tvStock;
-        Chip chipCategory;
-        public GiftViewHolder(@NonNull View itemView) {
-            super(itemView);
-            ivGiftImage = itemView.findViewById(R.id.ivGiftImage);
-            tvGiftName = itemView.findViewById(R.id.tvGiftName);
-            tvGiftPoints = itemView.findViewById(R.id.tvGiftPoints);
-            chipCategory = itemView.findViewById(R.id.chipCategory);
-            tvStock = itemView.findViewById(R.id.tvStock);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
+    public void updateGift(Gift updatedGift) {
+        for (int i = 0; i < giftList.size(); i++) {
+            if (giftList.get(i).getId().equals(updatedGift.getId())) {
+                giftList.set(i, updatedGift);
+                notifyItemChanged(i);
+                break;
+            }
         }
     }
 }
