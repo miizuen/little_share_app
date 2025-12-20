@@ -33,7 +33,7 @@ public class Donation implements Serializable {
         BOOKS("Sách vở"),
         CLOTHES("Quần áo"),
         TOYS("Đồ chơi"),
-        MONEY("Tiền mặt");
+        ESSENTIALS("Nhu yếu phẩm");
 
         private String displayName;
         DonationType(String displayName) { this.displayName = displayName; }

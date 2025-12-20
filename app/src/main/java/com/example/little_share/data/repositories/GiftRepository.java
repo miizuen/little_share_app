@@ -8,6 +8,7 @@ import com.example.little_share.utils.QRCodeGenerator;
 
 import com.example.little_share.data.models.Gift;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.ListenerRegistration;
@@ -166,7 +167,7 @@ public class GiftRepository {
 
                                 List<Gift> gifts = new ArrayList<>();
                                 if (snapshots != null) {
-                                    for (var doc : snapshots.getDocuments()) {
+                                    for (DocumentSnapshot doc : snapshots.getDocuments()) {
                                         Gift gift = doc.toObject(Gift.class);
                                         if (gift != null) {
                                             gift.setId(doc.getId());
@@ -231,7 +232,7 @@ public class GiftRepository {
                                 int totalGifts = snapshot.size();
                                 int availableGifts = 0;
                                 int redeemedGifts = 0;
-                                for(var doc : snapshot.getDocuments()){
+                                for(DocumentSnapshot  doc : snapshot.getDocuments()){
                                     int available = doc.getLong("availableQuantity").intValue();
                                     int total = doc.getLong("totalQuantity").intValue();
 

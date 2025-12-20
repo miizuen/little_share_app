@@ -119,10 +119,6 @@ public class activity_volunteer_donation_form extends AppCompatActivity {
             public void onSuccess(User user) {
                 currentUser = user;
                 Log.d(TAG, "User loaded: " + user.getFullName());
-
-                Toast.makeText(activity_volunteer_donation_form.this,
-                        "Xin chào " + user.getFullName() + "! Điểm hiện tại: " + user.getTotalPoints(),
-                        Toast.LENGTH_SHORT).show();
             }
 
             @Override

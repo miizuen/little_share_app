@@ -520,13 +520,17 @@ public class CampaignRepository {
                 .document(currentUserId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    String orgName = "Tổ chức từ thiện";
+                    String orgName;
 
                     if (doc.exists()) {
                         String name = doc.getString("name");
                         if (name != null && !name.isEmpty()) {
                             orgName = name;
+                        } else {
+                            orgName = "Tổ chức từ thiện";
                         }
+                    } else {
+                        orgName = "Tổ chức từ thiện";
                     }
 
                     // Set tên tổ chức
@@ -538,6 +542,27 @@ public class CampaignRepository {
                             .add(campaign)
                             .addOnSuccessListener(ref -> {
                                 campaign.setId(ref.getId());
+
+                                // ===== THÊM PHẦN NÀY: Gửi notification cho volunteers =====
+                                NotificationRepository notificationRepo = new NotificationRepository();
+                                notificationRepo.notifyVolunteerAboutNewCampaign(
+                                        campaign.getId(),
+                                        campaign.getName(),
+                                        orgName,
+                                        new NotificationRepository.OnNotificationListener() {
+                                            @Override
+                                            public void onSuccess(String message) {
+                                                Log.d(TAG, "Notifications sent to volunteers: " + message);
+                                            }
+
+                                            @Override
+                                            public void onFailure(String error) {
+                                                Log.e(TAG, "Failed to send notifications: " + error);
+                                            }
+                                        }
+                                );
+                                // ===== KẾT THÚC PHẦN THÊM =====
+
                                 listener.onSuccess("Tạo thành công!");
                             })
                             .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
@@ -557,6 +582,7 @@ public class CampaignRepository {
                             .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
                 });
     }
+
     public LiveData<List<Campaign>> getSponsoredCampaigns() {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
