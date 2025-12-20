@@ -142,9 +142,8 @@
                             android:layout_width="24dp"
                             android:layout_height="24dp"
                             android:contentDescription="Account"
-                            app:tint="#6B7280"
-                            tools:srcCompat="@drawable/ic_profile" />
-
+                            android:src="@drawable/ic_profile"
+                            app:tint="#6B7280" />
                         <!-- Text Container -->
                         <LinearLayout
                             android:layout_width="0dp"
@@ -219,7 +218,7 @@
                             android:layout_height="24dp"
                             android:contentDescription="Logout"
                             android:src="@drawable/ic_logout"
-                            android:tint="#6B7280" />
+                            app:tint="#6B7280" />
 
                         <!-- Text Container -->
                         <LinearLayout
@@ -362,7 +361,7 @@
                             android:layout_height="24dp"
                             android:contentDescription="About"
                             android:src="@android:drawable/ic_dialog_info"
-                            android:tint="#6B7280" />
+                            app:tint="#6B7280" />
 
                         <!-- Text -->
                         <TextView
