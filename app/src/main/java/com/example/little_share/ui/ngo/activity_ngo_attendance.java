@@ -23,6 +23,8 @@ import com.example.little_share.R;
 import com.example.little_share.data.models.Shift;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.utils.QRCodeGenerator;
+import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
+
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -39,6 +41,8 @@ public class activity_ngo_attendance extends AppCompatActivity {
 
     private List<Shift> shiftList = new ArrayList<>();
     private QRScannerDialog qrDialog;
+
+
     private CampaignRepository campaignRepository;
 
     @Override
@@ -112,6 +116,7 @@ public class activity_ngo_attendance extends AppCompatActivity {
 
     private void showQRScanner() {
         qrDialog = new QRScannerDialog(this, new QRScannerDialog.OnQRScannedListener() {
+
             @Override
             public void onQRScanned(String code) {
                 handleAttendanceCode(code, true);

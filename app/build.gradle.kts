@@ -95,12 +95,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.google.material)
 
-    implementation(fileTree(mapOf(
-        "dir" to "D:\\Ky125\\Zalopay",
-        "dir" to "${projectDir}\\zalopay",
-        "include" to listOf("*.aar", "*.jar"),
-        "exclude" to listOf("")
-    )))
+    implementation(files("D:\\zalopay\\zpdk-release-v3.1.aar"))
     annotationProcessor(libs.glide.compiler)
 
     // QR Code
