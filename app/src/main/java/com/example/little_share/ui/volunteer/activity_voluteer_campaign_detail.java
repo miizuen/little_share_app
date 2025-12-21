@@ -8,6 +8,7 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -15,6 +16,12 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.data.models.VolunteerRegistration;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.example.little_share.ui.volunteer.activity_volunteer_detail_calendar;
+
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -29,11 +36,17 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private ProgressBar progressBar;
     private Button btnRegister;
 
+    private FirebaseFirestore db;
+    private String currentUserId;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_voluteer_campaign_detail);
+
+        db = FirebaseFirestore.getInstance();
+        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         initView();
         getDataFromIntent();
@@ -53,9 +66,58 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             campaign = (Campaign) getIntent().getSerializableExtra("campaign");
         }
     }
+
+    private void checkAlreadyRegistered() {
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("campaignId", campaign.getId())
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        for (QueryDocumentSnapshot doc : querySnapshot) {
+                            VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
+                            reg.setId(doc.getId()); // THÊM DÒNG NÀY
+
+                            String status = reg.getStatus();
+                            if ("approved".equals(status) || "joined".equals(status) || "completed".equals(status)) {
+                                showAlreadyRegisteredDialog(reg);
+                                return;
+                            }
+                        }
+                        checkCampaignHasRoles();
+                    } else {
+                        checkCampaignHasRoles();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.widget.Toast.makeText(this, "Lỗi kiểm tra: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
+                });
+    }
+
+
+    private void showAlreadyRegisteredDialog(VolunteerRegistration reg) {
+        String message = "Bạn đã tham gia chiến dịch này với:\n\n" +
+                "• Vai trò: " + (reg.getRoleName() != null ? reg.getRoleName() : "N/A") + "\n" +
+                "• Ca làm: " + (reg.getShiftName() != null ? reg.getShiftName() : "N/A") + "\n" +
+                "• Ngày làm: " + (reg.getDate() != null ? reg.getDate() : "N/A");
+
+        new AlertDialog.Builder(this)
+                .setTitle("Đã đăng ký chiến dịch")
+                .setMessage(message)
+                .setPositiveButton("Xem chi tiết", (dialog, which) -> {
+                    Intent intent = new Intent(this, activity_volunteer_detail_calendar.class);
+                    intent.putExtra("registrationId", reg.getId()); // Truyền ID để load từ Firebase
+                    startActivity(intent);
+                })
+                .setNegativeButton("Thoát", (dialog, which) -> {
+                    finish();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
     private void checkCampaignHasRoles() {
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                .collection("campaign_roles")
+        db.collection("campaign_roles")
                 .whereEqualTo("campaignId", campaign.getId())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -101,12 +163,11 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
         tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
 
-        // Thêm lại logic đăng ký
+        // Kiểm tra đã đăng ký chưa trước khi cho đăng ký
         btnRegister.setOnClickListener(v -> {
-            checkCampaignHasRoles();
+            checkAlreadyRegistered();
         });
     }
-
 
     private void initView() {
         imgFood = findViewById(R.id.imgFood);
@@ -122,11 +183,9 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvActivity = findViewById(R.id.tvActivity);
         btnRegister = findViewById(R.id.btnRegister);
 
-        // Thêm nút back
         ImageView btnBack = findViewById(R.id.btnBack);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
     }
-
 }
