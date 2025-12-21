@@ -181,7 +181,7 @@ public class frm_ngo_campaign_list extends Fragment {
                 campaignList.addAll(campaigns);
 
                 // Sắp xếp: Campaign mới nhất lên đầu
-                Collections.reverse(campaignList);
+               // Collections.reverse(campaignList);
 
                 // Apply filter
                 filterCampaigns(etSearch.getText().toString(), currentFilter);

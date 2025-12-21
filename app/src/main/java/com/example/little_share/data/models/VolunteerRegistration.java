@@ -1,8 +1,8 @@
 package com.example.little_share.data.models;
 
 import com.google.firebase.firestore.DocumentId;
-
-public class VolunteerRegistration {
+import java.io.Serializable;
+public class VolunteerRegistration implements Serializable {
 
     @DocumentId
     private String id;
@@ -26,8 +26,18 @@ public class VolunteerRegistration {
     private Long rejectedAt;
     private String userEmail;
     private String qrCode;
+    private int points;
+
+    private int pointsEarned; // Điểm đã nhận từ chiến dịch này
+
+    public int getPointsEarned() { return pointsEarned; }
+    public void setPointsEarned(int pointsEarned) { this.pointsEarned = pointsEarned; }
+
 
     // Getter & Setter
+    public int getPoints() { return points; }
+    public void setPoints(int points) { this.points = points; }
+
     public String getUserEmail() { return userEmail; }
     public void setUserEmail(String userEmail) { this.userEmail = userEmail; }
 

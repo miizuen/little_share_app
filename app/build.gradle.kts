@@ -33,14 +33,13 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_11
+        targetCompatibility = JavaVersion.VERSION_11
     }
-
 
     buildFeatures {
         viewBinding = true
-        dataBinding = false
+        dataBinding = true
     }
 
     packagingOptions {
@@ -53,6 +52,7 @@ android {
 dependencies {
     // Core
     implementation(libs.core.ktx)
+    implementation("androidx.core:core:1.12.0")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)
@@ -96,11 +96,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.google.material)
 
-    implementation(fileTree(mapOf(
-        "dir" to "C:\\Users\\PC\\Desktop\\zalopay",
-        "include" to listOf("*.aar", "*.jar"),
-        "exclude" to listOf("")
-    )))
+    implementation(files("libs/zpdk-release-v3.1.aar"))
     annotationProcessor(libs.glide.compiler)
 
     // QR Code

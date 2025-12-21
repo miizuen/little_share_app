@@ -24,6 +24,8 @@ import com.example.little_share.data.models.Shift;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
 import com.example.little_share.utils.QRCodeGenerator;
+import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
+
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
@@ -40,6 +42,8 @@ public class activity_ngo_attendance extends AppCompatActivity {
 
     private List<Shift> shiftList = new ArrayList<>();
     private QRScannerDialog qrDialog;
+
+
     private CampaignRepository campaignRepository;
 
     @Override
@@ -113,6 +117,7 @@ public class activity_ngo_attendance extends AppCompatActivity {
 
     private void showQRScanner() {
         qrDialog = new QRScannerDialog(this, new QRScannerDialog.OnQRScannedListener() {
+
             @Override
             public void onQRScanned(String code) {
                 handleAttendanceCode(code, true);
@@ -205,29 +210,24 @@ public class activity_ngo_attendance extends AppCompatActivity {
      * Xác nhận điểm danh và cập nhật database
      */
     private void confirmAttendance(String registrationId, String userId, String campaignId) {
-        // Hiển thị loading
         Toast.makeText(this, "Đang xử lý điểm danh...", Toast.LENGTH_SHORT).show();
 
-        // TODO: Gọi phương thức điểm danh từ CampaignRepository
-        // Tạm thời hiển thị thành công
-        showSuccessDialog(registrationId, userId);
+        // Gọi CampaignRepository với method mới
+        campaignRepository.confirmAttendance(registrationId, userId, campaignId,
+                new CampaignRepository.OnAttendanceListener() {
+                    @Override
+                    public void onSuccess(String message) {
+                        showSuccessDialog(registrationId, userId);
+                        loadTodayShifts(); // Refresh danh sách
+                    }
 
-        /*
-        // Code này sẽ được implement sau khi có phương thức trong CampaignRepository
-        campaignRepository.confirmAttendance(registrationId, userId, campaignId, new CampaignRepository.OnAttendanceListener() {
-            @Override
-            public void onSuccess(String message) {
-                showSuccessDialog(registrationId, userId);
-                loadTodayShifts(); // Refresh danh sách
-            }
-
-            @Override
-            public void onFailure(String error) {
-                showErrorDialog("Lỗi điểm danh", error);
-            }
-        });
-        */
+                    @Override
+                    public void onFailure(String error) {
+                        showErrorDialog("Lỗi điểm danh", error);
+                    }
+                });
     }
+
 
     /**
      * Hiển thị dialog thành công

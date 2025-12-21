@@ -17,16 +17,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
+import com.example.little_share.data.models.Notification;
 import com.example.little_share.data.models.VolunteerRegistration;
 import com.example.little_share.ui.ngo.adapter.VolunteerRegistrationAdapter;
+import com.example.little_share.utils.QRCodeGenerator;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-
 
 public class frm_ngo_volunteer_campaign_detail extends Fragment implements VolunteerRegistrationAdapter.OnActionListener {
 
@@ -125,25 +124,95 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
     }
 
     private void approveRegistration(VolunteerRegistration registration, int position) {
-        // Sinh mã QR unique
-        String qrCode = "LS-" + registration.getId().substring(0, 8).toUpperCase() + "-" + System.currentTimeMillis() % 10000;
+        // Tạo QR code
+        String qrCode = QRCodeGenerator.generateCampaignRegistrationCode(
+                registration.getUserId(),
+                registration.getCampaignId(),
+                registration.getId()
+        );
 
+        android.util.Log.d("APPROVE_DEBUG", "Generated QR: " + qrCode);
+
+        // THÊM: Cập nhật cả registration và tăng số lượng volunteer
         db.collection("volunteer_registrations")
                 .document(registration.getId())
                 .update(
                         "status", "approved",
-                        "approvedAt", System.currentTimeMillis(),
-                        "qrCode", qrCode  // LƯU MÃ QR
+                        "qrCode", qrCode,
+                        "approvedAt", System.currentTimeMillis()
                 )
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Đã duyệt!", Toast.LENGTH_SHORT).show();
+                    // SAU KHI DUYỆT THÀNH CÔNG → TĂNG SỐ LƯỢNG VOLUNTEER
+                    incrementCampaignVolunteers(registration.getCampaignId(), position, registration);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi duyệt: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error approving registration", e);
+                });
+    }
+
+    // THÊM METHOD MỚI: Tăng số lượng volunteer của campaign
+    private void incrementCampaignVolunteers(String campaignId, int position, VolunteerRegistration registration) {
+        android.util.Log.d("APPROVE_DEBUG", "Incrementing volunteers for campaign: " + campaignId);
+
+        db.collection("campaigns")
+                .document(campaignId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Long currentVolunteers = doc.getLong("currentVolunteers");
+                        Long maxVolunteers = doc.getLong("maxVolunteers");
+
+                        int current = currentVolunteers != null ? currentVolunteers.intValue() : 0;
+                        int max = maxVolunteers != null ? maxVolunteers.intValue() : 0;
+
+                        android.util.Log.d("APPROVE_DEBUG", "Current volunteers: " + current + "/" + max);
+
+                        // Tăng số lượng
+                        int newCount = current + 1;
+
+                        db.collection("campaigns")
+                                .document(campaignId)
+                                .update("currentVolunteers", newCount)
+                                .addOnSuccessListener(aVoid2 -> {
+                                    android.util.Log.d("APPROVE_DEBUG", "✓ Volunteers updated: " + newCount + "/" + max);
+
+                                    Toast.makeText(getContext(), "Đã duyệt! (" + newCount + "/" + max + " người)", Toast.LENGTH_SHORT).show();
+                                    adapter.removeItem(position);
+                                    updateTitle();
+
+                                    // Gửi thông báo cho volunteer
+                                    sendNotificationToVolunteer(registration, true, "");
+                                })
+                                .addOnFailureListener(e -> {
+                                    android.util.Log.e("APPROVE_DEBUG", "✗ Failed to update volunteers: " + e.getMessage());
+                                    Toast.makeText(getContext(), "Duyệt thành công nhưng lỗi cập nhật số lượng", Toast.LENGTH_LONG).show();
+
+                                    // Vẫn xóa khỏi danh sách và gửi thông báo
+                                    adapter.removeItem(position);
+                                    updateTitle();
+                                    sendNotificationToVolunteer(registration, true, "");
+                                });
+                    } else {
+                        android.util.Log.e("APPROVE_DEBUG", "Campaign not found: " + campaignId);
+                        Toast.makeText(getContext(), "Duyệt thành công nhưng không tìm thấy chiến dịch", Toast.LENGTH_LONG).show();
+
+                        adapter.removeItem(position);
+                        updateTitle();
+                        sendNotificationToVolunteer(registration, true, "");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("APPROVE_DEBUG", "Error getting campaign: " + e.getMessage());
+                    Toast.makeText(getContext(), "Duyệt thành công nhưng lỗi kiểm tra chiến dịch", Toast.LENGTH_LONG).show();
+
                     adapter.removeItem(position);
                     updateTitle();
-
-                    // Gửi thông báo cho TNV
                     sendNotificationToVolunteer(registration, true, "");
                 });
     }
+
+
 
     private void rejectRegistration(VolunteerRegistration registration, int position, String reason) {
         db.collection("volunteer_registrations")
@@ -160,42 +229,52 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
 
                     // Gửi thông báo cho TNV
                     sendNotificationToVolunteer(registration, false, reason);
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi từ chối: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, "Error rejecting registration", e);
                 });
     }
+
+    /**
+     * Gửi thông báo cho tình nguyện viên - SỬA LẠI ĐỂ KHỚP VỚI MODEL
+     */
     private void sendNotificationToVolunteer(VolunteerRegistration registration, boolean isApproved, String reason) {
         String title;
-        String message;
+        String description;
         String type;
 
         if (isApproved) {
-            title = "Đăng ký được duyệt!";
-            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" đã được duyệt. Xem mã QR điểm danh ngay!";
+            title = "Đăng ký được duyệt! ✓";
+            description = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" đã được duyệt. Nhấn để xem mã QR điểm danh!";
             type = "REGISTRATION_APPROVED";
         } else {
             title = "Đăng ký bị từ chối";
-            message = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" bị từ chối. Lý do: " + reason;
+            description = "Đăng ký tham gia \"" + registration.getCampaignName() + "\" bị từ chối. Lý do: " + reason;
             type = "REGISTRATION_REJECTED";
         }
 
-        Map<String, Object> notification = new HashMap<>();
-        notification.put("userId", registration.getUserId());
-        notification.put("title", title);
-        notification.put("message", message);
-        notification.put("type", type);
-        notification.put("referenceId", registration.getId());
-        notification.put("isRead", false);
-        notification.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+        // SỬA: Sử dụng Notification model thay vì Map
+        Notification notification = new Notification(
+                registration.getUserId(),    // userId
+                title,                       // title
+                description,                 // description
+                type,                        // type
+                registration.getId()         // relatedId - QUAN TRỌNG: phải là registration ID
+        );
 
         db.collection("notifications")
                 .add(notification)
                 .addOnSuccessListener(doc -> {
-                    Log.d(TAG, "Notification sent to: " + registration.getUserId());
+                    Log.d(TAG, "✓ Notification sent successfully to user: " + registration.getUserId());
+                    Log.d(TAG, "  - Type: " + type);
+                    Log.d(TAG, "  - RelatedId: " + registration.getId());
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Failed to send notification: " + e.getMessage());
+                    Log.e(TAG, "✗ Failed to send notification: " + e.getMessage(), e);
+                    // Không hiển thị Toast lỗi để không làm phiền người dùng
                 });
     }
-
 
     private void updateTitle() {
         tvTitle.setText(registrationList.isEmpty()
