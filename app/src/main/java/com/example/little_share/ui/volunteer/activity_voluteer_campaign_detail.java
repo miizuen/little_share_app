@@ -104,10 +104,13 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         new AlertDialog.Builder(this)
                 .setTitle("Đã đăng ký chiến dịch")
                 .setMessage(message)
-                .setPositiveButton("Xem chi tiết", (dialog, which) -> {
-                    Intent intent = new Intent(this, activity_volunteer_detail_calendar.class);
-                    intent.putExtra("registrationId", reg.getId()); // Truyền ID để load từ Firebase
+                .setPositiveButton("Xem lịch của tôi", (dialog, which) -> {
+                    // Chuyển thẳng qua fragment calendar trong main
+                    Intent intent = new Intent(this, activity_volunteer_main.class);
+                    intent.putExtra("navigateTo", "calendar");
+                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
                     startActivity(intent);
+                    finish();
                 })
                 .setNegativeButton("Thoát", (dialog, which) -> {
                     finish();
