@@ -8,7 +8,6 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -16,12 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
-import com.example.little_share.data.models.VolunteerRegistration;
-import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.example.little_share.ui.volunteer.activity_volunteer_detail_calendar;
-
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -37,7 +31,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private Button btnRegister;
 
     private FirebaseFirestore db;
-    private String currentUserId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -46,7 +39,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         setContentView(R.layout.activity_voluteer_campaign_detail);
 
         db = FirebaseFirestore.getInstance();
-        currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
 
         initView();
         getDataFromIntent();
@@ -68,55 +60,9 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     }
 
     private void checkAlreadyRegistered() {
-        db.collection("volunteer_registrations")
-                .whereEqualTo("userId", currentUserId)
-                .whereEqualTo("campaignId", campaign.getId())
-                .get()
-                .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        for (QueryDocumentSnapshot doc : querySnapshot) {
-                            VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
-                            reg.setId(doc.getId()); // THÊM DÒNG NÀY
-
-                            String status = reg.getStatus();
-                            if ("approved".equals(status) || "joined".equals(status) || "completed".equals(status)) {
-                                showAlreadyRegisteredDialog(reg);
-                                return;
-                            }
-                        }
-                        checkCampaignHasRoles();
-                    } else {
-                        checkCampaignHasRoles();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    android.widget.Toast.makeText(this, "Lỗi kiểm tra: " + e.getMessage(), android.widget.Toast.LENGTH_SHORT).show();
-                });
-    }
-
-
-    private void showAlreadyRegisteredDialog(VolunteerRegistration reg) {
-        String message = "Bạn đã tham gia chiến dịch này với:\n\n" +
-                "• Vai trò: " + (reg.getRoleName() != null ? reg.getRoleName() : "N/A") + "\n" +
-                "• Ca làm: " + (reg.getShiftName() != null ? reg.getShiftName() : "N/A") + "\n" +
-                "• Ngày làm: " + (reg.getDate() != null ? reg.getDate() : "N/A");
-
-        new AlertDialog.Builder(this)
-                .setTitle("Đã đăng ký chiến dịch")
-                .setMessage(message)
-                .setPositiveButton("Xem lịch của tôi", (dialog, which) -> {
-                    // Chuyển thẳng qua fragment calendar trong main
-                    Intent intent = new Intent(this, activity_volunteer_main.class);
-                    intent.putExtra("navigateTo", "calendar");
-                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-                    startActivity(intent);
-                    finish();
-                })
-                .setNegativeButton("Thoát", (dialog, which) -> {
-                    finish();
-                })
-                .setCancelable(false)
-                .show();
+        // Cho phép TNV đăng ký nhiều lần trong cùng chiến dịch
+        // Việc kiểm tra trùng vai trò/ca/ngày sẽ được thực hiện ở màn hình đăng ký
+        checkCampaignHasRoles();
     }
 
     private void checkCampaignHasRoles() {

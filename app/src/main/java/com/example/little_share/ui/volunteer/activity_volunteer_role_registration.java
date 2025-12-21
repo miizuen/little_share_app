@@ -13,6 +13,7 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.DocumentSnapshot;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -117,8 +118,55 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang kiểm tra...");
 
-        // THÊM: Kiểm tra slot trước khi đăng ký
-        checkCampaignSlots();
+        // Kiểm tra trùng lặp đăng ký (vai trò + ca + ngày) trước khi đăng ký
+        checkDuplicateRegistration(currentUser.getUid());
+    }
+
+    // Kiểm tra TNV đã đăng ký với cùng vai trò + ca + ngày chưa
+    private void checkDuplicateRegistration(String userId) {
+        String shiftId = selectedShift.getId();
+
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("shiftId", shiftId)
+                .whereEqualTo("date", selectedDate)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        // Lấy thông tin đăng ký đã tồn tại
+                        DocumentSnapshot existingDoc = querySnapshot.getDocuments().get(0);
+                        String existingRoleName = existingDoc.getString("roleName");
+                        String existingShiftName = existingDoc.getString("shiftName");
+                        String existingDate = existingDoc.getString("date");
+
+                        resetConfirmButton();
+                        showDuplicateRegistrationDialog(existingRoleName, existingShiftName, existingDate);
+                    } else {
+                        checkCampaignSlots();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("DUPLICATE_CHECK", "Error: " + e.getMessage());
+                    checkCampaignSlots();
+                });
+    }
+
+    // Hiển thị dialog khi đăng ký trùng
+    private void showDuplicateRegistrationDialog(String existingRoleName, String existingShiftName, String existingDate) {
+        String message = "Bạn đã đăng ký ca này rồi!\n\n" +
+                "• Vai trò đã đăng ký: " + existingRoleName + "\n" +
+                "• Ca làm: " + existingShiftName + "\n" +
+                "• Ngày: " + existingDate + "\n\n" +
+                "Mỗi ca làm trong ngày chỉ được đăng ký 1 vai trò.\nVui lòng chọn ca hoặc ngày khác.";
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Trùng ca làm việc")
+                .setMessage(message)
+                .setPositiveButton("Chọn lại", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Quay lại", (dialog, which) -> finish())
+                .setCancelable(true)
+                .show();
     }
 
     // THÊM METHOD MỚI: Kiểm tra slot còn trống không
