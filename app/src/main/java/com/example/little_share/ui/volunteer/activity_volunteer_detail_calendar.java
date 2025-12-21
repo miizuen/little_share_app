@@ -48,14 +48,28 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
         setupClickListeners();
     }
     private void generateAndDisplayQR() {
-        if (registration != null && registration.getQrCode() != null) {
-            // Dùng QRCodeGenerator có sẵn với size 400
-            Bitmap qrBitmap = QRCodeGenerator.generateQRCode(registration.getQrCode(), 400);
-            if (qrBitmap != null) {
-                ivQRCode.setImageBitmap(qrBitmap);
-            }
+        if (registration == null) {
+            ivQRCode.setImageResource(R.drawable.placeholder_qr_code);
+            return;
+        }
+
+        String qrContent = registration.getQrCode();
+
+        // Nếu qrCode null hoặc rỗng, không generate
+        if (qrContent == null || qrContent.isEmpty()) {
+            ivQRCode.setImageResource(R.drawable.placeholder_qr_code);
+            return;
+        }
+
+        // Generate QR code
+        Bitmap qrBitmap = QRCodeGenerator.generateQRCode(qrContent, 400);
+        if (qrBitmap != null) {
+            ivQRCode.setImageBitmap(qrBitmap);
+        } else {
+            ivQRCode.setImageResource(R.drawable.placeholder_qr_code);
         }
     }
+
 
 
 

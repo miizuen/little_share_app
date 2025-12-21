@@ -27,7 +27,14 @@ public class activity_volunteer_main extends AppCompatActivity {
         setContentView(R.layout.activity_volunteer_main);
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
-        replaceFragment(new frm_volunteer_home());
+
+        String navigateTo = getIntent().getStringExtra("navigateTo");
+        if ("calendar".equals(navigateTo)) {
+            replaceFragment(new frm_volunteer_calendar());
+            bottomNavigationView.setSelectedItemId(R.id.nav_calendar);
+        } else {
+            replaceFragment(new frm_volunteer_home());
+        }
 
         bottomNavigationView.setOnItemSelectedListener(new NavigationBarView.OnItemSelectedListener() {
             @Override
