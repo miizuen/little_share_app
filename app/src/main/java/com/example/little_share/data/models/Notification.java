@@ -8,6 +8,7 @@ import java.util.Date;
 
 public class Notification implements Serializable {
 
+<<<<<<< HEAD
     // Enum for notification types - MERGED cả hai phiên bản
     public enum NotificationType {
         CAMPAIGN_NEW("CAMPAIGN_NEW", "Chiến dịch mới"),
@@ -27,6 +28,26 @@ public class Notification implements Serializable {
         private String displayName;
 
         NotificationType(String value, String displayName) {
+=======
+    // Enum for notification types
+    public enum NotificationType {
+        CAMPAIGN_NEW("CAMPAIGN_NEW"),
+        CAMPAIGN_APPROVED("CAMPAIGN_APPROVED"),
+        CAMPAIGN_REMINDER("CAMPAIGN_REMINDER"),
+        DONATION_CONFIRMED("DONATION_CONFIRMED"),
+        DONATION_SUCCESS("DONATION_SUCCESS"),
+        GIFT_AVAILABLE("GIFT_AVAILABLE"),
+        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS"),
+        CAMPAIGN_UPDATE("CAMPAIGN_UPDATE"),
+        SYSTEM("SYSTEM"),
+        GENERAL("GENERAL"),
+        REGISTRATION_APPROVED("REGISTRATION_APPROVED"),
+        REGISTRATION_REJECTED("REGISTRATION_REJECTED");
+
+        private String value;
+
+        NotificationType(String value) {
+>>>>>>> vi
             this.value = value;
             this.displayName = displayName;
         }
@@ -35,10 +56,13 @@ public class Notification implements Serializable {
             return value;
         }
 
+<<<<<<< HEAD
         public String getDisplayName() {
             return displayName;
         }
 
+=======
+>>>>>>> vi
         public static NotificationType fromString(String value) {
             if (value == null) return GENERAL;
 
@@ -56,11 +80,15 @@ public class Notification implements Serializable {
     private String userId;
     private String title;
     private String description;
-    private String message; // Alias for description to support existing adapter
-    private String type; // "CAMPAIGN_NEW", "DONATION_SUCCESS", "CAMPAIGN_UPDATE", "SYSTEM"
-    private String relatedId; // campaignId, donationId, etc.
+    private String message;
+    private String type;
+    private String relatedId;
     private boolean isRead;
+<<<<<<< HEAD
     private String iconType; // "megaphone", "heart", "bell", "info"
+=======
+    private String iconType;
+>>>>>>> vi
 
     @ServerTimestamp
     private Date createdAt;
@@ -73,7 +101,7 @@ public class Notification implements Serializable {
         this.userId = userId;
         this.title = title;
         this.description = description;
-        this.message = description; // Keep in sync
+        this.message = description;
         this.type = type;
         this.isRead = false;
         this.iconType = getDefaultIconForType(type);
@@ -113,16 +141,19 @@ public class Notification implements Serializable {
     public String getDescription() { return description; }
     public void setDescription(String description) {
         this.description = description;
-        this.message = description; // Keep message in sync
+        this.message = description;
     }
 
+<<<<<<< HEAD
     // Alias methods for compatibility with existing adapter
+=======
+>>>>>>> vi
     public String getMessage() {
         return message != null ? message : description;
     }
     public void setMessage(String message) {
         this.message = message;
-        this.description = message; // Keep description in sync
+        this.description = message;
     }
 
     public NotificationType getTypeEnum() {
@@ -144,7 +175,6 @@ public class Notification implements Serializable {
     public Date getCreatedAt() { return createdAt; }
     public void setCreatedAt(Date createdAt) { this.createdAt = createdAt; }
 
-    // Helper method to get time ago string
     public String getTimeAgo() {
         if (createdAt == null) return "Vừa xong";
 

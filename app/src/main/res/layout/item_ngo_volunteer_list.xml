@@ -26,7 +26,7 @@
                 android:id="@+id/volunteerAvt"
                 android:layout_width="50dp"
                 android:layout_height="50dp"
-                android:src="@drawable/logo_thelight"
+                android:src="@drawable/placeholder_avatar"
                 android:background="@drawable/gradient_circle" />
 
             <LinearLayout
@@ -37,6 +37,7 @@
                 android:orientation="vertical">
 
                 <TextView
+                    android:id="@+id/tvVolunteerName"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="Nguyễn Thị Trường"
@@ -45,16 +46,17 @@
                     android:textStyle="bold" />
 
                 <TextView
+                    android:id="@+id/tvVolunteerEmail"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="2dp"
-                    android:text="280 điểm  8 sự kiện"
+                    android:text="email@gmail.com"
                     android:textColor="#888"
                     android:textSize="12sp" />
             </LinearLayout>
 
             <TextView
-                android:id="@+id/volunteerStatus"
+                android:id="@+id/tvStatus"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:background="@drawable/bg_quickaction_calendar"
@@ -69,8 +71,13 @@
 
         <!-- Info Grid -->
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp">
-            <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Sự kiện hiện tại:" android:textColor="#888" android:textSize="12sp"/>
+            <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Sự kiện:" android:textColor="#888" android:textSize="12sp"/>
             <TextView android:id="@+id/tvCampaignName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Xây trường mầm non" android:textColor="#333" android:textSize="12sp"/>
+        </LinearLayout>
+
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginBottom="6dp">
+            <TextView android:layout_width="100dp" android:layout_height="wrap_content" android:text="Vai trò:" android:textColor="#888" android:textSize="12sp"/>
+            <TextView android:id="@+id/tvRoleName" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Đầu bếp" android:textColor="#333" android:textSize="12sp"/>
         </LinearLayout>
 
         <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content">
@@ -80,11 +87,12 @@
 
         <!-- Button -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/btnPoint"
+            android:id="@+id/btnAction"
+            android:visibility="gone"
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_marginTop="12dp"
-            android:text="Tích điểm"
+            android:text="Xem chi tiết"
             android:textSize="13sp"
             app:backgroundTint="#7C4DFF"
             app:cornerRadius="20dp" />
