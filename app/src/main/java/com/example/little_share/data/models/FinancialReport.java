@@ -12,18 +12,12 @@ import java.util.List;
 public class FinancialReport implements Serializable {
     @DocumentId
     private String id;
-
     private String campaignId;
-
     private String campaignName;
-
     private String organizationId;
     private String description;
-
     private double totalExpense;
-
     private int totalVolunteers;
-
     private int averagePoints;
 
     @ServerTimestamp

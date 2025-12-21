@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http:// Kurtz://schemas.android.com/apk/res-auto"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -10,174 +10,174 @@
     android:elevation="8dp">
 
     <!-- Header -->
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="horizontal"
-android:gravity="center_vertical"
-android:paddingBottom="16dp">
-
-<TextView
-    android:layout_width="0dp"
-    android:layout_height="wrap_content"
-    android:layout_weight="1"
-    android:text="Thêm chi tiêu"
-    android:textSize="20sp"
-    android:textStyle="bold"
-    android:textColor="#1A1A1A" />
-
-<ImageView
-    android:id="@+id/btnClose"
-    android:layout_width="28dp"
-    android:layout_height="28dp"
-    android:src="@drawable/ic_close"
-    app:tint="#F44336"
-android:background="?android:attr/selectableItemBackgroundBorderless"
-android:padding="4dp"/>
-</LinearLayout>
-
-    <!-- Nội dung -->
-<ScrollView
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:overScrollMode="never"
-android:scrollbars="none">
-
-<LinearLayout
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:orientation="vertical">
-
-    <!-- Hạng mục -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Hạng mục"
-        android:textColor="#2E2E2E"
-        android:textStyle="bold"
-        android:layout_marginTop="8dp"/>
-
-    <EditText
-        android:id="@+id/txtHangMuc"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_edittext_border"
-        android:padding="14dp"
-        android:hint="Ví dụ: Mua vật phẩm"
-        android:textSize="15sp"/>
-
-    <!-- Số tiền -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Số tiền"
-        android:textColor="#2E2E2E"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"/>
-
-    <EditText
-        android:id="@+id/txtSoTien"
-        android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_edittext_border"
-        android:padding="14dp"
-        android:hint="0 VND"
-        android:inputType="numberDecimal"
-        android:textSize="15sp"/>
-
-    <!-- Ngày chi -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ngày chi"
-        android:textColor="#2E2E2E"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"/>
-
     <LinearLayout
-        android:id="@+id/btnPickDate"
         android:layout_width="match_parent"
-        android:layout_height="52dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_edittext_border"
-        android:gravity="center_vertical"
-        android:paddingHorizontal="14dp"
+        android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:clickable="true"
-        android:focusable="true"
-        android:foreground="?android:attr/selectableItemBackground">
-
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/ic_calendar"
-            app:tint="#666666" />
+        android:gravity="center_vertical"
+        android:paddingBottom="16dp">
 
         <TextView
-            android:id="@+id/txtNgayChi"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Thêm chi tiêu"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="#1A1A1A" />
+
+        <ImageView
+            android:id="@+id/btnClose"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
+            android:src="@drawable/ic_close"
+            app:tint="#F44336"
+            android:background="?android:attr/selectableItemBackgroundBorderless"
+            android:padding="4dp"/>
+    </LinearLayout>
+
+    <!-- Nội dung -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:overScrollMode="never"
+        android:scrollbars="none">
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:text="Chọn ngày"
-            android:textColor="#999999"
-            android:textSize="15sp"/>
-    </LinearLayout>
+            android:orientation="vertical">
 
-    <!-- Ghi chú -->
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Ghi chú"
-        android:textColor="#2E2E2E"
-        android:textStyle="bold"
-        android:layout_marginTop="16dp"/>
+            <!-- Hạng mục -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Hạng mục"
+                android:textColor="#2E2E2E"
+                android:textStyle="bold"
+                android:layout_marginTop="8dp"/>
 
-    <EditText
-        android:id="@+id/txtGhiChu"
-        android:layout_width="match_parent"
-        android:layout_height="100dp"
-        android:layout_marginTop="8dp"
-        android:background="@drawable/bg_edittext_border"
-        android:gravity="top|start"
-        android:padding="14dp"
-        android:hint="Mô tả chi tiết..."
-        android:textSize="15sp"/>
-</LinearLayout>
-</ScrollView>
+            <EditText
+                android:id="@+id/txtHangMuc"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_edittext_border"
+                android:padding="14dp"
+                android:hint="Ví dụ: Mua vật phẩm"
+                android:textSize="15sp"/>
+
+            <!-- Số tiền -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Số tiền"
+                android:textColor="#2E2E2E"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/txtSoTien"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_edittext_border"
+                android:padding="14dp"
+                android:hint="0 VND"
+                android:inputType="numberDecimal"
+                android:textSize="15sp"/>
+
+            <!-- Ngày chi -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ngày chi"
+                android:textColor="#2E2E2E"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <LinearLayout
+                android:id="@+id/btnPickDate"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_edittext_border"
+                android:gravity="center_vertical"
+                android:paddingHorizontal="14dp"
+                android:orientation="horizontal"
+                android:clickable="true"
+                android:focusable="true"
+                android:foreground="?android:attr/selectableItemBackground">
+
+                <ImageView
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_calendar"
+                    app:tint="#666666" />
+
+                <TextView
+                    android:id="@+id/txtNgayChi"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="Chọn ngày"
+                    android:textColor="#999999"
+                    android:textSize="15sp"/>
+            </LinearLayout>
+
+            <!-- Ghi chú -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Ghi chú"
+                android:textColor="#2E2E2E"
+                android:textStyle="bold"
+                android:layout_marginTop="16dp"/>
+
+            <EditText
+                android:id="@+id/txtGhiChu"
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/bg_edittext_border"
+                android:gravity="top|start"
+                android:padding="14dp"
+                android:hint="Mô tả chi tiết..."
+                android:textSize="15sp"/>
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Nút bấm -->
-<LinearLayout
-android:layout_width="match_parent"
-android:layout_height="wrap_content"
-android:orientation="horizontal"
-android:layout_marginTop="24dp"
-android:weightSum="2">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="24dp"
+        android:weightSum="2">
 
-<Button
-    android:id="@+id/btnCancel"
-    android:layout_width="0dp"
-    android:layout_height="52dp"
-    android:layout_weight="1"
-    android:text="Hủy"
-    android:textSize="16sp"
-    android:textAllCaps="false"
-    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-    android:textColor="#666666"/>
+        <Button
+            android:id="@+id/btnCancel"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="Hủy"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:textColor="#666666"/>
 
-<View android:layout_width="12dp" android:layout_height="0dp"/>
+        <View android:layout_width="12dp" android:layout_height="0dp"/>
 
-<Button
-    android:id="@+id/btnAdd"
-    android:layout_width="0dp"
-    android:layout_height="52dp"
-    android:layout_weight="1"
-    android:text="Thêm"
-    android:textSize="16sp"
-    android:textAllCaps="false"
-    style="@style/Widget.MaterialComponents.Button"
-    android:backgroundTint="#6A5ACD"/>
-</LinearLayout>
-
+        <Button
+            android:id="@+id/btnAdd"
+            android:layout_width="0dp"
+            android:layout_height="52dp"
+            android:layout_weight="1"
+            android:text="Thêm"
+            android:textSize="16sp"
+            android:textAllCaps="false"
+            style="@style/Widget.MaterialComponents.Button"
+            android:backgroundTint="#6A5ACD"/>
     </LinearLayout>
+
+</LinearLayout>

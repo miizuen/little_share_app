@@ -148,7 +148,8 @@ public class frm_sponsor_home extends Fragment {
                     }
                 });
 
-        rvSponsoredCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
+        LinearLayoutManager layoutManager = new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false);
+        rvSponsoredCampaigns.setLayoutManager(layoutManager);
         rvSponsoredCampaigns.setAdapter(sponsoredCampaignAdapter);
     }
 

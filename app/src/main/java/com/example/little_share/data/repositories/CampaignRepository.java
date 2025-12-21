@@ -293,6 +293,63 @@ public class CampaignRepository {
         return liveData;
     }
 
+    public LiveData<List<Campaign>> getCampaignsWithDonations() {
+        MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(new ArrayList<>());
+            return liveData;
+        }
+
+        // Bước 1: Lấy tất cả donations của các campaigns thuộc NGO này
+        db.collection("sponsorDonations")
+                .whereEqualTo("status", "COMPLETED")
+                .get()
+                .addOnSuccessListener(donationSnapshots -> {
+                    // Lấy unique campaign IDs từ donations
+                    List<String> campaignIdsWithDonations = new ArrayList<>();
+                    for (QueryDocumentSnapshot doc : donationSnapshots) {
+                        String campaignId = doc.getString("campaignId");
+                        if (campaignId != null && !campaignIdsWithDonations.contains(campaignId)) {
+                            campaignIdsWithDonations.add(campaignId);
+                        }
+                    }
+
+                    if (campaignIdsWithDonations.isEmpty()) {
+                        liveData.setValue(new ArrayList<>());
+                        return;
+                    }
+
+                    // Bước 2: Lấy campaigns của NGO hiện tại có trong danh sách đã được donate
+                    db.collection(COLLECTION)
+                            .whereEqualTo("organizationId", currentUserId)
+                            .get()
+                            .addOnSuccessListener(campaignSnapshots -> {
+                                List<Campaign> campaigns = new ArrayList<>();
+                                for (QueryDocumentSnapshot doc : campaignSnapshots) {
+                                    String campaignId = doc.getId();
+                                    if (campaignIdsWithDonations.contains(campaignId)) {
+                                        Campaign campaign = doc.toObject(Campaign.class);
+                                        campaign.setId(campaignId);
+                                        campaigns.add(campaign);
+                                    }
+                                }
+                                liveData.setValue(campaigns);
+                                Log.d(TAG, "Found " + campaigns.size() + " campaigns with donations");
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error getting campaigns", e);
+                                liveData.setValue(new ArrayList<>());
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting donations", e);
+                    liveData.setValue(new ArrayList<>());
+                });
+
+        return liveData;
+    }
+
 
     public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();

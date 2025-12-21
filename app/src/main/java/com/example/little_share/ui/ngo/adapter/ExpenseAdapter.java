@@ -26,16 +26,20 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     private List<ReportExpense> expenseList;
     private OnExpenseActionListener listener;
+    private boolean isReadOnly;
 
+    // Constructor for editable mode
     public ExpenseAdapter(List<ReportExpense> expenseList, OnExpenseActionListener listener) {
         this.expenseList = expenseList;
         this.listener = listener;
+        this.isReadOnly = (listener == null);
     }
 
     @NonNull
     @Override
     public ExpenseViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_expense, parent, false);
+        int layoutId = isReadOnly ? R.layout.item_expense_readonly : R.layout.item_expense;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
         return new ExpenseViewHolder(view);
     }
 
@@ -60,8 +64,12 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
             tvAmount = itemView.findViewById(R.id.tvAmount);
             tvNote = itemView.findViewById(R.id.tvNote);
             tvDate = itemView.findViewById(R.id.tvDate);
-            btnEdit = itemView.findViewById(R.id.btnEdit);
-            btnDelete = itemView.findViewById(R.id.btnDelete);
+
+            // Only find edit/delete buttons if not in read-only mode
+            if (!isReadOnly) {
+                btnEdit = itemView.findViewById(R.id.btnEdit);
+                btnDelete = itemView.findViewById(R.id.btnDelete);
+            }
         }
 
         public void bind(ReportExpense expense, int position) {
@@ -80,17 +88,11 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
                 tvDate.setText(dateFormat.format(expense.getExpenseDate()));
             }
 
-            btnEdit.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onEdit(expense, position);
-                }
-            });
-
-            btnDelete.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onDelete(expense, position);
-                }
-            });
+            // Setup action buttons only in editable mode
+            if (!isReadOnly && listener != null) {
+                btnEdit.setOnClickListener(v -> listener.onEdit(expense, position));
+                btnDelete.setOnClickListener(v -> listener.onDelete(expense, position));
+            }
         }
     }
 }
