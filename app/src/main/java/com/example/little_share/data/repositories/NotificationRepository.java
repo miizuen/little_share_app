@@ -29,7 +29,7 @@ public class NotificationRepository {
     // Lấy tất cả notifications của user hiện tại
     public LiveData<List<Notification>> getUserNotifications() {
         MutableLiveData<List<Notification>> liveData = new MutableLiveData<>();
-        
+
         if (currentUserId == null) {
             liveData.setValue(new ArrayList<>());
             return liveData;
@@ -64,7 +64,7 @@ public class NotificationRepository {
     // Đếm số notifications chưa đọc
     public LiveData<Integer> getUnreadCount() {
         MutableLiveData<Integer> liveData = new MutableLiveData<>();
-        
+
         if (currentUserId == null) {
             liveData.setValue(0);
             return liveData;
@@ -187,7 +187,7 @@ public class NotificationRepository {
 
         String title = "Tài trợ thành công!";
         String description = "Bạn đã tài trợ thành công " + formatMoney(amount) + " VNĐ cho chiến dịch \"" + campaignName + "\"";
-        
+
         Notification notification = new Notification(currentUserId, title, description, Notification.NotificationType.DONATION_SUCCESS.getValue());
         createNotification(notification, null);
     }
@@ -198,7 +198,7 @@ public class NotificationRepository {
 
         String title = "Chiến dịch mới: " + campaignName;
         String description = "Tham gia ngay để giúp đỡ cộng đồng!";
-        
+
         Notification notification = new Notification(currentUserId, title, description, Notification.NotificationType.CAMPAIGN_NEW.getValue());
         createNotification(notification, null);
     }
@@ -219,17 +219,17 @@ public class NotificationRepository {
 
                     String title = "Chiến dịch mới: " + campaignName;
                     String description = "Tổ chức " + orgName + " vừa tạo chiến dịch mới. Tham gia ngay để giúp đỡ cộng đồng!";
-                    
+
                     int totalUsers = snapshots.size();
                     int[] completedCount = {0};
 
                     // Tạo notification cho từng volunteer
                     for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snapshots) {
                         String userId = doc.getId();
-                        
-                        Notification notification = new Notification(userId, title, description, 
+
+                        Notification notification = new Notification(userId, title, description,
                             Notification.NotificationType.CAMPAIGN_NEW.getValue(), campaignId);
-                        
+
                         createNotification(notification, new OnNotificationListener() {
                             @Override
                             public void onSuccess(String message) {
@@ -273,39 +273,39 @@ public class NotificationRepository {
         if (currentUserId == null) return;
 
         List<Notification> mockNotifications = new ArrayList<>();
-        
+
         // Notification 1: Donation success
-        Notification n1 = new Notification(currentUserId, 
-            "Tài trợ thành công!", 
-            "Bạn đã tài trợ thành công 500.000 VNĐ cho chiến dịch \"Nấu ăn cho em\"", 
+        Notification n1 = new Notification(currentUserId,
+            "Tài trợ thành công!",
+            "Bạn đã tài trợ thành công 500.000 VNĐ cho chiến dịch \"Nấu ăn cho em\"",
             Notification.NotificationType.DONATION_SUCCESS.getValue());
         mockNotifications.add(n1);
-        
+
         // Notification 2: New campaign
-        Notification n2 = new Notification(currentUserId, 
-            "Chiến dịch mới: Mùa đông ấm áp", 
-            "Tham gia ngay để giúp đỡ bà con vùng cao", 
+        Notification n2 = new Notification(currentUserId,
+            "Chiến dịch mới: Mùa đông ấm áp",
+            "Tham gia ngay để giúp đỡ bà con vùng cao",
             Notification.NotificationType.CAMPAIGN_NEW.getValue());
         mockNotifications.add(n2);
-        
+
         // Notification 3: Campaign update
-        Notification n3 = new Notification(currentUserId, 
-            "Cập nhật chiến dịch", 
-            "Chiến dịch \"Trồng cây xanh\" đã đạt 80% mục tiêu!", 
+        Notification n3 = new Notification(currentUserId,
+            "Cập nhật chiến dịch",
+            "Chiến dịch \"Trồng cây xanh\" đã đạt 80% mục tiêu!",
             Notification.NotificationType.CAMPAIGN_UPDATE.getValue());
         mockNotifications.add(n3);
-        
+
         // Notification 4: System notification
-        Notification n4 = new Notification(currentUserId, 
-            "Chào mừng đến với Little Share!", 
-            "Cảm ơn bạn đã tham gia cộng đồng chia sẻ yêu thương", 
+        Notification n4 = new Notification(currentUserId,
+            "Chào mừng đến với Little Share!",
+            "Cảm ơn bạn đã tham gia cộng đồng chia sẻ yêu thương",
             Notification.NotificationType.SYSTEM.getValue());
         mockNotifications.add(n4);
-        
+
         // Notification 5: Sponsorship success
-        Notification n5 = new Notification(currentUserId, 
-            "Tài trợ được chấp nhận!", 
-            "Chiến dịch \"Nấu ăn cho em\" đã chấp nhận khoản tài trợ của bạn", 
+        Notification n5 = new Notification(currentUserId,
+            "Tài trợ được chấp nhận!",
+            "Chiến dịch \"Nấu ăn cho em\" đã chấp nhận khoản tài trợ của bạn",
             Notification.NotificationType.SPONSORSHIP_SUCCESS.getValue());
         mockNotifications.add(n5);
 
@@ -319,8 +319,8 @@ public class NotificationRepository {
     public void createCampaignApprovedNotification(String campaignId, String campaignName, String userId) {
         String title = "Chiến dịch được duyệt!";
         String description = "Chiến dịch \"" + campaignName + "\" của bạn đã được phê duyệt và có thể bắt đầu nhận tình nguyện viên.";
-        
-        Notification notification = new Notification(userId, title, description, 
+
+        Notification notification = new Notification(userId, title, description,
             Notification.NotificationType.CAMPAIGN_APPROVED.getValue(), campaignId);
         createNotification(notification, null);
     }
@@ -329,8 +329,8 @@ public class NotificationRepository {
     public void createCampaignReminderNotification(String campaignId, String campaignName, String userId) {
         String title = "Nhắc nhở chiến dịch";
         String description = "Chiến dịch \"" + campaignName + "\" sẽ bắt đầu trong 24 giờ tới. Hãy chuẩn bị sẵn sàng!";
-        
-        Notification notification = new Notification(userId, title, description, 
+
+        Notification notification = new Notification(userId, title, description,
             Notification.NotificationType.CAMPAIGN_REMINDER.getValue(), campaignId);
         createNotification(notification, null);
     }
@@ -339,8 +339,8 @@ public class NotificationRepository {
     public void createDonationConfirmedNotification(String campaignName, double amount, String userId) {
         String title = "Donation được xác nhận";
         String description = "Khoản donation " + formatMoney(amount) + " VNĐ cho chiến dịch \"" + campaignName + "\" đã được xác nhận.";
-        
-        Notification notification = new Notification(userId, title, description, 
+
+        Notification notification = new Notification(userId, title, description,
             Notification.NotificationType.DONATION_CONFIRMED.getValue());
         createNotification(notification, null);
     }
@@ -349,8 +349,8 @@ public class NotificationRepository {
     public void createGiftAvailableNotification(String giftName, String userId) {
         String title = "Quà tặng mới!";
         String description = "Bạn có thể đổi quà tặng \"" + giftName + "\" với điểm tích lũy của mình.";
-        
-        Notification notification = new Notification(userId, title, description, 
+
+        Notification notification = new Notification(userId, title, description,
             Notification.NotificationType.GIFT_AVAILABLE.getValue());
         createNotification(notification, null);
     }
@@ -359,10 +359,115 @@ public class NotificationRepository {
     public void createSponsorshipSuccessNotification(String campaignName, String userId) {
         String title = "Tài trợ được chấp nhận!";
         String description = "Chiến dịch \"" + campaignName + "\" đã chấp nhận khoản tài trợ của bạn. Cảm ơn sự đóng góp!";
-        
-        Notification notification = new Notification(userId, title, description, 
+
+        Notification notification = new Notification(userId, title, description,
             Notification.NotificationType.SPONSORSHIP_SUCCESS.getValue());
         createNotification(notification, null);
+    }
+
+    // Thông báo khi volunteer tạo donation (chờ duyệt)
+    public void createDonationPendingNotification(String organizationName, String donationType, String userId) {
+        String title = "Quyên góp đang chờ duyệt";
+        String description = "Quyên góp " + donationType + " của bạn cho " + organizationName + " đang được xem xét.";
+
+        Notification notification = new Notification(userId, title, description,
+                Notification.NotificationType.DONATION_PENDING.getValue());
+        createNotification(notification, null);
+    }
+
+    // Thông báo cho NGO khi có donation mới
+    public void createNewDonationForNGO(String volunteerName, String donationType, String ngoId, String donationId) {
+        String title = "Quyên góp mới từ " + volunteerName;
+        String description = volunteerName + " vừa quyên góp " + donationType + ". Vui lòng xem xét và xác nhận.";
+
+        Notification notification = new Notification(ngoId, title, description,
+                Notification.NotificationType.DONATION_NEW.getValue(), donationId);
+        createNotification(notification, null);
+    }
+
+    // Thông báo khi donation được confirm (cho volunteer)
+    public void createDonationConfirmedForVolunteer(String organizationName, int points, String userId, String donationId) {
+        String title = "Quyên góp được xác nhận!";
+        String description = organizationName + " đã xác nhận quyên góp của bạn. Bạn nhận được " + points + " điểm!";
+
+        Notification notification = new Notification(userId, title, description,
+                Notification.NotificationType.DONATION_CONFIRMED.getValue(), donationId);
+        createNotification(notification, null);
+    }
+
+    // Thông báo khi donation bị từ chối
+    public void createDonationRejectedNotification(String organizationName, String userId) {
+        String title = "Quyên góp bị từ chối";
+        String description = organizationName + " đã từ chối quyên góp của bạn. Vui lòng liên hệ để biết thêm chi tiết.";
+
+        Notification notification = new Notification(userId, title, description,
+                Notification.NotificationType.DONATION_REJECTED.getValue());
+        createNotification(notification, null);
+    }
+
+    // Thông báo khi NGO xác nhận đã nhận đồ
+    public void createDonationReceivedNotification(String organizationName, String userId) {
+        String title = "Đã nhận đồ quyên góp";
+        String description = organizationName + " đã xác nhận nhận đồ quyên góp từ bạn. Cảm ơn sự đóng góp!";
+
+        Notification notification = new Notification(userId, title, description,
+                Notification.NotificationType.DONATION_RECEIVED.getValue());
+        createNotification(notification, null);
+    }
+
+    // Thông báo cho volunteers khi có chiến dịch donation mới
+    public void notifyVolunteersAboutNewDonationCampaign(String campaignId, String campaignName,
+                                                         String orgName, String donationType,
+                                                         OnNotificationListener listener) {
+        db.collection("users")
+                .whereEqualTo("role", "volunteer")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    if (snapshots.isEmpty()) {
+                        if (listener != null) {
+                            listener.onSuccess("No volunteers found");
+                        }
+                        return;
+                    }
+
+                    String title = "Chiến dịch quyên góp mới: " + campaignName;
+                    String description = orgName + " đang cần quyên góp " + donationType + ". Hãy đóng góp ngay!";
+
+                    int totalUsers = snapshots.size();
+                    int[] completedCount = {0};
+
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snapshots) {
+                        String userId = doc.getId();
+
+                        Notification notification = new Notification(userId, title, description,
+                                Notification.NotificationType.DONATION_CAMPAIGN_NEW.getValue(), campaignId);
+
+                        createNotification(notification, new OnNotificationListener() {
+                            @Override
+                            public void onSuccess(String message) {
+                                completedCount[0]++;
+                                if (completedCount[0] == totalUsers && listener != null) {
+                                    listener.onSuccess("Notified " + totalUsers + " volunteers");
+                                }
+                            }
+
+                            @Override
+                            public void onFailure(String error) {
+                                completedCount[0]++;
+                                Log.e(TAG, "Failed to notify user " + userId + ": " + error);
+                                if (completedCount[0] == totalUsers && listener != null) {
+                                    listener.onSuccess("Completed with some errors");
+                                }
+                            }
+                        });
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error getting volunteers", e);
+                    if (listener != null) {
+                        listener.onFailure("Error getting volunteers: " + e.getMessage());
+                    }
+                });
     }
 
     public interface OnNotificationListener {

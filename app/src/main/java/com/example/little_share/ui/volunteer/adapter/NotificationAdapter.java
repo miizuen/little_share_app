@@ -99,7 +99,9 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
         int iconRes;
 
         switch (type) {
+            // Campaign notifications
             case CAMPAIGN_NEW:
+            case CAMPAIGN_UPDATE:
                 iconRes = R.drawable.ic_megaphone;
                 break;
             case CAMPAIGN_APPROVED:
@@ -108,15 +110,48 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
             case CAMPAIGN_REMINDER:
                 iconRes = R.drawable.ic_bell;
                 break;
+
+            // Donation notification icons (quyên góp vật phẩm)
+            case DONATION_PENDING:
+                iconRes = R.drawable.ic_clock; // Icon đồng hồ - chờ duyệt
+                break;
+            case DONATION_NEW:
+                iconRes = R.drawable.ic_donation; // Icon cho NGO - có donation mới
+                break;
             case DONATION_CONFIRMED:
-                iconRes = R.drawable.ic_donation;
+                iconRes = R.drawable.icon_check; // Icon tick - đã xác nhận
                 break;
-            case GIFT_AVAILABLE:
-                iconRes = R.drawable.ic_gift;
+            case DONATION_REJECTED:
+                iconRes = R.drawable.ic_close_red; // Icon X đỏ - từ chối
                 break;
+            case DONATION_RECEIVED:
+                iconRes = R.drawable.icon_check; // Icon tick - đã nhận đồ
+                break;
+            case DONATION_CAMPAIGN_NEW:
+                iconRes = R.drawable.ic_donation; // Icon donation - campaign mới
+                break;
+
+            // Sponsorship (tài trợ tiền)
+            case DONATION_SUCCESS:
             case SPONSORSHIP_SUCCESS:
                 iconRes = R.drawable.ic_star_3d;
                 break;
+
+            // Registration
+            case REGISTRATION_APPROVED:
+                iconRes = R.drawable.icon_check;
+                break;
+            case REGISTRATION_REJECTED:
+                iconRes = R.drawable.ic_close_red;
+                break;
+
+            // Gift
+            case GIFT_AVAILABLE:
+                iconRes = R.drawable.ic_gift;
+                break;
+
+            // System & Default
+            case SYSTEM:
             case GENERAL:
             default:
                 iconRes = R.drawable.ic_megaphone;

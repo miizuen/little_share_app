@@ -96,15 +96,7 @@ dependencies {
     implementation(libs.glide)
     implementation(libs.google.material)
 
-<<<<<<< HEAD
     implementation(files("libs/zpdk-release-v3.1.aar"))
-=======
-    implementation(fileTree(mapOf(
-        "dir" to "libs",
-        "include" to listOf("*.aar", "*.jar")
-    )))
-
->>>>>>> vi
     annotationProcessor(libs.glide.compiler)
 
     // QR Code

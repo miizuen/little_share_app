@@ -2,6 +2,8 @@ package com.example.little_share.data.repositories;
 
 import android.util.Log;
 
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MutableLiveData;
 import com.example.little_share.data.models.Donation;
 import com.example.little_share.data.models.DonationItem;
 import com.example.little_share.data.models.User;
@@ -27,13 +29,15 @@ public class DonationRepository {
 
     private final FirebaseFirestore db;
     private final FirebaseAuth auth;
+    private final NotificationRepository notificationRepository;
 
     public DonationRepository() {
         this.db = FirebaseFirestore.getInstance();
         this.auth = FirebaseAuth.getInstance();
+        this.notificationRepository = new NotificationRepository();
     }
 
-    // ========== CREATE VOLUNTEER DONATION ==========
+    // ========== CREATE VOLUNTEER DONATION WITH NOTIFICATION ==========
     public void createVolunteerDonation(String organizationId, String organizationName,
                                         Donation.DonationType type, List<DonationItem> items,
                                         OnDonationListener listener) {
@@ -94,6 +98,22 @@ public class DonationRepository {
                     batch.commit()
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "Donation created successfully: " + donationRef.getId());
+
+                                // ===== GỬI THÔNG BÁO CHO VOLUNTEER =====
+                                notificationRepository.createDonationPendingNotification(
+                                        organizationName,
+                                        type.getDisplayName(),
+                                        currentUserId
+                                );
+
+                                // ===== GỬI THÔNG BÁO CHO NGO =====
+                                notificationRepository.createNewDonationForNGO(
+                                        user.getFullName(),
+                                        type.getDisplayName(),
+                                        organizationId,
+                                        donationRef.getId()
+                                );
+
                                 listener.onSuccess(donationRef.getId());
                             })
                             .addOnFailureListener(e -> {
@@ -139,7 +159,7 @@ public class DonationRepository {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         DonationItem item = doc.toObject(DonationItem.class);
                         if (item != null) {
-                            item.setId(doc.getId());  // ← Set ID
+                            item.setId(doc.getId());
                             items.add(item);
 
                             Log.d(TAG, "Loaded item: " + doc.getId() +
@@ -158,7 +178,7 @@ public class DonationRepository {
                 });
     }
 
-    // ========== CONFIRM DONATION (NGO ONLY) ==========
+    // ========== CONFIRM DONATION WITH NOTIFICATION ==========
     public void confirmDonation(String donationId, int finalPoints, OnDonationListener listener) {
         db.collection(DONATIONS_COLLECTION).document(donationId)
                 .get()
@@ -190,6 +210,15 @@ public class DonationRepository {
                     batch.commit()
                             .addOnSuccessListener(aVoid -> {
                                 Log.d(TAG, "Donation confirmed successfully: " + donationId);
+
+                                // ===== GỬI THÔNG BÁO CHO VOLUNTEER =====
+                                notificationRepository.createDonationConfirmedForVolunteer(
+                                        donation.getOrganizationName(),
+                                        finalPoints,
+                                        donation.getUserId(),
+                                        donationId
+                                );
+
                                 listener.onSuccess(donationId);
                             })
                             .addOnFailureListener(e -> {
@@ -203,21 +232,59 @@ public class DonationRepository {
                 });
     }
 
-    // ========== UPDATE DONATION STATUS ==========
+    // ========== UPDATE DONATION STATUS WITH NOTIFICATION ==========
     public void updateDonationStatus(String donationId, Donation.DonationStatus status, OnDonationListener listener) {
-        Map<String, Object> updates = new HashMap<>();
-        updates.put("status", status.name());
-        updates.put("updatedAt", FieldValue.serverTimestamp());
-
+        // Lấy thông tin donation trước khi update
         db.collection(DONATIONS_COLLECTION).document(donationId)
-                .update(updates)
-                .addOnSuccessListener(aVoid -> {
-                    Log.d(TAG, "Donation status updated: " + donationId + " -> " + status.name());
-                    listener.onSuccess(donationId);
+                .get()
+                .addOnSuccessListener(donationDoc -> {
+                    if (!donationDoc.exists()) {
+                        listener.onFailure("Không tìm thấy quyên góp");
+                        return;
+                    }
+
+                    Donation donation = donationDoc.toObject(Donation.class);
+                    if (donation == null) {
+                        listener.onFailure("Lỗi đọc dữ liệu quyên góp");
+                        return;
+                    }
+
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("status", status.name());
+                    updates.put("updatedAt", FieldValue.serverTimestamp());
+
+                    db.collection(DONATIONS_COLLECTION).document(donationId)
+                            .update(updates)
+                            .addOnSuccessListener(aVoid -> {
+                                Log.d(TAG, "Donation status updated: " + donationId + " -> " + status.name());
+
+                                // ===== GỬI THÔNG BÁO TÙY THEO STATUS =====
+                                switch (status) {
+                                    case REJECTED:
+                                        notificationRepository.createDonationRejectedNotification(
+                                                donation.getOrganizationName(),
+                                                donation.getUserId()
+                                        );
+                                        break;
+
+                                    case RECEIVED:
+                                        notificationRepository.createDonationReceivedNotification(
+                                                donation.getOrganizationName(),
+                                                donation.getUserId()
+                                        );
+                                        break;
+                                }
+
+                                listener.onSuccess(donationId);
+                            })
+                            .addOnFailureListener(e -> {
+                                Log.e(TAG, "Error updating donation status: " + e.getMessage());
+                                listener.onFailure("Lỗi cập nhật trạng thái: " + e.getMessage());
+                            });
                 })
                 .addOnFailureListener(e -> {
-                    Log.e(TAG, "Error updating donation status: " + e.getMessage());
-                    listener.onFailure("Lỗi cập nhật trạng thái: " + e.getMessage());
+                    Log.e(TAG, "Error getting donation: " + e.getMessage());
+                    listener.onFailure("Lỗi lấy thông tin quyên góp: " + e.getMessage());
                 });
     }
 
@@ -235,7 +302,7 @@ public class DonationRepository {
                     for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         Donation donation = doc.toObject(Donation.class);
                         if (donation != null) {
-                            donation.setId(doc.getId());  // ← QUAN TRỌNG: Set ID
+                            donation.setId(doc.getId());
                             donations.add(donation);
 
                             Log.d(TAG, "Loaded donation: " + doc.getId() +

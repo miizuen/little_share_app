@@ -624,7 +624,6 @@ public class CampaignRepository {
             return;
         }
 
-        // Lấy tên tổ chức từ collection "organization"
         db.collection("organization")
                 .document(currentUserId)
                 .get()
@@ -642,35 +641,58 @@ public class CampaignRepository {
                         orgName = "Tổ chức từ thiện";
                     }
 
-                    // Set tên tổ chức
                     campaign.setOrganizationName(orgName);
                     campaign.setOrganizationId(currentUserId);
 
-                    // Tạo campaign
                     db.collection(COLLECTION)
                             .add(campaign)
                             .addOnSuccessListener(ref -> {
                                 campaign.setId(ref.getId());
 
-                                // ===== THÊM PHẦN NÀY: Gửi notification cho volunteers =====
                                 NotificationRepository notificationRepo = new NotificationRepository();
-                                notificationRepo.notifyVolunteersAboutNewCampaign(
-                                        campaign.getId(),
-                                        campaign.getName(),
-                                        orgName,
-                                        new NotificationRepository.OnNotificationListener() {
-                                            @Override
-                                            public void onSuccess(String message) {
-                                                Log.d(TAG, "Notifications sent to volunteers: " + message);
-                                            }
 
-                                            @Override
-                                            public void onFailure(String error) {
-                                                Log.e(TAG, "Failed to send notifications: " + error);
+                                // ===== KIỂM TRA LOẠI CAMPAIGN =====
+                                if ("VOLUNTEER".equals(campaign.getCampaignType())) {
+                                    // Campaign tình nguyện - gửi thông báo cho volunteers
+                                    notificationRepo.notifyVolunteersAboutNewCampaign(
+                                            campaign.getId(),
+                                            campaign.getName(),
+                                            orgName,
+                                            new NotificationRepository.OnNotificationListener() {
+                                                @Override
+                                                public void onSuccess(String message) {
+                                                    Log.d(TAG, "Notifications sent to volunteers: " + message);
+                                                }
+
+                                                @Override
+                                                public void onFailure(String error) {
+                                                    Log.e(TAG, "Failed to send notifications: " + error);
+                                                }
                                             }
-                                        }
-                                );
-                                // ===== KẾT THÚC PHẦN THÊM =====
+                                    );
+                                } else if ("DONATION".equals(campaign.getCampaignType())) {
+                                    // Campaign quyên góp - gửi thông báo quyên góp
+                                    String donationType = campaign.getDonationTypeEnum() != null ?
+                                            campaign.getDonationTypeEnum().getDisplayName() : "vật phẩm";
+
+                                    notificationRepo.notifyVolunteersAboutNewDonationCampaign(
+                                            campaign.getId(),
+                                            campaign.getName(),
+                                            orgName,
+                                            donationType,
+                                            new NotificationRepository.OnNotificationListener() {
+                                                @Override
+                                                public void onSuccess(String message) {
+                                                    Log.d(TAG, "Donation campaign notifications sent: " + message);
+                                                }
+
+                                                @Override
+                                                public void onFailure(String error) {
+                                                    Log.e(TAG, "Failed to send donation notifications: " + error);
+                                                }
+                                            }
+                                    );
+                                }
 
                                 listener.onSuccess("Tạo thành công!");
                             })
@@ -678,7 +700,6 @@ public class CampaignRepository {
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting org name: " + e.getMessage());
-                    // Nếu lỗi vẫn tạo với tên mặc định
                     campaign.setOrganizationName("Tổ chức từ thiện");
                     campaign.setOrganizationId(currentUserId);
 
