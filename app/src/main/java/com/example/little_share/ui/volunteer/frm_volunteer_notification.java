@@ -124,12 +124,40 @@ public class frm_volunteer_notification extends Fragment implements Notification
         if (notification.getType() != null) {
             switch (notification.getType()) {
                 case "REGISTRATION_APPROVED":
-                    // Load registration data từ Firebase và chuyển đến detail
                     loadRegistrationAndNavigate(notification.getRelatedId());
                     break;
 
                 case "REGISTRATION_REJECTED":
                     Toast.makeText(getContext(), "Đăng ký bị từ chối", Toast.LENGTH_SHORT).show();
+                    break;
+
+                // ===== XỬ LÝ DONATION NOTIFICATIONS =====
+                case "DONATION_PENDING":
+                    Toast.makeText(getContext(), "Quyên góp của bạn đang chờ xét duyệt", Toast.LENGTH_SHORT).show();
+                    // Navigate đến lịch sử donation
+                    navigateToDonationHistory();
+                    break;
+
+                case "DONATION_CONFIRMED":
+                    Toast.makeText(getContext(), "Quyên góp đã được xác nhận!", Toast.LENGTH_SHORT).show();
+                    navigateToDonationHistory();
+                    break;
+
+                case "DONATION_REJECTED":
+                    Toast.makeText(getContext(), "Quyên góp bị từ chối. Vui lòng liên hệ tổ chức", Toast.LENGTH_SHORT).show();
+                    navigateToDonationHistory();
+                    break;
+
+                case "DONATION_RECEIVED":
+                    Toast.makeText(getContext(), "Tổ chức đã nhận đồ quyên góp của bạn", Toast.LENGTH_SHORT).show();
+                    navigateToDonationHistory();
+                    break;
+
+                case "DONATION_CAMPAIGN_NEW":
+                case "CAMPAIGN_NEW":
+                    if (notification.getRelatedId() != null && !notification.getRelatedId().isEmpty()) {
+                        navigateToCampaignDetail(notification.getRelatedId());
+                    }
                     break;
 
                 default:
@@ -139,45 +167,6 @@ public class frm_volunteer_notification extends Fragment implements Notification
                     break;
             }
         }
-    }
-
-    /**
-     * Load dữ liệu VolunteerRegistration từ Firebase và navigate
-     */
-    private void loadRegistrationAndNavigate(String registrationId) {
-        if (registrationId == null || registrationId.isEmpty()) {
-            Toast.makeText(getContext(), "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        // Show loading
-        Toast.makeText(getContext(), "Đang tải thông tin...", Toast.LENGTH_SHORT).show();
-
-        db.collection("volunteer_registrations")
-                .document(registrationId)
-                .get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        VolunteerRegistration registration = documentSnapshot.toObject(VolunteerRegistration.class);
-                        if (registration != null) {
-                            registration.setId(documentSnapshot.getId());
-
-                            // Navigate với đầy đủ dữ liệu
-                            Intent intent = new Intent(getContext(), activity_volunteer_detail_calendar.class);
-                            intent.putExtra("registration", registration);
-                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-                            startActivity(intent);
-                        } else {
-                            Toast.makeText(getContext(), "Lỗi: Không thể đọc dữ liệu đăng ký", Toast.LENGTH_SHORT).show();
-                        }
-                    } else {
-                        Toast.makeText(getContext(), "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    android.util.Log.e("Notification", "Error loading registration", e);
-                });
     }
 
     @Override
@@ -223,11 +212,62 @@ public class frm_volunteer_notification extends Fragment implements Notification
                 .setNegativeButton("Không", null)
                 .show();
     }
+    private void navigateToDonationHistory() {
+        // Option 1: Nếu có Activity riêng cho donation history
+        // Intent intent = new Intent(getContext(), DonationHistoryActivity.class);
+        // startActivity(intent);
+
+        // Option 2: Nếu là fragment trong bottom nav, chuyển đến tab đó
+        // ((MainActivity) getActivity()).navigateToDonationTab();
+
+        // Option 3: Tạm thời toast thông báo
+        Toast.makeText(getContext(), "Đang chuyển đến lịch sử quyên góp...", Toast.LENGTH_SHORT).show();
+
+        // TODO: Implement navigation based on your app structure
+    }
+
+    /**
+     * Load registration data từ Firebase và navigate
+     */
+    private void loadRegistrationAndNavigate(String registrationId) {
+        if (registrationId == null || registrationId.isEmpty()) {
+            Toast.makeText(getContext(), "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Toast.makeText(getContext(), "Đang tải thông tin...", Toast.LENGTH_SHORT).show();
+
+        db.collection("volunteer_registrations")
+                .document(registrationId)
+                .get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        VolunteerRegistration registration = documentSnapshot.toObject(VolunteerRegistration.class);
+                        if (registration != null) {
+                            registration.setId(documentSnapshot.getId());
+
+                            Intent intent = new Intent(getContext(), activity_volunteer_detail_calendar.class);
+                            intent.putExtra("registration", registration);
+                            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                            startActivity(intent);
+                        } else {
+                            Toast.makeText(getContext(), "Lỗi: Không thể đọc dữ liệu đăng ký", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                    android.util.Log.e("Notification", "Error loading registration", e);
+                });
+    }
 
     private void navigateToCampaignDetail(String campaignId) {
-        // TODO: Implement navigation to campaign detail
         Toast.makeText(requireContext(), "Mở chi tiết chiến dịch: " + campaignId, Toast.LENGTH_SHORT).show();
+        // TODO: Implement navigation to campaign detail
     }
+
 
     private void showEmptyState() {
         Toast.makeText(requireContext(), "Không có thông báo nào", Toast.LENGTH_SHORT).show();

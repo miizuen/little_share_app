@@ -8,18 +8,34 @@ import java.util.Date;
 
 public class Notification implements Serializable {
 
-    // Enum for notification types - MERGED cả hai phiên bản
+    // Enum for notification types - COMPLETE VERSION
     public enum NotificationType {
+        // Campaign notifications
         CAMPAIGN_NEW("CAMPAIGN_NEW", "Chiến dịch mới"),
         CAMPAIGN_APPROVED("CAMPAIGN_APPROVED", "Đã được duyệt"),
         CAMPAIGN_REMINDER("CAMPAIGN_REMINDER", "Nhắc nhở"),
-        DONATION_CONFIRMED("DONATION_CONFIRMED", "Quyên góp xác nhận"),
-        DONATION_SUCCESS("DONATION_SUCCESS", "Quyên góp thành công"),
-        GIFT_AVAILABLE("GIFT_AVAILABLE", "Quà mới"),
-        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS", "Tài trợ thành công"),
         CAMPAIGN_UPDATE("CAMPAIGN_UPDATE", "Cập nhật chiến dịch"),
+
+        // Donation notifications (vật phẩm)
+        DONATION_PENDING("DONATION_PENDING", "Quyên góp chờ duyệt"),
+        DONATION_NEW("DONATION_NEW", "Quyên góp mới"),
+        DONATION_CONFIRMED("DONATION_CONFIRMED", "Quyên góp xác nhận"),
+        DONATION_REJECTED("DONATION_REJECTED", "Quyên góp từ chối"),
+        DONATION_RECEIVED("DONATION_RECEIVED", "Đã nhận đồ"),
+        DONATION_CAMPAIGN_NEW("DONATION_CAMPAIGN_NEW", "Chiến dịch quyên góp mới"),
+
+        // Sponsorship notifications (tài trợ tiền)
+        DONATION_SUCCESS("DONATION_SUCCESS", "Quyên góp thành công"),
+        SPONSORSHIP_SUCCESS("SPONSORSHIP_SUCCESS", "Tài trợ thành công"),
+
+        // Registration notifications
         REGISTRATION_APPROVED("REGISTRATION_APPROVED", "Đăng ký được duyệt"),
         REGISTRATION_REJECTED("REGISTRATION_REJECTED", "Đăng ký bị từ chối"),
+
+        // Gift notifications
+        GIFT_AVAILABLE("GIFT_AVAILABLE", "Quà mới"),
+
+        // System notifications
         SYSTEM("SYSTEM", "Hệ thống"),
         GENERAL("GENERAL", "Thông báo chung");
 
@@ -57,7 +73,7 @@ public class Notification implements Serializable {
     private String title;
     private String description;
     private String message; // Alias for description to support existing adapter
-    private String type; // "CAMPAIGN_NEW", "DONATION_SUCCESS", "CAMPAIGN_UPDATE", "SYSTEM"
+    private String type; // "CAMPAIGN_NEW", "DONATION_SUCCESS", etc.
     private String relatedId; // campaignId, donationId, etc.
     private boolean isRead;
     private String iconType; // "megaphone", "heart", "bell", "info"
@@ -88,15 +104,42 @@ public class Notification implements Serializable {
         if (type == null) return "bell";
 
         switch (type.toUpperCase()) {
-            case "CAMPAIGN_NEW": return "megaphone";
-            case "DONATION_SUCCESS": return "heart";
-            case "DONATION_CONFIRMED": return "heart";
-            case "CAMPAIGN_UPDATE": return "bell";
-            case "CAMPAIGN_APPROVED": return "check";
-            case "REGISTRATION_APPROVED": return "check";
-            case "REGISTRATION_REJECTED": return "close";
-            case "SYSTEM": return "info";
-            default: return "bell";
+            case "CAMPAIGN_NEW":
+            case "CAMPAIGN_UPDATE":
+            case "DONATION_CAMPAIGN_NEW":
+                return "megaphone";
+
+            case "DONATION_SUCCESS":
+            case "DONATION_CONFIRMED":
+            case "DONATION_RECEIVED":
+            case "SPONSORSHIP_SUCCESS":
+                return "heart";
+
+            case "DONATION_PENDING":
+                return "clock";
+
+            case "DONATION_NEW":
+                return "donation";
+
+            case "DONATION_REJECTED":
+            case "REGISTRATION_REJECTED":
+                return "close";
+
+            case "CAMPAIGN_APPROVED":
+            case "REGISTRATION_APPROVED":
+                return "check";
+
+            case "CAMPAIGN_REMINDER":
+                return "bell";
+
+            case "GIFT_AVAILABLE":
+                return "gift";
+
+            case "SYSTEM":
+                return "info";
+
+            default:
+                return "bell";
         }
     }
 
