@@ -120,15 +120,17 @@
             </LinearLayout>
 
 
-            <!-- CARD: Yêu cầu -->
+            <!-- CARD: Yêu cầu (chỉ hiển thị cho campaign không có roles) -->
             <LinearLayout
+                android:id="@+id/layoutRequirements"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:orientation="vertical"
                 android:background="@drawable/bg_rounded_corners_white"
                 android:padding="14dp"
-                android:elevation="3dp">
+                android:elevation="3dp"
+                android:visibility="visible">
 
                 <TextView
                     android:layout_height="wrap_content"
@@ -140,31 +142,15 @@
                     android:fontFamily="@font/inter" />
 
                 <TextView
+                    android:id="@+id/tvRequirements"
                     android:layout_height="wrap_content"
                     android:layout_width="wrap_content"
-                    android:text="• Sức khỏe tốt, có thể làm việc ngoài trời"
                     android:layout_marginTop="8dp"
                     android:textSize="13sp"
                     android:textColor="#666666"
-                    android:fontFamily="@font/inter" />
-
-                <TextView
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:text="• Cam kết tham gia ít nhất 3 ngày"
-                    android:layout_marginTop="4dp"
-                    android:textSize="13sp"
-                    android:textColor="#666666"
-                    android:fontFamily="@font/inter" />
-
-                <TextView
-                    android:layout_height="wrap_content"
-                    android:layout_width="wrap_content"
-                    android:text="• Tự túc phương tiện và chi phí cá nhân"
-                    android:layout_marginTop="4dp"
-                    android:textSize="13sp"
-                    android:textColor="#666666"
-                    android:fontFamily="@font/inter" />
+                    android:fontFamily="@font/inter"
+                    android:lineSpacingExtra="4dp"
+                    android:text="• Sức khỏe tốt, có thể làm việc ngoài trời\n• Cam kết tham gia ít nhất 3 ngày\n• Tự túc phương tiện và chi phí cá nhân" />
             </LinearLayout>
 
 
@@ -184,20 +170,6 @@
                     android:background="@drawable/bg_button_outline"
                     android:text="Chỉnh sửa"
                     android:textColor="#7C3AED"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:textAllCaps="false"
-                    android:fontFamily="@font/inter" />
-
-                <Button
-                    android:id="@+id/btnRegister"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:layout_marginStart="8dp"
-                    android:background="@drawable/bg_button_primary"
-                    android:text="Đăng ký"
-                    android:textColor="@color/white"
                     android:textStyle="bold"
                     android:textSize="14sp"
                     android:textAllCaps="false"
