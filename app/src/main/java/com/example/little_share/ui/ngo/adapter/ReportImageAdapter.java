@@ -23,16 +23,19 @@ public class ReportImageAdapter extends RecyclerView.Adapter<ReportImageAdapter.
 
     private List<ReportImage> imageList;
     private OnImageActionListener listener;
+    private boolean isReadOnly;
 
     public ReportImageAdapter(List<ReportImage> imageList, OnImageActionListener listener) {
         this.imageList = imageList;
         this.listener = listener;
+        this.isReadOnly = (listener == null);
     }
 
     @NonNull
     @Override
     public ImageViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_report_image, parent, false);
+        int layoutId = isReadOnly ? R.layout.item_activity_image_readonly : R.layout.item_report_image;
+        View view = LayoutInflater.from(parent.getContext()).inflate(layoutId, parent, false);
         return new ImageViewHolder(view);
     }
 
@@ -53,7 +56,11 @@ public class ReportImageAdapter extends RecyclerView.Adapter<ReportImageAdapter.
         public ImageViewHolder(@NonNull View itemView) {
             super(itemView);
             imgPhoto = itemView.findViewById(R.id.imgReport);
-            btnRemove = itemView.findViewById(R.id.btnRemoveImage);
+
+            // Only find remove button if not in read-only mode
+            if (!isReadOnly) {
+                btnRemove = itemView.findViewById(R.id.btnRemoveImage);
+            }
         }
 
         public void bind(ReportImage reportImage, int position) {
@@ -72,11 +79,10 @@ public class ReportImageAdapter extends RecyclerView.Adapter<ReportImageAdapter.
                         .into(imgPhoto);
             }
 
-            btnRemove.setOnClickListener(v -> {
-                if (listener != null) {
-                    listener.onRemove(position);
-                }
-            });
+            // Setup remove button only in editable mode
+            if (!isReadOnly && btnRemove != null && listener != null) {
+                btnRemove.setOnClickListener(v -> listener.onRemove(position));
+            }
         }
     }
 }

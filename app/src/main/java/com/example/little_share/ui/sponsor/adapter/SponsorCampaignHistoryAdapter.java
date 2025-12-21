@@ -1,6 +1,7 @@
 package com.example.little_share.ui.sponsor.adapter;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -50,7 +51,7 @@ public class SponsorCampaignHistoryAdapter extends RecyclerView.Adapter<SponsorC
 
         // Campaign name
         holder.tvCampaignName.setText(campaign.getName());
-        
+
         // Location
         holder.tvLocation.setText(campaign.getLocation());
 
@@ -68,24 +69,33 @@ public class SponsorCampaignHistoryAdapter extends RecyclerView.Adapter<SponsorC
             holder.tvDonation.setText(donationText);
         });
 
-        // Category button
-        String categoryText = getCategoryDisplayName(campaign.getCategory());
-        holder.btnDetail.setText(categoryText);
-        holder.btnDetail.setBackgroundTintList(android.content.res.ColorStateList.valueOf(getCategoryColor(campaign.getCategory())));
+        // Button text changed to "Xem báo cáo"
+        holder.btnDetail.setText("Xem báo cáo");
+        holder.btnDetail.setBackgroundTintList(android.content.res.ColorStateList.valueOf(0xFF2196F3)); // Blue color
 
         // Load campaign image
         loadCampaignImage(holder.imgCampaign, campaign);
 
         // Click listeners
         holder.btnDetail.setOnClickListener(v -> {
+            Log.d("HistoryAdapter", "=== DETAIL BUTTON CLICKED ===");
+            Log.d("HistoryAdapter", "Campaign: " + campaign.getName());
             if (listener != null) {
+                Log.d("HistoryAdapter", "Calling listener.onDetailClick()");
                 listener.onDetailClick(campaign);
+            } else {
+                Log.e("HistoryAdapter", "Listener is NULL!");
             }
         });
 
         holder.itemView.setOnClickListener(v -> {
+            Log.d("HistoryAdapter", "=== CARD CLICKED ===");
+            Log.d("HistoryAdapter", "Campaign: " + campaign.getName());
             if (listener != null) {
+                Log.d("HistoryAdapter", "Calling listener.onCampaignClick()");
                 listener.onCampaignClick(campaign);
+            } else {
+                Log.e("HistoryAdapter", "Listener is NULL!");
             }
         });
     }
@@ -98,32 +108,6 @@ public class SponsorCampaignHistoryAdapter extends RecyclerView.Adapter<SponsorC
     public void updateData(List<Campaign> newCampaigns) {
         this.campaigns = newCampaigns;
         notifyDataSetChanged();
-    }
-
-    private String getCategoryDisplayName(String category) {
-        if (category == null) return "Khác";
-        
-        switch (category.toUpperCase()) {
-            case "FOOD": return "Nấu ăn và dinh dưỡng";
-            case "EDUCATION": return "Giáo dục và đào tạo";
-            case "HEALTH": return "Y tế và sức khỏe";
-            case "ENVIRONMENT": return "Môi trường xanh";
-            case "URGENT": return "Cứu trợ khẩn cấp";
-            default: return "Hoạt động từ thiện";
-        }
-    }
-
-    private int getCategoryColor(String category) {
-        if (category == null) return 0xFF4CAF50;
-        
-        switch (category.toUpperCase()) {
-            case "FOOD": return 0xFF4CAF50; // Green
-            case "EDUCATION": return 0xFF2196F3; // Blue
-            case "HEALTH": return 0xFFE91E63; // Pink
-            case "ENVIRONMENT": return 0xFF8BC34A; // Light Green
-            case "URGENT": return 0xFFFF5722; // Deep Orange
-            default: return 0xFF4CAF50;
-        }
     }
 
     private void loadCampaignImage(ImageView imageView, Campaign campaign) {
@@ -151,19 +135,19 @@ public class SponsorCampaignHistoryAdapter extends RecyclerView.Adapter<SponsorC
 
     private int getSpecificImageForCampaign(Campaign campaign) {
         String campaignName = campaign.getName().toLowerCase().trim();
-        
+
         if (campaignName.equals("nấu ăn cho em")) {
             return R.drawable.img_nauanchoem;
         } else if (campaignName.contains("bữa cơm")) {
             return R.drawable.logo_buacomnghiatinh;
         }
-        
+
         return -1; // No specific image found
     }
 
     private int getDefaultImageForCategory(String category) {
         if (category == null) return R.drawable.img_quyengop_dochoi;
-        
+
         switch (category.toUpperCase()) {
             case "FOOD": return R.drawable.img_nauanchoem;
             case "EDUCATION":

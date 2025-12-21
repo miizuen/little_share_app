@@ -1,28 +1,25 @@
 package com.example.little_share.ui.ngo;
 
+import android.app.Activity;
 import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
-import android.text.TextUtils;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.EdgeToEdge;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -32,82 +29,52 @@ import com.example.little_share.data.models.FinancialReport;
 import com.example.little_share.data.models.ReportExpense;
 import com.example.little_share.data.models.ReportImage;
 import com.example.little_share.data.repositories.CampaignRepository;
-import com.example.little_share.ui.ngo.adapter.ExpenseAdapter;
+import com.example.little_share.data.repositories.ReportRepository;
 import com.example.little_share.ui.ngo.adapter.ReportImageAdapter;
-import com.example.little_share.ui.ngo.dialog.AddSpendingDialog;
+import com.example.little_share.helper.ImgBBUploader;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
-import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
-import java.util.UUID;
 
-public class activity_create_report extends AppCompatActivity implements AddSpendingDialog.OnExpenseAddedListener {
+public class activity_create_report extends AppCompatActivity {
+    private static final String TAG = "CreateReport";
+    private static final int MAX_IMAGES = 10;
 
-    // UI Components
     private ImageView btnBack;
     private AutoCompleteTextView spinnerCampaign;
     private LinearLayout layoutCampaignInfo;
     private TextView tvCampaignInfo;
     private TextInputEditText edtReportContent;
-    private Button btnAddExpense;
-    private RecyclerView recyclerExpenses, recyclerReportImages;
+    private Button btnAddExpense, btnCancel;
     private MaterialButton btnAddImages, btnCreate;
-    private Button btnCancel;
-
-    // Data
-    private List<Campaign> campaignList = new ArrayList<>();
-    private List<ReportExpense> expenseList = new ArrayList<>();
-    private List<ReportImage> imageList = new ArrayList<>();
+    private RecyclerView recyclerReportImages;
+    private CampaignRepository campaignRepository;
+    private ReportRepository reportRepository;
+    private List<Campaign> sponsoredCampaigns;
     private Campaign selectedCampaign;
-
-    // Adapters
-    private ExpenseAdapter expenseAdapter;
+    private List<ReportExpense> expenses;
+    private List<ReportImage> reportImages;
     private ReportImageAdapter imageAdapter;
 
-    // Firebase
-    private FirebaseFirestore db;
-    private FirebaseAuth auth;
-    private FirebaseStorage storage;
-    private CampaignRepository campaignRepository;
-
-    // Image picker
     private ActivityResultLauncher<Intent> imagePickerLauncher;
-    private List<Uri> selectedImageUris = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_create_report);
 
-        initFirebase();
         initViews();
-        setupRecyclerViews();
+        setupRepositories();
         setupImagePicker();
-        loadCampaigns();
+        setupRecyclerView();
+        loadSponsoredCampaigns();
         setupListeners();
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
-        });
-    }
-
-    private void initFirebase() {
-        db = FirebaseFirestore.getInstance();
-        auth = FirebaseAuth.getInstance();
-        storage = FirebaseStorage.getInstance();
-        campaignRepository = new CampaignRepository();
     }
 
     private void initViews() {
@@ -117,124 +84,83 @@ public class activity_create_report extends AppCompatActivity implements AddSpen
         tvCampaignInfo = findViewById(R.id.tvCampaignInfo);
         edtReportContent = findViewById(R.id.edtReportContent);
         btnAddExpense = findViewById(R.id.btnAddExpense);
-        recyclerReportImages = findViewById(R.id.recyclerReportImages);
         btnAddImages = findViewById(R.id.btnAddImages);
-        btnCreate = findViewById(R.id.btnCreate);
+        recyclerReportImages = findViewById(R.id.recyclerReportImages);
         btnCancel = findViewById(R.id.btnCancel);
+        btnCreate = findViewById(R.id.btnCreate);
+
+        expenses = new ArrayList<>();
+        reportImages = new ArrayList<>();
     }
 
-    private void setupRecyclerViews() {
-        // Setup expenses RecyclerView (sẽ được thêm vào layout sau khi có chi tiêu)
-        expenseAdapter = new ExpenseAdapter(expenseList, new ExpenseAdapter.OnExpenseActionListener() {
-            @Override
-            public void onEdit(ReportExpense expense, int position) {
-                editExpense(expense, position);
-            }
-
-            @Override
-            public void onDelete(ReportExpense expense, int position) {
-                deleteExpense(position);
-            }
-        });
-
-        // Setup images RecyclerView
-        imageAdapter = new ReportImageAdapter(imageList, new ReportImageAdapter.OnImageActionListener() {
-            @Override
-            public void onRemove(int position) {
-                removeImage(position);
-            }
-        });
-
-        recyclerReportImages.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false));
-        recyclerReportImages.setAdapter(imageAdapter);
+    private void setupRepositories() {
+        campaignRepository = new CampaignRepository();
+        reportRepository = new ReportRepository();
     }
 
     private void setupImagePicker() {
         imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
-                    if (result.getResultCode() == RESULT_OK && result.getData() != null) {
-                        Intent data = result.getData();
-
-                        if (data.getClipData() != null) {
-                            // Multiple images selected
-                            int count = data.getClipData().getItemCount();
-                            for (int i = 0; i < count && selectedImageUris.size() < 10; i++) {
-                                Uri imageUri = data.getClipData().getItemAt(i).getUri();
-                                selectedImageUris.add(imageUri);
-                                addImageToList(imageUri);
-                            }
-                        } else if (data.getData() != null) {
-                            // Single image selected
-                            Uri imageUri = data.getData();
-                            if (selectedImageUris.size() < 10) {
-                                selectedImageUris.add(imageUri);
-                                addImageToList(imageUri);
-                            }
-                        }
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        handleImageSelection(result.getData());
                     }
-                }
-        );
+                });
     }
 
-    private void addImageToList(Uri imageUri) {
-        ReportImage reportImage = new ReportImage();
-        reportImage.setImageUrl(imageUri.toString()); // Temporary, will be replaced with Firebase URL
-        imageList.add(reportImage);
-        imageAdapter.notifyItemInserted(imageList.size() - 1);
+    private void setupRecyclerView() {
+        imageAdapter = new ReportImageAdapter(reportImages, position -> {
+            reportImages.remove(position);
+            imageAdapter.notifyItemRemoved(position);
+        });
+
+        recyclerReportImages.setLayoutManager(new LinearLayoutManager(this));
+        recyclerReportImages.setAdapter(imageAdapter);
     }
 
-    private void removeImage(int position) {
-        if (position < selectedImageUris.size()) {
-            selectedImageUris.remove(position);
-        }
-        imageList.remove(position);
-        imageAdapter.notifyItemRemoved(position);
-    }
+    private void loadSponsoredCampaigns() {
+        Log.d(TAG, "Loading campaigns with donations...");
 
-    private void loadCampaigns() {
-        // Sử dụng method getCampaignsByCurrentNgo() thay vì getCampaignsByOrganization()
-        campaignRepository.getCampaignsByCurrentNgo().observe(this, new Observer<List<Campaign>>() {
-            @Override
-            public void onChanged(List<Campaign> campaigns) {
-                if (campaigns != null) {
-                    campaignList.clear();
-                    campaignList.addAll(campaigns);
-                    setupCampaignSpinner();
-                } else {
-                    Toast.makeText(activity_create_report.this, "Lỗi tải danh sách chiến dịch", Toast.LENGTH_SHORT).show();
-                }
+        campaignRepository.getCampaignsWithDonations().observe(this, campaigns -> {
+            if (campaigns != null && !campaigns.isEmpty()) {
+                Log.d(TAG, "Found " + campaigns.size() + " campaigns with donations");
+                sponsoredCampaigns = campaigns;
+                setupCampaignSpinner(campaigns);
+            } else {
+                Log.e(TAG, "No campaigns with donations found");
+                Toast.makeText(this, "Không có chiến dịch nào đã được tài trợ", Toast.LENGTH_SHORT).show();
+                finish();
             }
         });
     }
 
-    private void setupCampaignSpinner() {
+    private void setupCampaignSpinner(List<Campaign> campaigns) {
         List<String> campaignNames = new ArrayList<>();
-        for (Campaign campaign : campaignList) {
+        for (Campaign campaign : campaigns) {
             campaignNames.add(campaign.getName());
         }
 
-        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_dropdown_item_1line, campaignNames);
-        spinnerCampaign.setAdapter(adapter);
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                this,
+                android.R.layout.simple_dropdown_item_1line,
+                campaignNames
+        );
 
+        spinnerCampaign.setAdapter(adapter);
         spinnerCampaign.setOnItemClickListener((parent, view, position, id) -> {
-            selectedCampaign = campaignList.get(position);
-            displayCampaignInfo(selectedCampaign);
+            selectedCampaign = campaigns.get(position);
+            showCampaignInfo(selectedCampaign);
         });
     }
 
-    private void displayCampaignInfo(Campaign campaign) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+    private void showCampaignInfo(Campaign campaign) {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String startDate = campaign.getStartDate() != null ? sdf.format(campaign.getStartDate()) : "N/A";
+        String endDate = campaign.getEndDate() != null ? sdf.format(campaign.getEndDate()) : "N/A";
 
-        String info = String.format(
-                "Tên: %s\nNgân sách: %s\nThời gian: %s - %s\nĐịa điểm: %s",
-                campaign.getName(),
-                currencyFormat.format(campaign.getTargetBudget()),
-                campaign.getStartDate() != null ? dateFormat.format(campaign.getStartDate()) : "Chưa xác định",
-                campaign.getEndDate() != null ? dateFormat.format(campaign.getEndDate()) : "Chưa xác định",
-                campaign.getLocation() != null ? campaign.getLocation() : "Chưa xác định"
-        );
+        String info = "Tên: " + campaign.getName() + "\n" +
+                "Ngân sách: " + String.format("%,.0f VNĐ", campaign.getCurrentBudget()) + "\n" +
+                "Thời gian: " + startDate + " - " + endDate;
 
         tvCampaignInfo.setText(info);
         layoutCampaignInfo.setVisibility(View.VISIBLE);
@@ -243,17 +169,11 @@ public class activity_create_report extends AppCompatActivity implements AddSpen
     private void setupListeners() {
         btnBack.setOnClickListener(v -> finish());
 
-        btnAddExpense.setOnClickListener(v -> {
-            if (selectedCampaign == null) {
-                Toast.makeText(this, "Vui lòng chọn chiến dịch trước", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            showAddExpenseDialog();
-        });
+        btnAddExpense.setOnClickListener(v -> showAddExpenseDialog());
 
         btnAddImages.setOnClickListener(v -> {
-            if (selectedImageUris.size() >= 10) {
-                Toast.makeText(this, "Chỉ được chọn tối đa 10 ảnh", Toast.LENGTH_SHORT).show();
+            if (reportImages.size() >= MAX_IMAGES) {
+                Toast.makeText(this, "Chỉ được thêm tối đa " + MAX_IMAGES + " ảnh", Toast.LENGTH_SHORT).show();
                 return;
             }
             openImagePicker();
@@ -265,159 +185,229 @@ public class activity_create_report extends AppCompatActivity implements AddSpen
     }
 
     private void showAddExpenseDialog() {
-        AddSpendingDialog dialog = new AddSpendingDialog();
-        dialog.setOnExpenseAddedListener(this);
-        dialog.show(getSupportFragmentManager(), "AddSpendingDialog");
-    }
+        // Inflate custom dialog layout
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_ngo_add_spending, null);
 
-    @Override
-    public void onExpenseAdded(ReportExpense expense) {
-        expenseList.add(expense);
+        // Find views
+        ImageView btnClose = dialogView.findViewById(R.id.btnClose);
+        EditText txtHangMuc = dialogView.findViewById(R.id.txtHangMuc);
+        EditText txtSoTien = dialogView.findViewById(R.id.txtSoTien);
+        LinearLayout btnPickDate = dialogView.findViewById(R.id.btnPickDate);
+        TextView txtNgayChi = dialogView.findViewById(R.id.txtNgayChi);
+        EditText txtGhiChu = dialogView.findViewById(R.id.txtGhiChu);
+        Button btnCancel = dialogView.findViewById(R.id.btnCancel);
+        Button btnAdd = dialogView.findViewById(R.id.btnAdd);
 
-        // Nếu đây là chi tiêu đầu tiên, thêm RecyclerView vào layout
-        if (expenseList.size() == 1) {
-            addExpenseRecyclerView();
-        }
+        final Date[] selectedDate = {new Date()};
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        txtNgayChi.setText(sdf.format(selectedDate[0]));
+        txtNgayChi.setTextColor(0xFF000000);
 
-        expenseAdapter.notifyItemInserted(expenseList.size() - 1);
-        updateAddExpenseButtonText();
-    }
+        // Create dialog
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setView(dialogView)
+                .setCancelable(true)
+                .create();
 
-    private void addExpenseRecyclerView() {
-        // Tìm vị trí để thêm RecyclerView (sau button Add Expense)
-        LinearLayout parentLayout = findViewById(R.id.main);
+        // Date picker
+        btnPickDate.setOnClickListener(v -> {
+            Calendar calendar = Calendar.getInstance();
+            new DatePickerDialog(this,
+                    (view, year, month, dayOfMonth) -> {
+                        calendar.set(year, month, dayOfMonth);
+                        selectedDate[0] = calendar.getTime();
+                        txtNgayChi.setText(sdf.format(selectedDate[0]));
+                        txtNgayChi.setTextColor(0xFF000000);
+                    },
+                    calendar.get(Calendar.YEAR),
+                    calendar.get(Calendar.MONTH),
+                    calendar.get(Calendar.DAY_OF_MONTH)
+            ).show();
+        });
 
-        // Tạo RecyclerView cho expenses
-        RecyclerView recyclerExpenses = new RecyclerView(this);
-        recyclerExpenses.setLayoutManager(new LinearLayoutManager(this));
-        recyclerExpenses.setAdapter(expenseAdapter);
+        // Close button
+        btnClose.setOnClickListener(v -> dialog.dismiss());
 
-        // Thêm vào layout (cần implement logic để thêm đúng vị trí)
-        // Hoặc có thể thêm RecyclerView vào XML và ẩn/hiện
-    }
+        // Cancel button
+        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
-    private void editExpense(ReportExpense expense, int position) {
-        AddSpendingDialog dialog = AddSpendingDialog.newInstanceForEdit(expense);
-        dialog.setOnExpenseAddedListener(new AddSpendingDialog.OnExpenseAddedListener() {
-            @Override
-            public void onExpenseAdded(ReportExpense updatedExpense) {
-                expenseList.set(position, updatedExpense);
-                expenseAdapter.notifyItemChanged(position);
+        // Add button
+        btnAdd.setOnClickListener(v -> {
+            String category = txtHangMuc.getText().toString().trim();
+            String amountStr = txtSoTien.getText().toString().trim();
+            String notes = txtGhiChu.getText().toString().trim();
+
+            if (category.isEmpty() || amountStr.isEmpty()) {
+                Toast.makeText(this, "Vui lòng nhập đầy đủ thông tin", Toast.LENGTH_SHORT).show();
+                return;
+            }
+
+            try {
+                double amount = Double.parseDouble(amountStr);
+                ReportExpense expense = new ReportExpense(null, category, amount, selectedDate[0]);
+                expense.setNotes(notes);
+                expenses.add(expense);
+
+                Toast.makeText(this, "Đã thêm khoản chi tiêu", Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } catch (NumberFormatException e) {
+                Toast.makeText(this, "Số tiền không hợp lệ", Toast.LENGTH_SHORT).show();
             }
         });
-        dialog.show(getSupportFragmentManager(), "EditSpendingDialog");
-    }
 
-    private void deleteExpense(int position) {
-        expenseList.remove(position);
-        expenseAdapter.notifyItemRemoved(position);
-        updateAddExpenseButtonText();
-    }
-
-    private void updateAddExpenseButtonText() {
-        if (expenseList.isEmpty()) {
-            btnAddExpense.setText("+ Thêm khoản chi tiêu");
-        } else {
-            btnAddExpense.setText(String.format("+ Thêm chi tiêu (%d)", expenseList.size()));
-        }
+        dialog.show();
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_PICK);
+        intent.setType("image/*");
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
         imagePickerLauncher.launch(intent);
     }
 
-    private void createReport() {
-        if (!validateInput()) return;
-
-        btnCreate.setEnabled(false);
-        btnCreate.setText("Đang tạo...");
-
-        // Upload images first, then create report
-        if (!selectedImageUris.isEmpty()) {
-            uploadImagesAndCreateReport();
-        } else {
-            createReportInFirestore(new ArrayList<>());
+    private void handleImageSelection(Intent data) {
+        if (data.getClipData() != null) {
+            // Multiple images
+            int count = Math.min(data.getClipData().getItemCount(), MAX_IMAGES - reportImages.size());
+            for (int i = 0; i < count; i++) {
+                Uri imageUri = data.getClipData().getItemAt(i).getUri();
+                addImage(imageUri);
+            }
+        } else if (data.getData() != null) {
+            // Single image
+            Uri imageUri = data.getData();
+            addImage(imageUri);
         }
     }
 
-    private boolean validateInput() {
+    private void addImage(Uri imageUri) {
+        ReportImage reportImage = new ReportImage(null, imageUri.toString());
+        reportImages.add(reportImage);
+        imageAdapter.notifyItemInserted(reportImages.size() - 1);
+    }
+
+    private void createReport() {
         if (selectedCampaign == null) {
             Toast.makeText(this, "Vui lòng chọn chiến dịch", Toast.LENGTH_SHORT).show();
-            return false;
+            return;
         }
 
-        if (TextUtils.isEmpty(edtReportContent.getText())) {
+        String content = edtReportContent.getText().toString().trim();
+        if (content.isEmpty()) {
             Toast.makeText(this, "Vui lòng nhập nội dung báo cáo", Toast.LENGTH_SHORT).show();
-            return false;
+            return;
         }
-
-        return true;
-    }
-
-    private void uploadImagesAndCreateReport() {
-        List<String> uploadedImageUrls = new ArrayList<>();
-
-        for (int i = 0; i < selectedImageUris.size(); i++) {
-            Uri imageUri = selectedImageUris.get(i);
-            String fileName = "report_images/" + UUID.randomUUID().toString() + ".jpg";
-            StorageReference imageRef = storage.getReference().child(fileName);
-
-            final int index = i;
-            imageRef.putFile(imageUri)
-                    .addOnSuccessListener(taskSnapshot -> {
-                        imageRef.getDownloadUrl().addOnSuccessListener(downloadUri -> {
-                            uploadedImageUrls.add(downloadUri.toString());
-
-                            // Nếu đã upload hết ảnh
-                            if (uploadedImageUrls.size() == selectedImageUris.size()) {
-                                createReportInFirestore(uploadedImageUrls);
-                            }
-                        });
-                    })
-                    .addOnFailureListener(e -> {
-                        Toast.makeText(this, "Lỗi upload ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                        btnCreate.setEnabled(true);
-                        btnCreate.setText("Tạo báo cáo");
-                    });
-        }
-    }
-
-    private void createReportInFirestore(List<String> imageUrls) {
-        FinancialReport report = new FinancialReport();
-        report.setCampaignId(selectedCampaign.getId());
-        report.setCampaignName(selectedCampaign.getName());
-        report.setOrganizationId(auth.getCurrentUser().getUid());
-        report.setDescription(edtReportContent.getText().toString().trim());
 
         // Calculate total expense
         double totalExpense = 0;
-        for (ReportExpense expense : expenseList) {
+        for (ReportExpense expense : expenses) {
             totalExpense += expense.getAmount();
         }
+
+        // Create report
+        FinancialReport report = new FinancialReport(selectedCampaign.getId(), null);
+        report.setCampaignName(selectedCampaign.getName());
+        report.setDescription(content);
         report.setTotalExpense(totalExpense);
+        report.setTotalVolunteers(selectedCampaign.getCurrentVolunteers());
+        report.setExpenses(expenses);
 
-        // Create report images
-        List<ReportImage> reportImages = new ArrayList<>();
-        for (String imageUrl : imageUrls) {
-            ReportImage reportImage = new ReportImage();
-            reportImage.setImageUrl(imageUrl);
-            reportImages.add(reportImage);
+        // Upload images if any
+        if (!reportImages.isEmpty()) {
+            uploadImagesAndCreateReport(report);
+        } else {
+            saveReport(report);
         }
-        report.setImages(reportImages);
-        report.setExpenses(expenseList);
+    }
 
-        db.collection("financial_reports")
-                .add(report)
-                .addOnSuccessListener(documentReference -> {
-                    Toast.makeText(this, "Tạo báo cáo thành công!", Toast.LENGTH_SHORT).show();
-                    finish();
-                })
-                .addOnFailureListener(e -> {
-                    Toast.makeText(this, "Lỗi tạo báo cáo: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    btnCreate.setEnabled(true);
-                    btnCreate.setText("Tạo báo cáo");
+    private void uploadImagesAndCreateReport(FinancialReport report) {
+        Toast.makeText(this, "Đang tải ảnh lên...", Toast.LENGTH_SHORT).show();
+
+        List<ReportImage> uploadedImages = new ArrayList<>();
+        int[] uploadCount = {0};
+        int[] successCount = {0};
+        int totalImages = reportImages.size();
+
+        for (ReportImage image : reportImages) {
+            if (image.getImageUrl().startsWith("content://")) {
+                // Upload to ImgBB
+                Uri imageUri = Uri.parse(image.getImageUrl());
+
+                ImgBBUploader.uploadImage(this, imageUri, new ImgBBUploader.UploadListener() {
+                    @Override
+                    public void onSuccess(String imageUrl) {
+                        runOnUiThread(() -> {
+                            Log.d(TAG, "Image uploaded successfully: " + imageUrl);
+                            ReportImage uploadedImage = new ReportImage(null, imageUrl);
+                            uploadedImages.add(uploadedImage);
+                            successCount[0]++;
+                            uploadCount[0]++;
+
+                            // Update progress
+                            int progress = (uploadCount[0] * 100) / totalImages;
+                            Toast.makeText(activity_create_report.this,
+                                    "Đang tải: " + uploadCount[0] + "/" + totalImages,
+                                    Toast.LENGTH_SHORT).show();
+
+                            if (uploadCount[0] == totalImages) {
+                                report.setImages(uploadedImages);
+                                saveReport(report);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onFailure(String error) {
+                        runOnUiThread(() -> {
+                            Log.e(TAG, "Image upload failed: " + error);
+                            uploadCount[0]++;
+
+                            if (uploadCount[0] == totalImages) {
+                                // Save report even if some images failed
+                                report.setImages(uploadedImages);
+
+                                if (successCount[0] > 0) {
+                                    Toast.makeText(activity_create_report.this,
+                                            "Đã tải " + successCount[0] + "/" + totalImages + " ảnh",
+                                            Toast.LENGTH_SHORT).show();
+                                }
+
+                                saveReport(report);
+                            }
+                        });
+                    }
+
+                    @Override
+                    public void onProgress(int progress) {
+                        // Optional: show progress bar
+                    }
                 });
+            } else {
+                // Already uploaded (URL format)
+                uploadedImages.add(image);
+                uploadCount[0]++;
+                successCount[0]++;
+
+                if (uploadCount[0] == totalImages) {
+                    report.setImages(uploadedImages);
+                    saveReport(report);
+                }
+            }
+        }
+    }
+
+    private void saveReport(FinancialReport report) {
+        reportRepository.createReport(report, new ReportRepository.OnReportListener() {
+            @Override
+            public void onSuccess(String reportId) {
+                Toast.makeText(activity_create_report.this, "Tạo báo cáo thành công!", Toast.LENGTH_SHORT).show();
+                finish();
+            }
+
+            @Override
+            public void onFailure(String error) {
+                Toast.makeText(activity_create_report.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 }
