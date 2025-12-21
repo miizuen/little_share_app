@@ -37,33 +37,28 @@ public class VolunteerRoleAdapter extends RecyclerView.Adapter<VolunteerRoleAdap
         return new ViewHolder(view);
     }
 
+
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         CampaignRole role = roles.get(position);
-        
-        android.util.Log.d("RoleAdapter", "Role: " + role.getRoleName() 
-        + ", maxVol: " + role.getMaxVolunteers() 
-        + ", currentVol: " + role.getCurrentVolunteers());
+
+        android.util.Log.d("RoleAdapter", "Role: " + role.getRoleName()
+                + ", maxVol: " + role.getMaxVolunteers()
+                + ", currentVol: " + role.getCurrentVolunteers());
 
         holder.tvRoleTitle.setText(role.getRoleName());
         holder.tvRoleDescription.setText(role.getDescription());
-        holder.tvParticipants.setText(role.getCurrentVolunteers() + "/" + role.getMaxVolunteers() + " người");
 
-        // Kiểm tra nếu vai trò đã đầy
-        if (role.isFull()) {
-            holder.btnRegister.setEnabled(false);
-            holder.btnRegister.setText("Đã đủ người");
-        } else {
-            holder.btnRegister.setEnabled(true);
-            holder.btnRegister.setText("Đăng kí với vai trò này");
-        }
+        // THÊM: Load số lượng realtime
+        loadRoleParticipants(role, holder.tvParticipants, holder.btnRegister);
 
         holder.btnRegister.setOnClickListener(v -> {
-            if (listener != null && !role.isFull()) {
+            if (listener != null) {
                 listener.onRegisterClick(role);
             }
         });
     }
+
 
     @Override
     public int getItemCount() {
@@ -82,4 +77,48 @@ public class VolunteerRoleAdapter extends RecyclerView.Adapter<VolunteerRoleAdap
             btnRegister = v.findViewById(R.id.btnRegister);
         }
     }
+    // THÊM METHOD: Load số lượng người tham gia realtime
+    private void loadRoleParticipants(CampaignRole role, TextView tvParticipants, Button btnRegister) {
+        // Query số lượng đăng ký đã được duyệt cho vai trò này
+        com.google.firebase.firestore.FirebaseFirestore.getInstance()
+                .collection("volunteer_registrations")
+                .whereEqualTo("roleId", role.getId())
+                .whereEqualTo("status", "approved")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null || snapshots == null) {
+                        tvParticipants.setText("0/" + role.getMaxVolunteers() + " người");
+                        return;
+                    }
+
+                    int currentCount = snapshots.size();
+                    int maxCount = role.getMaxVolunteers();
+
+                    // Cập nhật hiển thị số lượng
+                    String countText = currentCount + "/" + maxCount + " người";
+                    tvParticipants.setText(countText);
+
+                    // Đổi màu và trạng thái nút theo tình trạng
+                    if (currentCount >= maxCount && maxCount > 0) {
+                        // HẾT SLOT
+                        tvParticipants.setTextColor(android.graphics.Color.parseColor("#EF4444")); // Đỏ
+                        btnRegister.setEnabled(false);
+                        btnRegister.setText("Đã đủ người");
+                        btnRegister.setBackgroundTintList(android.content.res.ColorStateList.valueOf(
+                                android.graphics.Color.parseColor("#CCCCCC")));
+                    } else if (currentCount >= maxCount * 0.8f) {
+                        // GẦN ĐẦY (80% trở lên)
+                        tvParticipants.setTextColor(android.graphics.Color.parseColor("#F59E0B")); // Cam
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng kí với vai trò này");
+                        btnRegister.setBackgroundTintList(null); // Dùng màu mặc định
+                    } else {
+                        // CÒN NHIỀU SLOT
+                        tvParticipants.setTextColor(android.graphics.Color.parseColor("#22C55E")); // Xanh
+                        btnRegister.setEnabled(true);
+                        btnRegister.setText("Đăng kí với vai trò này");
+                        btnRegister.setBackgroundTintList(null);
+                    }
+                });
+    }
+
 }

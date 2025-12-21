@@ -115,9 +115,84 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         }
 
         btnConfirm.setEnabled(false);
-        btnConfirm.setText("Đang xử lý...");
+        btnConfirm.setText("Đang kiểm tra...");
 
-        String oderId = UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+        // THÊM: Kiểm tra slot trước khi đăng ký
+        checkCampaignSlots();
+    }
+
+    // THÊM METHOD MỚI: Kiểm tra slot còn trống không
+    private void checkCampaignSlots() {
+        if (campaignId == null) {
+            Toast.makeText(this, "Không tìm thấy thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+            resetConfirmButton();
+            return;
+        }
+
+        android.util.Log.d("SLOT_CHECK", "Checking slots for campaign: " + campaignId);
+
+        db.collection("campaigns")
+                .document(campaignId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Long currentVolunteers = doc.getLong("currentVolunteers");
+                        Long maxVolunteers = doc.getLong("maxVolunteers");
+
+                        int current = currentVolunteers != null ? currentVolunteers.intValue() : 0;
+                        int max = maxVolunteers != null ? maxVolunteers.intValue() : 0;
+
+                        android.util.Log.d("SLOT_CHECK", "Current: " + current + ", Max: " + max);
+
+                        if (current >= max && max > 0) {
+                            // HẾT SLOT
+                            android.util.Log.d("SLOT_CHECK", "✗ Campaign is full");
+
+                            resetConfirmButton();
+                            showFullCampaignDialog(current, max);
+                        } else {
+                            // CÒN SLOT → Tiếp tục đăng ký
+                            android.util.Log.d("SLOT_CHECK", "✓ Slots available, proceeding with registration");
+
+                            btnConfirm.setText("Đang xử lý...");
+                            proceedWithRegistration();
+                        }
+                    } else {
+                        android.util.Log.e("SLOT_CHECK", "Campaign not found");
+                        Toast.makeText(this, "Không tìm thấy thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+                        resetConfirmButton();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("SLOT_CHECK", "Error checking slots: " + e.getMessage());
+                    Toast.makeText(this, "Lỗi kiểm tra thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+                    resetConfirmButton();
+                });
+    }
+
+    // THÊM METHOD: Hiển thị dialog khi hết slot
+    private void showFullCampaignDialog(int current, int max) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Chiến dịch đã đầy")
+                .setMessage("Rất tiếc! Chiến dịch này đã đủ số lượng tình nguyện viên.\n\n" +
+                        "Số lượng hiện tại: " + current + "/" + max + " người\n\n" +
+                        "Bạn có thể tham gia các chiến dịch khác hoặc theo dõi để đăng ký khi có slot trống.")
+                .setPositiveButton("Đã hiểu", (dialog, which) -> {
+                    dialog.dismiss();
+                    finish(); // Quay lại màn hình trước
+                })
+                .setNegativeButton("Xem chiến dịch khác", (dialog, which) -> {
+                    dialog.dismiss();
+                    finish();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    // THÊM METHOD: Tiếp tục với đăng ký (code cũ)
+    private void proceedWithRegistration() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        String oderId = java.util.UUID.randomUUID().toString().substring(0, 8).toUpperCase();
         String note = etNote.getText().toString().trim();
         String userId = currentUser.getUid();
         String userEmail = currentUser.getEmail() != null ? currentUser.getEmail() : "";
@@ -139,6 +214,7 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     saveRegistrationWithOrgId(oderId, note, userId, userName, userEmail);
                 });
     }
+
 
     // === HÀM MỚI: Lấy organizationId (ưu tiên từ campaign object, fallback query Firestore) ===
     private void saveRegistrationWithOrgId(String oderId, String note, String userId, String userName, String userEmail) {

@@ -124,7 +124,7 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
     }
 
     private void approveRegistration(VolunteerRegistration registration, int position) {
-        // THAY ĐỔI: Dùng QRCodeGenerator thay vì tạo tùy ý
+        // Tạo QR code
         String qrCode = QRCodeGenerator.generateCampaignRegistrationCode(
                 registration.getUserId(),
                 registration.getCampaignId(),
@@ -132,30 +132,86 @@ public class frm_ngo_volunteer_campaign_detail extends Fragment implements Volun
         );
 
         android.util.Log.d("APPROVE_DEBUG", "Generated QR: " + qrCode);
-        android.util.Log.d("APPROVE_DEBUG", "Registration ID: " + registration.getId());
-        android.util.Log.d("APPROVE_DEBUG", "User ID: " + registration.getUserId());
-        android.util.Log.d("APPROVE_DEBUG", "Campaign ID: " + registration.getCampaignId());
 
+        // THÊM: Cập nhật cả registration và tăng số lượng volunteer
         db.collection("volunteer_registrations")
                 .document(registration.getId())
                 .update(
                         "status", "approved",
-                        "approvedAt", System.currentTimeMillis(),
-                        "qrCode", qrCode  // QR code với format đúng
+                        "qrCode", qrCode,
+                        "approvedAt", System.currentTimeMillis()
                 )
                 .addOnSuccessListener(aVoid -> {
-                    Toast.makeText(getContext(), "Đã duyệt!", Toast.LENGTH_SHORT).show();
-                    adapter.removeItem(position);
-                    updateTitle();
-
-                    // Gửi thông báo cho TNV
-                    sendNotificationToVolunteer(registration, true, "");
+                    // SAU KHI DUYỆT THÀNH CÔNG → TĂNG SỐ LƯỢNG VOLUNTEER
+                    incrementCampaignVolunteers(registration.getCampaignId(), position, registration);
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Lỗi duyệt: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                     Log.e(TAG, "Error approving registration", e);
                 });
     }
+
+    // THÊM METHOD MỚI: Tăng số lượng volunteer của campaign
+    private void incrementCampaignVolunteers(String campaignId, int position, VolunteerRegistration registration) {
+        android.util.Log.d("APPROVE_DEBUG", "Incrementing volunteers for campaign: " + campaignId);
+
+        db.collection("campaigns")
+                .document(campaignId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        Long currentVolunteers = doc.getLong("currentVolunteers");
+                        Long maxVolunteers = doc.getLong("maxVolunteers");
+
+                        int current = currentVolunteers != null ? currentVolunteers.intValue() : 0;
+                        int max = maxVolunteers != null ? maxVolunteers.intValue() : 0;
+
+                        android.util.Log.d("APPROVE_DEBUG", "Current volunteers: " + current + "/" + max);
+
+                        // Tăng số lượng
+                        int newCount = current + 1;
+
+                        db.collection("campaigns")
+                                .document(campaignId)
+                                .update("currentVolunteers", newCount)
+                                .addOnSuccessListener(aVoid2 -> {
+                                    android.util.Log.d("APPROVE_DEBUG", "✓ Volunteers updated: " + newCount + "/" + max);
+
+                                    Toast.makeText(getContext(), "Đã duyệt! (" + newCount + "/" + max + " người)", Toast.LENGTH_SHORT).show();
+                                    adapter.removeItem(position);
+                                    updateTitle();
+
+                                    // Gửi thông báo cho volunteer
+                                    sendNotificationToVolunteer(registration, true, "");
+                                })
+                                .addOnFailureListener(e -> {
+                                    android.util.Log.e("APPROVE_DEBUG", "✗ Failed to update volunteers: " + e.getMessage());
+                                    Toast.makeText(getContext(), "Duyệt thành công nhưng lỗi cập nhật số lượng", Toast.LENGTH_LONG).show();
+
+                                    // Vẫn xóa khỏi danh sách và gửi thông báo
+                                    adapter.removeItem(position);
+                                    updateTitle();
+                                    sendNotificationToVolunteer(registration, true, "");
+                                });
+                    } else {
+                        android.util.Log.e("APPROVE_DEBUG", "Campaign not found: " + campaignId);
+                        Toast.makeText(getContext(), "Duyệt thành công nhưng không tìm thấy chiến dịch", Toast.LENGTH_LONG).show();
+
+                        adapter.removeItem(position);
+                        updateTitle();
+                        sendNotificationToVolunteer(registration, true, "");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("APPROVE_DEBUG", "Error getting campaign: " + e.getMessage());
+                    Toast.makeText(getContext(), "Duyệt thành công nhưng lỗi kiểm tra chiến dịch", Toast.LENGTH_LONG).show();
+
+                    adapter.removeItem(position);
+                    updateTitle();
+                    sendNotificationToVolunteer(registration, true, "");
+                });
+    }
+
 
 
     private void rejectRegistration(VolunteerRegistration registration, int position, String reason) {

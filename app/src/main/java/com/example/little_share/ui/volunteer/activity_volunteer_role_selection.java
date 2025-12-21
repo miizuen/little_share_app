@@ -126,13 +126,65 @@ private void loadRoles() {
 }
 
     private void registerForRole(CampaignRole role) {
+        // Kiểm tra slot trước khi chuyển sang đăng ký
+        checkRoleSlotAndProceed(role);
+    }
+
+    // THÊM METHOD: Kiểm tra slot trước khi đăng ký
+    private void checkRoleSlotAndProceed(CampaignRole role) {
+        android.util.Log.d("ROLE_SLOT", "Checking slot for role: " + role.getRoleName());
+
+        // Query số lượng đã đăng ký cho vai trò này
+        db.collection("volunteer_registrations")
+                .whereEqualTo("roleId", role.getId())
+                .whereEqualTo("status", "approved")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    int currentCount = snapshots.size();
+                    int maxCount = role.getMaxVolunteers();
+
+                    android.util.Log.d("ROLE_SLOT", "Current: " + currentCount + ", Max: " + maxCount);
+
+                    if (currentCount >= maxCount && maxCount > 0) {
+                        // HẾT SLOT
+                        showRoleFullDialog(role, currentCount, maxCount);
+                    } else {
+                        // CÒN SLOT → Chuyển sang đăng ký
+                        proceedToRegistration(role);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("ROLE_SLOT", "Error checking role slot: " + e.getMessage());
+                    Toast.makeText(this, "Lỗi kiểm tra thông tin vai trò", Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // THÊM METHOD: Hiển thị dialog khi vai trò đã đầy
+    private void showRoleFullDialog(CampaignRole role, int current, int max) {
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Vai trò đã đầy")
+                .setMessage("Rất tiếc! Vai trò \"" + role.getRoleName() + "\" đã đủ số lượng tình nguyện viên.\n\n" +
+                        "Số lượng hiện tại: " + current + "/" + max + " người\n\n" +
+                        "Bạn có thể chọn vai trò khác hoặc theo dõi để đăng ký khi có slot trống.")
+                .setPositiveButton("Chọn vai trò khác", (dialog, which) -> {
+                    dialog.dismiss();
+                    // Ở lại màn hình để chọn vai trò khác
+                })
+                .setNegativeButton("Quay lại", (dialog, which) -> {
+                    dialog.dismiss();
+                    finish();
+                })
+                .show();
+    }
+
+    // THÊM METHOD: Chuyển sang đăng ký
+    private void proceedToRegistration(CampaignRole role) {
         Intent intent = new Intent(this, activity_volunteer_role_registration.class);
         intent.putExtra("role", role);
         intent.putExtra("campaignId", campaignId);
         intent.putExtra("campaignName", campaignName);
-        intent.putExtra("campaign", campaign);  // Truyền thêm campaign
+        intent.putExtra("campaign", campaign);
         startActivity(intent);
     }
-
 
 }
