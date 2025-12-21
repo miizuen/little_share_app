@@ -2,6 +2,7 @@ package com.example.little_share.ui.ngo;
 
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.Toast;
 
@@ -26,6 +27,7 @@ import java.util.Map;
 
 public class activity_ngo_profile_edit extends AppCompatActivity {
 
+    private static final String TAG = "activity_ngo_profile_edit";
     private ImageView btnBack, imgAvatar, btnChangeAvatar;
     private TextInputEditText etFullName, etEmail, etPhone, etLocation;
     private MaterialButton btnSaveProfile;
@@ -38,6 +40,7 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
             uri -> {
                 if (uri != null) {
                     selectedImageUri = uri;
+                    Log.d(TAG, "Image selected: " + uri.toString());
                     Glide.with(this)
                             .load(uri)
                             .circleCrop()
@@ -49,8 +52,33 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_ngo_profile_edit);
 
+        try {
+            setContentView(R.layout.activity_ngo_profile_edit);
+
+            initViews();
+            setupClickListeners();
+            loadCurrentOrganizationData();
+
+        } catch (Exception e) {
+            Log.e(TAG, "Error in onCreate: " + e.getMessage());
+            Toast.makeText(this, "Lỗi khởi tạo: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            finish();
+            return;
+        }
+
+        try {
+            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
+                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
+                return insets;
+            });
+        } catch (Exception e) {
+            // Ignore WindowInsets error
+        }
+    }
+
+    private void initViews() {
         btnBack = findViewById(R.id.btnBack);
         imgAvatar = findViewById(R.id.imgAvatar);
         btnChangeAvatar = findViewById(R.id.btnChangeAvatar);
@@ -60,58 +88,97 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
         etLocation = findViewById(R.id.etLocation);
         btnSaveProfile = findViewById(R.id.btnSaveProfile);
 
-        orgRepo = new OrganizationRepository();
-        loadCurrentOrganizationData();
+        // Check for null views
+        if (btnBack == null || imgAvatar == null || etFullName == null || btnSaveProfile == null) {
+            Toast.makeText(this, "Lỗi: Không tìm thấy các view cần thiết", Toast.LENGTH_SHORT).show();
+            finish();
+            return;
+        }
 
+        orgRepo = new OrganizationRepository();
+        Log.d(TAG, "Views initialized successfully");
+    }
+
+    private void setupClickListeners() {
         // Nút back
-        btnBack.setOnClickListener(v -> finish());
+        btnBack.setOnClickListener(v -> {
+            Log.d(TAG, "Back button clicked");
+            finish();
+        });
 
         // Bấm vào avatar hoặc nút đổi ảnh
-        imgAvatar.setOnClickListener(v -> openGallery());
-        btnChangeAvatar.setOnClickListener(v -> openGallery());
+        imgAvatar.setOnClickListener(v -> {
+            Log.d(TAG, "Avatar clicked");
+            openGallery();
+        });
+
+        if (btnChangeAvatar != null) {
+            btnChangeAvatar.setOnClickListener(v -> {
+                Log.d(TAG, "Change avatar button clicked");
+                openGallery();
+            });
+        }
 
         // Nút lưu
-        btnSaveProfile.setOnClickListener(v -> saveProfile());
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-            Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
-            return insets;
+        btnSaveProfile.setOnClickListener(v -> {
+            Log.d(TAG, "Save profile button clicked");
+            saveProfile();
         });
     }
 
     private void openGallery() {
-        galleryLauncher.launch("image/*");
+        try {
+            galleryLauncher.launch("image/*");
+        } catch (Exception e) {
+            Log.e(TAG, "Error opening gallery: " + e.getMessage());
+            Toast.makeText(this, "Lỗi mở thư viện ảnh: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
     }
 
     private void loadCurrentOrganizationData() {
+        Log.d(TAG, "Loading current organization data");
+
         orgRepo.getCurrentOrganization(new OrganizationRepository.OnOrganizationListener() {
             @Override
             public void onSuccess(Organization org) {
-                if (org == null) return;
+                try {
+                    if (org == null) {
+                        Log.e(TAG, "Organization is null");
+                        Toast.makeText(activity_ngo_profile_edit.this, "Không tìm thấy thông tin tổ chức", Toast.LENGTH_SHORT).show();
+                        return;
+                    }
 
-                currentOrgId = org.getId();
+                    currentOrgId = org.getId();
+                    Log.d(TAG, "Organization loaded: " + org.getName());
 
-                etFullName.setText(org.getName());
-                etEmail.setText(org.getEmail());
-                etPhone.setText(org.getPhone());
-                etLocation.setText(org.getAddress());
+                    // Fill form with current data
+                    if (etFullName != null) etFullName.setText(org.getName());
+                    if (etEmail != null) etEmail.setText(org.getEmail());
+                    if (etPhone != null) etPhone.setText(org.getPhone());
+                    if (etLocation != null) etLocation.setText(org.getAddress());
 
-                // Load logo hiện tại
-                if (org.getLogo() != null && !org.getLogo().isEmpty()) {
-                    Glide.with(activity_ngo_profile_edit.this)
-                            .load(org.getLogo())
-                            .placeholder(R.drawable.logo_thelight)
-                            .error(R.drawable.logo_thelight)
-                            .circleCrop()
-                            .into(imgAvatar);
-                } else {
-                    imgAvatar.setImageResource(R.drawable.logo_thelight);
+                    // Load current logo
+                    if (imgAvatar != null) {
+                        if (org.getLogo() != null && !org.getLogo().isEmpty()) {
+                            Glide.with(activity_ngo_profile_edit.this)
+                                    .load(org.getLogo())
+                                    .placeholder(R.drawable.logo_thelight)
+                                    .error(R.drawable.logo_thelight)
+                                    .circleCrop()
+                                    .into(imgAvatar);
+                        } else {
+                            imgAvatar.setImageResource(R.drawable.logo_thelight);
+                        }
+                    }
+                } catch (Exception e) {
+                    Log.e(TAG, "Error in onSuccess: " + e.getMessage());
+                    Toast.makeText(activity_ngo_profile_edit.this, "Lỗi hiển thị dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
             public void onFailure(String error) {
+                Log.e(TAG, "Error loading organization: " + error);
                 Toast.makeText(activity_ngo_profile_edit.this, "Lỗi tải dữ liệu: " + error, Toast.LENGTH_LONG).show();
             }
         });
@@ -128,6 +195,11 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
             return;
         }
 
+        if (currentOrgId == null || currentOrgId.isEmpty()) {
+            Toast.makeText(this, "Lỗi: Không tìm thấy ID tổ chức", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         btnSaveProfile.setEnabled(false);
         btnSaveProfile.setText("Đang lưu...");
 
@@ -141,9 +213,13 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
     }
 
     private void uploadImageAndSave(String name, String email, String phone, String address) {
+        Log.d(TAG, "Uploading image and saving profile");
+
         ImgBBUploader.uploadImage(this, selectedImageUri, new ImgBBUploader.UploadListener() {
             @Override
             public void onSuccess(String imageUrl) {
+                Log.d(TAG, "Image uploaded successfully: " + imageUrl);
+
                 // Upload thành công → lưu toàn bộ thông tin + logo
                 Map<String, Object> updates = new HashMap<>();
                 updates.put("name", name);
@@ -155,6 +231,7 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
                 orgRepo.updateOrganizationProfile(currentOrgId, updates, new OrganizationRepository.OnUpdateListener() {
                     @Override
                     public void onSuccess(String orgId) {
+                        Log.d(TAG, "Profile updated successfully");
                         runOnUiThread(() -> {
                             Toast.makeText(activity_ngo_profile_edit.this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
                             finish();
@@ -163,10 +240,10 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
 
                     @Override
                     public void onFailure(String error) {
+                        Log.e(TAG, "Error updating profile: " + error);
                         runOnUiThread(() -> {
                             Toast.makeText(activity_ngo_profile_edit.this, "Lỗi lưu dữ liệu: " + error, Toast.LENGTH_SHORT).show();
-                            btnSaveProfile.setEnabled(true);
-                            btnSaveProfile.setText("LƯU THÔNG TIN");
+                            resetSaveButton();
                         });
                     }
                 });
@@ -174,10 +251,10 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
 
             @Override
             public void onFailure(String error) {
+                Log.e(TAG, "Image upload failed: " + error);
                 runOnUiThread(() -> {
                     Toast.makeText(activity_ngo_profile_edit.this, "Upload ảnh thất bại: " + error, Toast.LENGTH_SHORT).show();
-                    btnSaveProfile.setEnabled(true);
-                    btnSaveProfile.setText("LƯU THÔNG TIN");
+                    resetSaveButton();
                 });
             }
 
@@ -189,6 +266,8 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
     }
 
     private void updateProfileWithoutImage(String name, String email, String phone, String address) {
+        Log.d(TAG, "Updating profile without image");
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("name", name);
         updates.put("email", email);
@@ -198,6 +277,7 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
         orgRepo.updateOrganizationProfile(currentOrgId, updates, new OrganizationRepository.OnUpdateListener() {
             @Override
             public void onSuccess(String orgId) {
+                Log.d(TAG, "Profile updated successfully");
                 runOnUiThread(() -> {
                     Toast.makeText(activity_ngo_profile_edit.this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
                     finish();
@@ -206,12 +286,17 @@ public class activity_ngo_profile_edit extends AppCompatActivity {
 
             @Override
             public void onFailure(String error) {
+                Log.e(TAG, "Error updating profile: " + error);
                 runOnUiThread(() -> {
                     Toast.makeText(activity_ngo_profile_edit.this, "Lỗi: " + error, Toast.LENGTH_SHORT).show();
-                    btnSaveProfile.setEnabled(true);
-                    btnSaveProfile.setText("LƯU THÔNG TIN");
+                    resetSaveButton();
                 });
             }
         });
+    }
+
+    private void resetSaveButton() {
+        btnSaveProfile.setEnabled(true);
+        btnSaveProfile.setText("LƯU THÔNG TIN");
     }
 }
