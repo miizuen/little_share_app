@@ -1,6 +1,6 @@
 package com.example.little_share.ui.ngo.adapter;
 
-import android.graphics.Color;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,16 +10,18 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.bumptech.glide.Glide;
 import com.example.little_share.R;
+import com.example.little_share.data.models.VolunteerInfo;
 import com.example.little_share.data.models.VolunteerRegistration;
-import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CircleCrop;
 public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdapter.ViewHolder> {
 
-    private List<VolunteerRegistration> list = new ArrayList<>();
+    private List<VolunteerInfo> list = new ArrayList<>();
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
@@ -30,7 +32,7 @@ public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdap
         this.listener = listener;
     }
 
-    public void setData(List<VolunteerRegistration> data) {
+    public void setData(List<VolunteerInfo> data) {
         this.list = data;
         notifyDataSetChanged();
     }
@@ -55,24 +57,20 @@ public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdap
 
     class ViewHolder extends RecyclerView.ViewHolder {
         ImageView volunteerAvt;
-        TextView tvVolunteerName, tvVolunteerEmail, tvStatus;
-        TextView tvCampaignName, tvRoleName, tvDate;
-        MaterialButton btnAction;
+        TextView tvVolunteerName, tvPoints, tvEvents;
 
         ViewHolder(@NonNull View itemView) {
             super(itemView);
             volunteerAvt = itemView.findViewById(R.id.volunteerAvt);
             tvVolunteerName = itemView.findViewById(R.id.tvVolunteerName);
-            tvVolunteerEmail = itemView.findViewById(R.id.tvVolunteerEmail);
-            tvStatus = itemView.findViewById(R.id.tvStatus);
-            tvCampaignName = itemView.findViewById(R.id.tvCampaignName);
-            tvRoleName = itemView.findViewById(R.id.tvRoleName);
-            tvDate = itemView.findViewById(R.id.tvDate);
-            btnAction = itemView.findViewById(R.id.btnAction);
+            tvPoints = itemView.findViewById(R.id.tvPoints);
+            tvEvents = itemView.findViewById(R.id.tvEvents);
         }
 
-        void bind(VolunteerRegistration reg) {
-            // Tên - nếu null thì hiển thị phần đầu email
+        void bind(VolunteerInfo volunteerInfo) {
+            VolunteerRegistration reg = volunteerInfo.getRegistration();
+
+            // Tên
             String name = reg.getUserName();
             if (name == null || name.isEmpty()) {
                 String email = reg.getUserEmail();
@@ -83,40 +81,37 @@ public class VolunteerListAdapter extends RecyclerView.Adapter<VolunteerListAdap
                 }
             }
             tvVolunteerName.setText(name);
-            tvVolunteerEmail.setText(reg.getUserEmail() != null ? reg.getUserEmail() : "N/A");
 
-            // Thông tin chiến dịch
-            tvCampaignName.setText(reg.getCampaignName() != null ? reg.getCampaignName() : "N/A");
-            tvRoleName.setText(reg.getRoleName() != null ? reg.getRoleName() : "N/A");
-            tvDate.setText(reg.getDate() != null ? reg.getDate() : "N/A");
+            // Điểm và sự kiện từ dữ liệu thực
+            tvPoints.setText(volunteerInfo.getTotalPoints() + " điểm");
+            tvEvents.setText(volunteerInfo.getTotalCampaigns() + " sự kiện");
 
-            // Trạng thái
-            String status = reg.getStatus();
-            if ("approved".equals(status)) {
-                tvStatus.setText("Đã đăng ký");
-                tvStatus.setBackgroundColor(Color.parseColor("#FFF3E0")); // Nền cam nhạt
-                tvStatus.setTextColor(Color.parseColor("#FF9800")); // Chữ cam
-            } else if ("joined".equals(status)) {
-                tvStatus.setText("Đã tham gia");
-                tvStatus.setBackgroundColor(Color.parseColor("#E3F2FD")); // Nền xanh nhạt
-                tvStatus.setTextColor(Color.parseColor("#1976D2")); // Chữ xanh
-            } else if ("completed".equals(status)) {
-                tvStatus.setText("Hoàn thành");
-                tvStatus.setBackgroundColor(Color.parseColor("#E8F5E9")); // Nền xanh lá nhạt
-                tvStatus.setTextColor(Color.parseColor("#4CAF50")); // Chữ xanh lá
-            }
-            // Button
-            // Button - chỉ hiện khi "joined"
-            if ("joined".equals(status)) {
-                btnAction.setVisibility(View.VISIBLE);
-                btnAction.setOnClickListener(v -> {
-                    if (listener != null) {
-                        listener.onViewDetailClick(reg);
-                    }
-                });
+            // Load avatar với Glide
+            String avatarUrl = volunteerInfo.getAvatar();
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                Glide.with(itemView.getContext())
+                        .load(avatarUrl)
+                        .placeholder(R.drawable.placeholder_avatar)
+                        .error(R.drawable.placeholder_avatar)
+                        .transform(new CircleCrop())
+                        .into(volunteerAvt);
             } else {
-                btnAction.setVisibility(View.GONE);
+                // Nếu không có avatar, hiển thị placeholder
+                Glide.with(itemView.getContext())
+                        .load(R.drawable.placeholder_avatar)
+                        .transform(new CircleCrop())
+                        .into(volunteerAvt);
             }
+
+            // Click listener
+            itemView.setOnClickListener(v -> {
+                if (listener != null) {
+                    listener.onViewDetailClick(reg);
+                }
+            });
+
+            Log.d("AVATAR_DEBUG", "Avatar URL: " + avatarUrl);
+            Log.d("AVATAR_DEBUG", "User name: " + name);
         }
     }
 }
