@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.ReportImage;
+import com.example.little_share.ui.common.ImageViewerDialog;
 
 import java.util.List;
 
@@ -78,6 +79,12 @@ public class ReportImageAdapter extends RecyclerView.Adapter<ReportImageAdapter.
                         .centerCrop()
                         .into(imgPhoto);
             }
+
+            // Click listener để xem ảnh phóng to
+            imgPhoto.setOnClickListener(v -> {
+                ImageViewerDialog dialog = new ImageViewerDialog(itemView.getContext(), reportImage.getImageUrl());
+                dialog.show();
+            });
 
             // Setup remove button only in editable mode
             if (!isReadOnly && btnRemove != null && listener != null) {
