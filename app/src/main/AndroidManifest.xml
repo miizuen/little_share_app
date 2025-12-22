@@ -32,9 +32,6 @@
             android:name=".ui.ngo.activity_ngo_volunteer_detail"
             android:exported="false" />
         <activity
-            android:name=".ui.common.activity_about_app"
-            android:exported="false" />
-        <activity
             android:name=".ui.volunteer.activity_volunteer_detail_calendar"
             android:exported="false" />
         <activity

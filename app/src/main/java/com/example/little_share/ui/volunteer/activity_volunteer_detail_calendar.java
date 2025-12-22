@@ -280,11 +280,23 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
         finish();
     }
     // Gửi thông báo hủy cho tổ chức
+// Gửi thông báo hủy cho tổ chức
     private void sendCancelNotificationToOrg() {
-        if (registration == null) return;
-        
+        if (registration == null) {
+            android.util.Log.e("NOTIF_DEBUG", "registration is NULL");
+            return;
+        }
+
         String orgId = registration.getOrganizationId();
-        if (orgId == null || orgId.isEmpty()) return;
+        android.util.Log.d("NOTIF_DEBUG", "=== SENDING CANCEL NOTIFICATION ===");
+        android.util.Log.d("NOTIF_DEBUG", "orgId: " + orgId);
+        android.util.Log.d("NOTIF_DEBUG", "campaignName: " + registration.getCampaignName());
+        android.util.Log.d("NOTIF_DEBUG", "roleName: " + registration.getRoleName());
+
+        if (orgId == null || orgId.isEmpty()) {
+            android.util.Log.e("NOTIF_DEBUG", "orgId is NULL or EMPTY - Cannot send notification!");
+            return;
+        }
 
         NotificationRepository notificationRepo = new NotificationRepository();
         notificationRepo.notifyNGOCancelRegistrationWithUserLookup(
@@ -294,6 +306,7 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
                 registration.getRoleName(),
                 registration.getDate()
         );
+        android.util.Log.d("NOTIF_DEBUG", "Notification sent to orgId: " + orgId);
     }
 
     private void loadOrganizationInfo(String organizationId) {
