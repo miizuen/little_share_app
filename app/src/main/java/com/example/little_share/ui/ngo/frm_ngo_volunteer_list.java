@@ -1,5 +1,6 @@
 package com.example.little_share.ui.ngo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -83,12 +84,27 @@ public class frm_ngo_volunteer_list extends Fragment {
         rvPendingList.setAdapter(adapter);
 
         adapter.setOnItemClickListener(registration -> {
-            // Xử lý khi click xem chi tiết
-            Toast.makeText(getContext(),
-                    "TNV: " + registration.getUserName() + "\nChiến dịch: " + registration.getCampaignName(),
-                    Toast.LENGTH_SHORT).show();
+            // Tìm VolunteerInfo tương ứng để lấy điểm và số sự kiện
+            VolunteerInfo volunteerInfo = null;
+            for (VolunteerInfo info : allVolunteerInfos) {
+                if (info.getRegistration().getUserId().equals(registration.getUserId())) {
+                    volunteerInfo = info;
+                    break;
+                }
+            }
+
+            if (volunteerInfo != null) {
+                Intent intent = new Intent(getContext(), activity_ngo_volunteer_detail.class);
+                intent.putExtra("USER_ID", registration.getUserId());
+                intent.putExtra("ORGANIZATION_ID", organizationId);
+                intent.putExtra("VOLUNTEER_NAME", registration.getUserName());
+                intent.putExtra("TOTAL_POINTS", volunteerInfo.getTotalPoints());
+                intent.putExtra("TOTAL_EVENTS", volunteerInfo.getTotalCampaigns());
+                startActivity(intent);
+            }
         });
     }
+
 
     private void setupSearch() {
         edtSearch.addTextChangedListener(new TextWatcher() {
