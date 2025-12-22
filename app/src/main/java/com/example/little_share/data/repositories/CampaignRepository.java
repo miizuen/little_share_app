@@ -18,7 +18,9 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.example.little_share.data.models.Campain.CampaignRegistration;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 
 public class CampaignRepository {
@@ -1010,6 +1012,78 @@ public class CampaignRepository {
     public interface OnAttendanceListener {
         void onSuccess(String message);
         void onFailure(String error);
+    }
+    // Lấy tổng số tiền đã tài trợ
+    public LiveData<Double> getTotalDonationAmount() {
+        MutableLiveData<Double> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(0.0);
+            return liveData;
+        }
+
+        db.collection("sponsorDonations")
+                .whereEqualTo("sponsorId", currentUserId)
+                .whereEqualTo("status", "COMPLETED")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting total donation amount", error);
+                        liveData.setValue(0.0);
+                        return;
+                    }
+
+                    double totalAmount = 0.0;
+                    if (snapshots != null) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Double amount = doc.getDouble("amount");
+                            if (amount != null) {
+                                totalAmount += amount;
+                            }
+                        }
+                    }
+
+                    liveData.setValue(totalAmount);
+                    Log.d(TAG, "Total donation amount: " + totalAmount);
+                });
+
+        return liveData;
+    }
+
+    // Lấy số lượng chiến dịch đã tài trợ (unique campaigns)
+    public LiveData<Integer> getTotalSponsoredCampaignsCount() {
+        MutableLiveData<Integer> liveData = new MutableLiveData<>();
+
+        if (currentUserId == null) {
+            liveData.setValue(0);
+            return liveData;
+        }
+
+        db.collection("sponsorDonations")
+                .whereEqualTo("sponsorId", currentUserId)
+                .whereEqualTo("status", "COMPLETED")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error getting campaigns count", error);
+                        liveData.setValue(0);
+                        return;
+                    }
+
+                    Set<String> uniqueCampaignIds = new HashSet<>();
+                    if (snapshots != null) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String campaignId = doc.getString("campaignId");
+                            if (campaignId != null) {
+                                uniqueCampaignIds.add(campaignId);
+                            }
+                        }
+                    }
+
+                    int count = uniqueCampaignIds.size();
+                    liveData.setValue(count);
+                    Log.d(TAG, "Total sponsored campaigns count: " + count);
+                });
+
+        return liveData;
     }
 
 }
