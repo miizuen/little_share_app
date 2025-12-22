@@ -106,7 +106,7 @@
                     android:textSize="14sp" />
 
                 <TextView
-                    android:id="@+id/chipCancelled"
+                    android:id="@+id/chipEnded"
                     android:layout_width="wrap_content"
                     android:layout_height="36dp"
                     android:background="@drawable/bg_rounded_corners_white"
@@ -114,7 +114,7 @@
                     android:gravity="center"
                     android:paddingStart="20dp"
                     android:paddingEnd="20dp"
-                    android:text="Đã hủy"
+                    android:text="Đã đã kết thúc"
                     android:textColor="#666666"
                     android:textSize="14sp" />
             </LinearLayout>
