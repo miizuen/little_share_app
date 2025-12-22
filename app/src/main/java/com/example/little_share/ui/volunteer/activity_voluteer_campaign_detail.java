@@ -28,7 +28,7 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
 
     private ImageView imgFood;
     private TextView tvCampaignTitle, tvCategoryBadge, tvProgressNumber;
-    private TextView tvOrganization, tvSponsor, tvDescription;
+    private TextView tvOrganization, tvDescription;
     private TextView tvTime, tvLocation, tvActivity, tvRequirements;
     private ProgressBar progressBar;
     private Button btnRegister;
@@ -124,8 +124,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             loadOrganizationName();
         }
 
-        // ===== NHÀ TÀI TRỢ =====
-        loadSponsorInfo();
 
         btnRegister.setOnClickListener(v -> checkAlreadyRegistered());
     }
@@ -149,31 +147,7 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
                 .addOnFailureListener(e -> tvOrganization.setText("Chưa có thông tin"));
     }
 
-    private void loadSponsorInfo() {
-        if (tvSponsor == null || campaign == null) return;
 
-        db.collection("sponsorDonations")
-                .whereEqualTo("campaignId", campaign.getId())
-                .whereEqualTo("status", "COMPLETED")
-                .limit(1)
-                .get()
-                .addOnSuccessListener(snapshot -> {
-                    if (!snapshot.isEmpty()) {
-                        String sponsorName = snapshot.getDocuments()
-                                .get(0)
-                                .getString("sponsorName");
-
-                        tvSponsor.setText(
-                                sponsorName != null && !sponsorName.isEmpty()
-                                        ? sponsorName
-                                        : "Chưa có thông tin"
-                        );
-                    } else {
-                        tvSponsor.setText("Chưa có thông tin");
-                    }
-                })
-                .addOnFailureListener(e -> tvSponsor.setText("Chưa có thông tin"));
-    }
 
     /* ====================== REGISTER ====================== */
 
@@ -208,7 +182,6 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvProgressNumber = findViewById(R.id.tvProgressNumber);
         progressBar = findViewById(R.id.progressBar);
         tvOrganization = findViewById(R.id.tvOrganization);
-        tvSponsor = findViewById(R.id.tvSponsor);
         tvDescription = findViewById(R.id.tvDescription);
         tvTime = findViewById(R.id.tvTime);
         tvLocation = findViewById(R.id.tvLocation);

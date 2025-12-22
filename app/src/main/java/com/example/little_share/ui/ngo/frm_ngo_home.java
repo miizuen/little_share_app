@@ -33,7 +33,7 @@ public class frm_ngo_home extends Fragment {
 
     ImageView btnCreateCmp, btnReport, btnAttendance, btnReward, btnDonation;
     private ImageView ivOrgLogo;
-    private TextView tvOrganizationName, tvTotalVolunteers, tvTotalCampaigns, tvTotalSponsors, tvTotalPoints, tvPendingVolunteers;
+    private TextView tvOrganizationName, tvTotalVolunteers, tvTotalCampaigns, tvTotalSponsors, tvTotalPoints;
     private OrganizationRepository organizationRepository;
     private CampaignRepository campaignRepository;
     private FirebaseFirestore db;
@@ -81,17 +81,6 @@ public class frm_ngo_home extends Fragment {
         tvTotalCampaigns = view.findViewById(R.id.tvTotalCampaigns);
         tvTotalSponsors = view.findViewById(R.id.tvTotalSponsors);
         tvTotalPoints = view.findViewById(R.id.tvTotalPoints);
-        tvPendingVolunteers = view.findViewById(R.id.tvPendingVolunteers);
-
-        // Debug: Kiểm tra TextView có được bind đúng không
-        Log.d(TAG, "tvPendingVolunteers found: " + (tvPendingVolunteers != null));
-        if (tvPendingVolunteers != null) {
-            tvPendingVolunteers.setVisibility(android.view.View.VISIBLE);
-            tvPendingVolunteers.setTextColor(0xFFFF6B35);
-            Log.d(TAG, "✅ tvPendingVolunteers initialized");
-        } else {
-            Log.e(TAG, "❌ tvPendingVolunteers is NULL!");
-        }
 
         organizationRepository = new OrganizationRepository();
         campaignRepository = new CampaignRepository();
@@ -232,13 +221,7 @@ public class frm_ngo_home extends Fragment {
             if (tvTotalCampaigns != null) tvTotalCampaigns.setText("0");
             if (tvTotalSponsors != null) tvTotalSponsors.setText("0");
             if (tvTotalPoints != null) tvTotalPoints.setText("0");
-            if (tvPendingVolunteers != null) {
-                tvPendingVolunteers.setText("0 chờ duyệt");
-                tvPendingVolunteers.setVisibility(android.view.View.VISIBLE);
-                tvPendingVolunteers.setTextColor(0xFFFF6B35);
-            }
-            Log.d(TAG, "Initial stats set to 0");
-        }
+                  }
     }
 
     // ✅ Số chiến dịch
@@ -324,10 +307,7 @@ public class frm_ngo_home extends Fragment {
                     int totalPendingVolunteers = uniquePendingVolunteers.size();
                     Log.d(TAG, "Real pending volunteers count: " + totalPendingVolunteers);
 
-                    if (isAdded() && tvPendingVolunteers != null) {
-                        tvPendingVolunteers.setText(totalPendingVolunteers + " chờ duyệt");
-                        Log.d(TAG, "✅ Updated pending volunteers count: " + totalPendingVolunteers);
-                    }
+
                 });
     }
 
