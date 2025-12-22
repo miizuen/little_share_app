@@ -276,7 +276,15 @@ public class Campaign implements Serializable {
 
     public int getBudgetProgressPercentage() {
         if (targetBudget == 0) return 0;
-        return (int) ((currentBudget * 100) / targetBudget);
+        double percentage = (currentBudget / targetBudget) * 100.0;
+        int result = (int) percentage;
+
+        // Nếu có donation nhưng progress = 0, hiển thị ít nhất 1%
+        if (currentBudget > 0 && result == 0) {
+            return 1;
+        }
+
+        return Math.min(result, 100);
     }
 
     public boolean isVolunteersFull() {

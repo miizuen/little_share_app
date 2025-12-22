@@ -2,6 +2,8 @@ package com.example.little_share.data.models;
 
 import com.google.firebase.firestore.DocumentId;
 import java.io.Serializable;
+
+
 public class VolunteerRegistration implements Serializable {
 
     @DocumentId
@@ -89,4 +91,7 @@ public class VolunteerRegistration implements Serializable {
     public void setApprovedAt(Long approvedAt) { this.approvedAt = approvedAt; }
     public Long getRejectedAt() { return rejectedAt; }
     public void setRejectedAt(Long rejectedAt) { this.rejectedAt = rejectedAt; }
+
 }
+
+
