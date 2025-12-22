@@ -14,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.ui.common.ImageViewerDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 
@@ -136,8 +137,15 @@ public class NGOCampaignAdapter extends RecyclerView.Adapter<NGOCampaignAdapter.
                         .placeholder(R.drawable.img_nauanchoem)
                         .error(R.drawable.img_nauanchoem)
                         .into(holder.ivCampaignIcon);
+                
+                // Click listener để xem ảnh phóng to
+                holder.ivCampaignIcon.setOnClickListener(v -> {
+                    ImageViewerDialog dialog = new ImageViewerDialog(context, campaign.getImageUrl());
+                    dialog.show();
+                });
             } else {
                 holder.ivCampaignIcon.setImageResource(R.drawable.img_nauanchoem);
+                holder.ivCampaignIcon.setOnClickListener(null);
             }
         }
 
