@@ -14,20 +14,21 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.little_share.R;
 import com.example.little_share.data.models.VolunteerRegistration;
 import com.example.little_share.utils.QRCodeGenerator;
+import com.example.little_share.data.repositories.NotificationRepository;
 import com.google.android.material.chip.Chip;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.android.material.button.MaterialButton;
 import android.widget.Toast;
-
-// THÊM field:
-
 
 public class activity_volunteer_detail_calendar extends AppCompatActivity {
 
     private ImageButton btnBack;
     private TextView tvEventTitle, tvDate, tvTime, tvLocation, tvParticipants, tvDescription;
     private ImageView ivQRCode;
+    private MaterialButton btnCancel;
     private VolunteerRegistration registration;
     private Chip chipRole;
 
@@ -70,10 +71,8 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
 
         // Thêm các view mới
         ivQRCode = findViewById(R.id.ivQRCode);
-        // Thêm các view có sẵn trong layout
-        ivQRCode = findViewById(R.id.ivQRCode);
+        btnCancel = findViewById(R.id.btnCancel);
         chipRole = findViewById(R.id.chipRole);
-
     }
 
 
@@ -112,8 +111,6 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
             android.util.Log.d("CALENDAR_DEBUG", "Intent is NULL");
         }
     }
-
-
     private void displayRegistrationData() {
         if (registration == null) return;
 
@@ -190,6 +187,70 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
 
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> finish());
+        
+        // Xử lý nút hủy tham gia
+        btnCancel.setOnClickListener(v -> showCancelConfirmDialog());
+    }
+
+    // Hiển thị dialog xác nhận hủy
+    private void showCancelConfirmDialog() {
+        if (registration == null) {
+            Toast.makeText(this, "Không có thông tin đăng ký", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Xác nhận hủy")
+                .setMessage("Bạn có chắc chắn muốn hủy tham gia chiến dịch này?\n\nLưu ý: Bạn chỉ được hủy tối đa 2 lần cho mỗi chiến dịch.")
+                .setPositiveButton("Hủy tham gia", (dialog, which) -> cancelRegistration())
+                .setNegativeButton("Quay lại", null)
+                .show();
+    }
+
+    // Thực hiện hủy đăng ký
+    private void cancelRegistration() {
+        if (registration == null || registration.getId() == null) {
+            Toast.makeText(this, "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        btnCancel.setEnabled(false);
+        btnCancel.setText("Đang xử lý...");
+
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        
+        db.collection("volunteer_registrations")
+                .document(registration.getId())
+                .update("status", "cancelled")
+                .addOnSuccessListener(aVoid -> {
+                    // Gửi thông báo cho tổ chức
+                    sendCancelNotificationToOrg();
+                    
+                    Toast.makeText(this, "Đã hủy tham gia thành công", Toast.LENGTH_SHORT).show();
+                    finish();
+                })
+                .addOnFailureListener(e -> {
+                    btnCancel.setEnabled(true);
+                    btnCancel.setText("Hủy tham gia");
+                    Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
+    }
+
+    // Gửi thông báo hủy cho tổ chức
+    private void sendCancelNotificationToOrg() {
+        if (registration == null) return;
+        
+        String orgId = registration.getOrganizationId();
+        if (orgId == null || orgId.isEmpty()) return;
+
+        NotificationRepository notificationRepo = new NotificationRepository();
+        notificationRepo.notifyNGOCancelRegistrationWithUserLookup(
+                orgId,
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                registration.getCampaignName(),
+                registration.getRoleName(),
+                registration.getDate()
+        );
     }
 
     private void loadOrganizationInfo(String organizationId) {
@@ -262,8 +323,6 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
                     tvParticipants.setText("Lỗi tải thông tin");
                 });
     }
-
-
     private void loadCampaignLocation(String campaignId) {
         if (campaignId == null || campaignId.isEmpty()) {
             tvLocation.setText("Không có thông tin địa điểm");

@@ -189,12 +189,23 @@ public class activity_sponsor_payment_confirm extends AppCompatActivity {
             public void onSuccess() {
                 Log.d("PAYMENT_CONFIRM", "Donation saved successfully");
                 
-                // Tạo notification cho donation thành công
+                // Tạo notification cho sponsor (donation thành công)
                 NotificationRepository notificationRepository = new NotificationRepository();
                 notificationRepository.createDonationSuccessNotification(
                     currentCampaign.getName(), 
                     Double.parseDouble(etAmount)
                 );
+                
+                // Gửi thông báo cho NGO khi nhận được quyên góp
+                String orgId = currentCampaign.getOrganizationId();
+                if (orgId != null && !orgId.isEmpty()) {
+                    notificationRepository.notifyNGONewSponsorDonation(
+                        orgId,
+                        getCurrentUserName(),
+                        currentCampaign.getName(),
+                        Double.parseDouble(etAmount)
+                    );
+                }
                 
                 // Chuyển đến trang thành công
                 showSuccessDialog();

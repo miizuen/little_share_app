@@ -15,6 +15,11 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+<<<<<<< Updated upstream
+=======
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.bumptech.glide.Glide;
+>>>>>>> Stashed changes
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -28,6 +33,8 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private TextView tvTime, tvLocation, tvActivity;
     private ProgressBar progressBar;
     private Button btnRegister;
+    private TextView tvRequirements;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,8 +84,61 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
                     android.widget.Toast.makeText(this, "Lỗi kiểm tra thông tin chiến dịch", android.widget.Toast.LENGTH_SHORT).show();
                 });
     }
+    private void loadOrganizationName() {
+        String orgId = campaign.getOrganizationId();
+        if (orgId == null || orgId.isEmpty()) {
+            tvOrganization.setText("Chưa có thông tin");
+            return;
+        }
+
+        db.collection("organization")
+                .document(orgId)
+                .get()
+                .addOnSuccessListener(doc -> {
+                    if (doc.exists()) {
+                        String name = doc.getString("name");
+                        tvOrganization.setText(name != null ? name : "Chưa có thông tin");
+                    } else {
+                        tvOrganization.setText("Chưa có thông tin");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    tvOrganization.setText("Chưa có thông tin");
+                });
+    }
+    private void loadSponsorInfo() {
+        db.collection("sponsorDonations")
+                .whereEqualTo("campaignId", campaign.getId())
+                .whereEqualTo("status", "COMPLETED")
+                .limit(1)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    if (!querySnapshot.isEmpty()) {
+                        String sponsorName = querySnapshot.getDocuments().get(0).getString("sponsorName");
+                        tvSponsor.setText(sponsorName != null ? sponsorName : "");
+                    } else {
+                        tvSponsor.setText(""); // Không có nhà tài trợ
+                    }
+                })
+                .addOnFailureListener(e -> tvSponsor.setText(""));
+    }
 
     private void bindData() {
+        // Load ảnh chiến dịch
+        String imageUrl = campaign.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.img_nauanchoem)
+                    .error(R.drawable.img_nauanchoem)
+                    .centerCrop()
+                    .into(imgFood);
+        } else {
+            imgFood.setImageResource(R.drawable.img_nauanchoem);
+        }
+        String requirements = campaign.getRequirements();
+        tvRequirements.setText(requirements != null && !requirements.isEmpty() ? requirements : "Không có yêu cầu đặc biệt");
+
         tvCampaignTitle.setText(campaign.getName());
         try {
             tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
@@ -90,8 +150,16 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvProgressNumber.setText(progress + "%");
         progressBar.setProgress(progress);
 
-        tvOrganization.setText(campaign.getOrganizationName());
-        tvSponsor.setText("Quỹ từ thiện Nuôi Em");
+        // Hiển thị tên tổ chức
+        String orgName = campaign.getOrganizationName();
+        if (orgName != null && !orgName.isEmpty()) {
+            tvOrganization.setText(orgName);
+        } else {
+            // Nếu không có sẵn, query từ collection organization
+            loadOrganizationName();
+        }
+        // Kiểm tra và hiển thị nhà tài trợ
+        loadSponsorInfo();
         tvDescription.setText(campaign.getDescription());
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -121,9 +189,14 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation = findViewById(R.id.tvLocation);
         tvActivity = findViewById(R.id.tvActivity);
         btnRegister = findViewById(R.id.btnRegister);
+<<<<<<< Updated upstream
 
         // Thêm nút back
         ImageView btnBack = findViewById(R.id.btnBack);
+=======
+        tvRequirements = findViewById(R.id.tvRequirements);
+        ImageView btnBack = findViewById(R.id.btn_Back);
+>>>>>>> Stashed changes
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }

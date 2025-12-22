@@ -35,7 +35,7 @@ import java.util.Locale;
 
 public class activity_ngo_create_campaign_form extends AppCompatActivity {
     private TextInputEditText etCampaignName, etDescription, etStartDate, etEndDate;
-    private TextInputEditText etLocation, etSpecificLocation, etBudget, etPurpose;
+    private TextInputEditText etLocation, etSpecificLocation, etBudget, etPurpose, etYeuCau;
     private AutoCompleteTextView actvCategory;
     private ImageView ivCampaignImage;
     private View layoutImagePlaceholder;
@@ -100,6 +100,7 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
             String category = actvCategory.getText() != null ? actvCategory.getText().toString().trim() : "";
             String location = etLocation.getText() != null ? etLocation.getText().toString().trim() : "";
             String specificLoc = etSpecificLocation.getText() != null ? etSpecificLocation.getText().toString().trim() : "";
+            String yeuCau = etYeuCau.getText() != null ? etYeuCau.getText().toString().trim() : "";
 
             // Format dates thành String
             SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
@@ -181,6 +182,7 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
             intent.putExtra("imageUrl", imageUri != null ? imageUri.toString() : "");
             intent.putExtra("location", location);
             intent.putExtra("specificLocation", specificLoc);
+            intent.putExtra("yeuCau", yeuCau);
             intent.putExtra("startDate", startDateStr);
             intent.putExtra("endDate", endDateStr);
             intent.putExtra("needsSponsor", switchNeedSponsor.isChecked());
@@ -251,6 +253,7 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         etEndDate = findViewById(R.id.etEndDate);
         etLocation = findViewById(R.id.etLocation);
         etSpecificLocation = findViewById(R.id.etSpecificLocation);
+        etYeuCau = findViewById(R.id.etYeuCau);
         switchNeedSponsor = findViewById(R.id.switchNeedSponsor);
         layoutSponsorDetails = findViewById(R.id.layoutSponsorDetails);
         etBudget = findViewById(R.id.etBudget);

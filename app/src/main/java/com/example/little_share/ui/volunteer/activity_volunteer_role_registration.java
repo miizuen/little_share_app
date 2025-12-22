@@ -13,6 +13,11 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+<<<<<<< Updated upstream
+=======
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.example.little_share.data.repositories.NotificationRepository;
+>>>>>>> Stashed changes
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -117,8 +122,95 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang kiểm tra...");
 
+<<<<<<< Updated upstream
         // THÊM: Kiểm tra slot trước khi đăng ký
         checkCampaignSlots();
+=======
+        // Kiểm tra trùng lặp đăng ký (vai trò + ca + ngày) trước khi đăng ký
+        checkDuplicateRegistration(currentUser.getUid());
+    }
+
+    // Kiểm tra TNV đã đăng ký với cùng vai trò + ca + ngày chưa
+    private void checkDuplicateRegistration(String userId) {
+        String shiftId = selectedShift.getId();
+
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("shiftId", shiftId)
+                .whereEqualTo("date", selectedDate)
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    boolean hasDuplicate = false;
+                    String existingRoleName = "";
+                    String existingShiftName = "";
+                    String existingDate = "";
+
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String status = doc.getString("status");
+                        // Chỉ block nếu status KHÔNG phải cancelled hoặc rejected
+                        if (status != null && !status.equals("cancelled") && !status.equals("rejected")) {
+                            hasDuplicate = true;
+                            existingRoleName = doc.getString("roleName");
+                            existingShiftName = doc.getString("shiftName");
+                            existingDate = doc.getString("date");
+                            break;
+                        }
+                    }
+
+                    if (hasDuplicate) {
+                        resetConfirmButton();
+                        showDuplicateRegistrationDialog(existingRoleName, existingShiftName, existingDate);
+                    } else {
+                        // Kiểm tra số lần hủy trước khi cho đăng ký
+                        checkCancelCount(userId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    checkCampaignSlots();
+                });
+    }
+
+    // Thêm method kiểm tra số lần hủy
+    private void checkCancelCount(String userId) {
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("status", "cancelled")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int cancelCount = querySnapshot.size();
+                    if (cancelCount >= 2) {
+                        resetConfirmButton();
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Không thể đăng ký")
+                                .setMessage("Bạn đã hủy tham gia chiến dịch này 2 lần.\nKhông thể đăng ký lại.")
+                                .setPositiveButton("Đã hiểu", null)
+                                .show();
+                    } else {
+                        checkCampaignSlots();
+                    }
+                })
+                .addOnFailureListener(e -> checkCampaignSlots());
+    }
+
+
+    // Hiển thị dialog khi đăng ký trùng
+    private void showDuplicateRegistrationDialog(String existingRoleName, String existingShiftName, String existingDate) {
+        String message = "Bạn đã đăng ký ca này rồi!\n\n" +
+                "• Vai trò đã đăng ký: " + existingRoleName + "\n" +
+                "• Ca làm: " + existingShiftName + "\n" +
+                "• Ngày: " + existingDate + "\n\n" +
+                "Mỗi ca làm trong ngày chỉ được đăng ký 1 vai trò.\nVui lòng chọn ca hoặc ngày khác.";
+
+        new androidx.appcompat.app.AlertDialog.Builder(this)
+                .setTitle("Trùng ca làm việc")
+                .setMessage(message)
+                .setPositiveButton("Chọn lại", (dialog, which) -> dialog.dismiss())
+                .setNegativeButton("Quay lại", (dialog, which) -> finish())
+                .setCancelable(true)
+                .show();
+>>>>>>> Stashed changes
     }
 
     // THÊM METHOD MỚI: Kiểm tra slot còn trống không
@@ -296,6 +388,8 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         db.collection("volunteer_registrations")
                 .add(registration)
                 .addOnSuccessListener(documentReference -> {
+                    // THÊM: Gửi thông báo cho tổ chức
+                    sendRegistrationNotificationToOrg(organizationId);
                     showSuccessDialog(false, oderId);
                 })
                 .addOnFailureListener(e -> {
@@ -546,4 +640,16 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             tvSummaryShift.setText(selectedShift.getShiftName() + " (" + selectedShift.getTimeRange() + ")");
         }
     }
+    private void sendRegistrationNotificationToOrg(String orgId) {
+        NotificationRepository notificationRepo = new NotificationRepository();
+        notificationRepo.notifyNGONewRegistrationWithUserLookup(
+                orgId,
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                campaignName,
+                role != null ? role.getRoleName() : "Tình nguyện viên",
+                selectedShift.getShiftName(),
+                selectedDate
+        );
+    }
+
 }

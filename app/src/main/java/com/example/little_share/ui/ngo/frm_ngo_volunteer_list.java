@@ -1,5 +1,6 @@
 package com.example.little_share.ui.ngo;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -18,6 +19,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
+import com.example.little_share.data.models.VolunteerInfo;
 import com.example.little_share.data.models.VolunteerRegistration;
 import com.example.little_share.ui.ngo.adapter.VolunteerListAdapter;
 import com.google.firebase.auth.FirebaseAuth;
@@ -25,13 +27,16 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class frm_ngo_volunteer_list extends Fragment {
 
     private RecyclerView rvPendingList;
     private EditText edtSearch;
-    private TextView tabAll, tabJoining, tabCompleted, tabStopped;
     private ImageView btnBack;
 
     private VolunteerListAdapter adapter;
@@ -39,7 +44,11 @@ public class frm_ngo_volunteer_list extends Fragment {
     private String organizationId;
 
     private List<VolunteerRegistration> allRegistrations = new ArrayList<>();
+    private List<VolunteerInfo> allVolunteerInfos = new ArrayList<>();
     private String currentFilter = "all";
+
+    // Thêm loading state
+    private boolean isLoading = false;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -56,7 +65,6 @@ public class frm_ngo_volunteer_list extends Fragment {
 
         initViews(view);
         setupRecyclerView();
-        setupTabFilters();
         setupSearch();
         loadVolunteers();
     }
@@ -64,10 +72,6 @@ public class frm_ngo_volunteer_list extends Fragment {
     private void initViews(View view) {
         rvPendingList = view.findViewById(R.id.rvPendingList);
         edtSearch = view.findViewById(R.id.edtSearch);
-        tabAll = view.findViewById(R.id.tabAll);
-        tabJoining = view.findViewById(R.id.tabJoining);
-        tabCompleted = view.findViewById(R.id.tabCompleted);
-        tabStopped = view.findViewById(R.id.tabStopped);
         btnBack = view.findViewById(R.id.btnBack);
 
         // Ẩn nút back vì đây là fragment trong bottom nav
@@ -80,66 +84,27 @@ public class frm_ngo_volunteer_list extends Fragment {
         rvPendingList.setAdapter(adapter);
 
         adapter.setOnItemClickListener(registration -> {
-            // Xử lý khi click xem chi tiết
-            Toast.makeText(getContext(),
-                    "TNV: " + registration.getUserName() + "\nChiến dịch: " + registration.getCampaignName(),
-                    Toast.LENGTH_SHORT).show();
+            // Tìm VolunteerInfo tương ứng để lấy điểm và số sự kiện
+            VolunteerInfo volunteerInfo = null;
+            for (VolunteerInfo info : allVolunteerInfos) {
+                if (info.getRegistration().getUserId().equals(registration.getUserId())) {
+                    volunteerInfo = info;
+                    break;
+                }
+            }
+
+            if (volunteerInfo != null) {
+                Intent intent = new Intent(getContext(), activity_ngo_volunteer_detail.class);
+                intent.putExtra("USER_ID", registration.getUserId());
+                intent.putExtra("ORGANIZATION_ID", organizationId);
+                intent.putExtra("VOLUNTEER_NAME", registration.getUserName());
+                intent.putExtra("TOTAL_POINTS", volunteerInfo.getTotalPoints());
+                intent.putExtra("TOTAL_EVENTS", volunteerInfo.getTotalCampaigns());
+                startActivity(intent);
+            }
         });
     }
 
-    private void setupTabFilters() {
-        // Đổi text cho tab
-        tabJoining.setText("Đã đăng ký");
-        tabCompleted.setText("Đang tham gia");
-        tabStopped.setText("Hoàn thành");
-        tabStopped.setVisibility(View.VISIBLE); // Hiện tab này
-
-        tabAll.setOnClickListener(v -> {
-            currentFilter = "all";
-            updateTabUI();
-            filterData();
-        });
-
-        tabJoining.setOnClickListener(v -> {
-            currentFilter = "approved";
-            updateTabUI();
-            filterData();
-        });
-
-        tabCompleted.setOnClickListener(v -> {
-            currentFilter = "joined";
-            updateTabUI();
-            filterData();
-        });
-
-        tabStopped.setOnClickListener(v -> {
-            currentFilter = "completed";
-            updateTabUI();
-            filterData();
-        });
-    }
-    private void updateTabUI() {
-        // Reset tất cả tabs
-        tabAll.setBackgroundResource(R.drawable.bg_default);
-        tabAll.setTextColor(0xFF666666);
-        tabJoining.setBackgroundResource(R.drawable.bg_default);
-        tabJoining.setTextColor(0xFF666666);
-        tabCompleted.setBackgroundResource(R.drawable.bg_default);
-        tabCompleted.setTextColor(0xFF666666);
-        tabStopped.setBackgroundResource(R.drawable.bg_default);
-        tabStopped.setTextColor(0xFF666666);
-
-        // Highlight tab được chọn
-        TextView selectedTab;
-        switch (currentFilter) {
-            case "approved": selectedTab = tabJoining; break;
-            case "joined": selectedTab = tabCompleted; break;
-            case "completed": selectedTab = tabStopped; break;
-            default: selectedTab = tabAll;
-        }
-        selectedTab.setBackgroundResource(R.drawable.bg_chip_selected);
-        selectedTab.setTextColor(0xFFFFFFFF);
-    }
 
     private void setupSearch() {
         edtSearch.addTextChangedListener(new TextWatcher() {
@@ -157,6 +122,9 @@ public class frm_ngo_volunteer_list extends Fragment {
     }
 
     private void loadVolunteers() {
+        if (isLoading) return;
+        isLoading = true;
+
         db.collection("volunteer_registrations")
                 .whereEqualTo("organizationId", organizationId)
                 .get()
@@ -173,72 +141,152 @@ public class frm_ngo_volunteer_list extends Fragment {
                         }
                     }
 
-                    // Load tên user từ users collection
-                    loadUserNames();
+                    // Load thông tin user đầy đủ
+                    loadFullUserInfo();
                 })
                 .addOnFailureListener(e -> {
+                    isLoading = false;
                     Toast.makeText(getContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
-    private void loadUserNames() {
+    private void loadFullUserInfo() {
         if (allRegistrations.isEmpty()) {
             filterData();
             return;
         }
 
-        final int[] loadedCount = {0};
-        int total = allRegistrations.size();
+        allVolunteerInfos.clear();
+
+        // Group registrations by userId để tránh trùng lặp
+        Map<String, List<VolunteerRegistration>> groupedByUser = new HashMap<>();
 
         for (VolunteerRegistration reg : allRegistrations) {
             String userId = reg.getUserId();
-            if (userId != null && (reg.getUserName() == null || reg.getUserName().isEmpty())) {
-                db.collection("users").document(userId)
-                        .get()
-                        .addOnSuccessListener(userDoc -> {
-                            if (userDoc.exists()) {
-                                String fullName = userDoc.getString("fullName");
-                                if (fullName != null && !fullName.isEmpty()) {
-                                    reg.setUserName(fullName);
-                                }
+            if (userId != null) {
+                if (!groupedByUser.containsKey(userId)) {
+                    groupedByUser.put(userId, new ArrayList<>());
+                }
+                groupedByUser.get(userId).add(reg);
+            }
+        }
+
+        final int[] loadedCount = {0};
+        int totalUsers = groupedByUser.size();
+
+        if (totalUsers == 0) {
+            filterData();
+            return;
+        }
+
+        for (Map.Entry<String, List<VolunteerRegistration>> entry : groupedByUser.entrySet()) {
+            String userId = entry.getKey();
+            List<VolunteerRegistration> userRegistrations = entry.getValue();
+
+            // Lấy registration đầu tiên để hiển thị thông tin user
+            VolunteerRegistration firstReg = userRegistrations.get(0);
+
+            // Load thông tin user từ collection users
+            db.collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener(userDoc -> {
+                        VolunteerInfo volunteerInfo = new VolunteerInfo(firstReg);
+
+                        if (userDoc.exists()) {
+                            String fullName = userDoc.getString("fullName");
+                            String avatar = userDoc.getString("avatar");
+                            Long totalPoints = userDoc.getLong("totalPoints");
+
+                            if (fullName != null && !fullName.isEmpty()) {
+                                firstReg.setUserName(fullName);
                             }
+
+                            volunteerInfo.setAvatar(avatar);
+                            volunteerInfo.setTotalPoints(totalPoints != null ? totalPoints.intValue() : 0);
+                        } else {
+                            volunteerInfo.setTotalPoints(0);
+                        }
+
+                        // Sử dụng Cách 2: Tính số sự kiện chính xác cho tổ chức này
+                        calculateEventsForOrganization(userId, volunteerInfo, () -> {
+                            allVolunteerInfos.add(volunteerInfo);
                             loadedCount[0]++;
-                            if (loadedCount[0] >= total) {
-                                filterData();
-                            }
-                        })
-                        .addOnFailureListener(e -> {
-                            loadedCount[0]++;
-                            if (loadedCount[0] >= total) {
+
+                            if (loadedCount[0] >= totalUsers) {
                                 filterData();
                             }
                         });
-            } else {
-                loadedCount[0]++;
-                if (loadedCount[0] >= total) {
-                    filterData();
-                }
-            }
+                    })
+                    .addOnFailureListener(e -> {
+                        VolunteerInfo volunteerInfo = new VolunteerInfo(firstReg);
+                        volunteerInfo.setTotalPoints(0);
+
+                        // Tính số sự kiện ngay cả khi load user thất bại
+                        calculateEventsForOrganization(userId, volunteerInfo, () -> {
+                            allVolunteerInfos.add(volunteerInfo);
+                            loadedCount[0]++;
+
+                            if (loadedCount[0] >= totalUsers) {
+                                filterData();
+                            }
+                        });
+                    });
         }
     }
 
-    private void filterData() {
-        String searchText = edtSearch.getText().toString().toLowerCase().trim();
-        List<VolunteerRegistration> filtered = new ArrayList<>();
+    private void calculateEventsForOrganization(String userId, VolunteerInfo volunteerInfo, Runnable onComplete) {
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("organizationId", organizationId) // Chỉ tính sự kiện của tổ chức này
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    // Đếm số sự kiện duy nhất (theo campaignId)
+                    Set<String> uniqueCampaigns = new HashSet<>();
 
-        for (VolunteerRegistration reg : allRegistrations) {
-            // Filter theo status
-            boolean matchStatus = currentFilter.equals("all") ||
-                    currentFilter.equals(reg.getStatus());
+                    for (QueryDocumentSnapshot doc : querySnapshot) {
+                        VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
+                        String status = reg.getStatus();
+                        String campaignId = reg.getCampaignId();
+
+                        // Chỉ tính các sự kiện đã tham gia hoặc hoàn thành
+                        if (("approved".equals(status) || "joined".equals(status) || "completed".equals(status))
+                                && campaignId != null && !campaignId.isEmpty()) {
+                            uniqueCampaigns.add(campaignId);
+                        }
+                    }
+
+                    volunteerInfo.setTotalCampaigns(uniqueCampaigns.size());
+
+                    // Log để debug
+                    android.util.Log.d("EVENTS_DEBUG",
+                            "User: " + volunteerInfo.getRegistration().getUserName() +
+                                    " - Events: " + uniqueCampaigns.size());
+
+                    onComplete.run();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("EVENTS_ERROR", "Error calculating events for user: " + userId, e);
+                    volunteerInfo.setTotalCampaigns(0);
+                    onComplete.run();
+                });
+    }
+
+    private void filterData() {
+        isLoading = false; // Reset loading state
+
+        String searchText = edtSearch.getText().toString().toLowerCase().trim();
+        List<VolunteerInfo> filtered = new ArrayList<>();
+
+        for (VolunteerInfo volunteerInfo : allVolunteerInfos) {
+            VolunteerRegistration reg = volunteerInfo.getRegistration();
 
             // Filter theo search
             boolean matchSearch = searchText.isEmpty() ||
                     (reg.getUserName() != null && reg.getUserName().toLowerCase().contains(searchText)) ||
-                    (reg.getUserEmail() != null && reg.getUserEmail().toLowerCase().contains(searchText)) ||
-                    (reg.getCampaignName() != null && reg.getCampaignName().toLowerCase().contains(searchText));
+                    (reg.getUserEmail() != null && reg.getUserEmail().toLowerCase().contains(searchText));
 
-            if (matchStatus && matchSearch) {
-                filtered.add(reg);
+            if (matchSearch) {
+                filtered.add(volunteerInfo);
             }
         }
 

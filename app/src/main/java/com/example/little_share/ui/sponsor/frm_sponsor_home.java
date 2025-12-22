@@ -72,6 +72,11 @@ public class frm_sponsor_home extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d(TAG, "=== ON RESUME ===");
+        
+        // Refresh lại statistics mỗi khi resume
+        if (isAdded()) {
+            loadDonationStatistics();
+        }
     }
 
     private void checkAndHandleRefresh() {
@@ -99,6 +104,8 @@ public class frm_sponsor_home extends Fragment {
         loadSponsorData();
         loadCampaignsNeedingSponsor();
         loadSponsoredCampaigns();
+        // Đảm bảo refresh lại statistics
+        loadDonationStatistics();
     }
 
     private void initViews(View view) {
@@ -277,24 +284,25 @@ public class frm_sponsor_home extends Fragment {
             Log.e(TAG, "Fragment is not added");
         }
     }
-
     private void loadSponsorData() {
         userRepository.getCurrentUserData(new UserRepository.OnUserDataListener() {
             @Override
             public void onSuccess(User user) {
                 if (user != null && isAdded()) {
                     tvSponsorName.setText(user.getFullName());
-                    tvTotalMoney.setText(formatMoney(user.getTotalDonations()));
-                    tvTotalCampaigns.setText(String.valueOf(user.getTotalCampaigns()));
+                    // KHÔNG set tvTotalMoney và tvTotalCampaigns từ User nữa
+                    // Chỉ load từ Firebase thực tế
 
                     String avatarUrl = user.getAvatar();
-                    if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                        Glide.with(frm_sponsor_home.this)
-                                .load(avatarUrl)
-                                .placeholder(R.drawable.logo_d_japan)
-                                .error(R.drawable.logo_d_japan)
-                                .circleCrop()
-                                .into(ivSponsorLogo);
+                    if (avatarUrl != null && !avatarUrl.trim().equals("")) {
+                        if (getContext() != null) {
+                            Glide.with(getContext())
+                                    .load(avatarUrl)
+                                    .placeholder(R.drawable.logo_d_japan)
+                                    .error(R.drawable.logo_d_japan)
+                                    .circleCrop()
+                                    .into(ivSponsorLogo);
+                        }
                     } else {
                         ivSponsorLogo.setImageResource(R.drawable.logo_d_japan);
                     }
@@ -308,6 +316,9 @@ public class frm_sponsor_home extends Fragment {
                 }
             }
         });
+        
+        // Load dữ liệu thống kê thực từ Firebase
+        loadDonationStatistics();
     }
 
     private String formatMoney(int amount) {
@@ -318,5 +329,38 @@ public class frm_sponsor_home extends Fragment {
         } else {
             return String.valueOf(amount);
         }
+    }
+
+    private String formatMoneyDouble(double amount) {
+        if (amount >= 1000000) {
+            return String.format("%.1fM", amount / 1000000);
+        } else if (amount >= 1000) {
+            return String.format("%.1fK", amount / 1000);
+        } else {
+            return String.format("%.0f", amount);
+        }
+    }
+
+    private void loadDonationStatistics() {
+        Log.d("SPONSOR_HOME", "=== LOADING DONATION STATISTICS ===");
+        
+        // Load total donation amount
+        campaignRepository.getTotalDonationAmount().observe(getViewLifecycleOwner(), totalAmount -> {
+            if (isAdded()) {
+                double amount = (totalAmount != null) ? totalAmount : 0.0;
+                String formattedAmount = formatMoneyDouble(amount);
+                tvTotalMoney.setText(formattedAmount);
+                Log.d("SPONSOR_HOME", "Updated total money: " + amount + " -> " + formattedAmount);
+            }
+        });
+
+        // Load total campaigns count
+        campaignRepository.getTotalSponsoredCampaignsCount().observe(getViewLifecycleOwner(), count -> {
+            if (isAdded()) {
+                int campaignCount = (count != null) ? count : 0;
+                tvTotalCampaigns.setText(String.valueOf(campaignCount));
+                Log.d("SPONSOR_HOME", "Updated campaigns count: " + campaignCount);
+            }
+        });
     }
 }

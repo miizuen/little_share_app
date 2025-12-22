@@ -1,6 +1,8 @@
 package com.example.little_share.ui.ngo;
 
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -12,12 +14,18 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.OrganizationRepository;
+<<<<<<< Updated upstream
+=======
+import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
+import com.example.little_share.utils.QRCodeGenerator;
+>>>>>>> Stashed changes
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -81,7 +89,19 @@ public class frm_ngo_home extends Fragment {
             btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
         }
         if (btnAttendance != null) {
+<<<<<<< Updated upstream
             btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
+=======
+            btnAttendance.setOnClickListener(v -> {
+                // Kiểm tra quyền camera trước khi mở QR Scanner
+                if (checkCameraPermission()) {
+                    showQRScanner();
+                } else {
+                    // Nếu chưa có quyền, chuyển đến activity để xin quyền
+                    startActivity(new Intent(getActivity(), activity_ngo_attendance.class));
+                }
+            });
+>>>>>>> Stashed changes
         }
         if (btnReport != null) {
             btnReport.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_finance_report.class)));
@@ -410,4 +430,111 @@ public class frm_ngo_home extends Fragment {
             }
         }
     }
+<<<<<<< Updated upstream
+=======
+
+    // ===== PHƯƠNG THỨC MỚI CHO ĐIỂM DANH TRỰC TIẾP =====
+    
+    private boolean checkCameraPermission() {
+        return ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
+                == PackageManager.PERMISSION_GRANTED;
+    }
+
+    private void showQRScanner() {
+        QRScannerDialog qrDialog = new QRScannerDialog(getActivity(), new QRScannerDialog.OnQRScannedListener() {
+            @Override
+            public void onQRScanned(String code) {
+                handleAttendanceCode(code, true);
+            }
+
+            @Override
+            public void onManualCodeEntered(String code) {
+                handleAttendanceCode(code, false);
+            }
+
+            @Override
+            public void onGiftRedemptionScanned(String redemptionId, String userId, String giftId) {
+                Toast.makeText(getContext(),
+                        "QR code này dành cho đổi quà, không phải điểm danh", Toast.LENGTH_LONG).show();
+            }
+
+            @Override
+            public void onCampaignRegistrationScanned(String registrationId, String userId, String campaignId) {
+                showAttendanceConfirmation(registrationId, userId, campaignId, true);
+            }
+
+            @Override
+            public void onVolunteerScanned(String volunteerId) {
+                Toast.makeText(getContext(),
+                        "QR code volunteer không được hỗ trợ ở đây", Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onInvalidQRScanned(String error) {
+                showErrorDialog("QR code không hợp lệ", error);
+            }
+        });
+
+        qrDialog.show();
+    }
+
+    private void handleAttendanceCode(String code, boolean isScanned) {
+        Log.d(TAG, "Handling attendance code: " + code + ", isScanned: " + isScanned);
+        
+        QRCodeGenerator.QRCodeData qrData = QRCodeGenerator.parseQRCode(code);
+        
+        if (qrData == null || !"campaign".equals(qrData.type)) {
+            showErrorDialog("QR code không hợp lệ", "QR code này không phải cho điểm danh chiến dịch");
+            return;
+        }
+
+        String registrationId = qrData.getRegistrationId();
+        String userId = qrData.getUserId();
+        String campaignId = qrData.getReferenceId();
+
+        showAttendanceConfirmation(registrationId, userId, campaignId, isScanned);
+    }
+
+    private void showAttendanceConfirmation(String registrationId, String userId, String campaignId, boolean isScanned) {
+        new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                .setTitle("Xác nhận điểm danh")
+                .setMessage("Bạn có chắc chắn muốn xác nhận điểm danh cho tình nguyện viên này?")
+                .setPositiveButton("Xác nhận", (dialog, which) -> {
+                    confirmAttendance(registrationId, userId, campaignId);
+                })
+                .setNegativeButton("Hủy", null)
+                .show();
+    }
+
+    private void confirmAttendance(String registrationId, String userId, String campaignId) {
+        campaignRepository.confirmAttendance(registrationId, userId, campaignId, 
+            new CampaignRepository.OnAttendanceListener() {
+                @Override
+                public void onSuccess(String message) {
+                    if (isAdded()) {
+                        Toast.makeText(getContext(), "Điểm danh thành công!", Toast.LENGTH_SHORT).show();
+                        // Refresh stats sau khi điểm danh thành công
+                        loadOrganizationData();
+                    }
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    if (isAdded()) {
+                        showErrorDialog("Lỗi điểm danh", error);
+                    }
+                }
+            });
+    }
+
+    private void showErrorDialog(String title, String message) {
+        if (isAdded()) {
+            new androidx.appcompat.app.AlertDialog.Builder(getContext())
+                    .setTitle(title)
+                    .setMessage(message)
+                    .setPositiveButton("OK", null)
+                    .show();
+        }
+    }
+>>>>>>> Stashed changes
 }
