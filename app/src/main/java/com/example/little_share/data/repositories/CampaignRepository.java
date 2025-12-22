@@ -22,13 +22,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-
 public class CampaignRepository {
     private static final String TAG = "CampaignRepository";
     private static final String COLLECTION = "campaigns";
     private final FirebaseFirestore db;
     private final String currentUserId;
-
 
     public LiveData<List<CampaignRegistration>> getUserRegistrationHistory() {
         MutableLiveData<List<CampaignRegistration>> liveData = new MutableLiveData<>();
@@ -82,6 +80,7 @@ public class CampaignRepository {
 
         return liveData;
     }
+
     public void getRegistrationStats(OnRegistrationStatsListener listener) {
         if (currentUserId == null) {
             Log.w(TAG, "Current user ID is null for stats");
@@ -119,6 +118,7 @@ public class CampaignRepository {
                     listener.onSuccess(0, 0);
                 });
     }
+
     public LiveData<List<Campaign>> getDonationCampaigns() {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
@@ -159,19 +159,17 @@ public class CampaignRepository {
         return liveData;
     }
 
-
     // Thêm interface mới
     public interface OnRegistrationStatsListener {
         void onSuccess(int totalCampaigns, int totalPoints);
     }
 
-
     public CampaignRepository() {
         this.db = FirebaseFirestore.getInstance();
-        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null ?
-                FirebaseAuth.getInstance().getCurrentUser().getUid() : null;
+        this.currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
+                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
+                : null;
     }
-
 
     public LiveData<List<Campaign>> getCampaignsByCurrentNgo() {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
@@ -231,7 +229,7 @@ public class CampaignRepository {
                             .add(campaign)
                             .addOnSuccessListener(ref -> {
                                 campaign.setId(ref.getId());
-                                listener.onSuccess(ref.getId());  // <-- Trả về campaignId thực
+                                listener.onSuccess(ref.getId()); // <-- Trả về campaignId thực
                             })
                             .addOnFailureListener(err -> listener.onFailure(err.getMessage()));
                 });
@@ -253,7 +251,7 @@ public class CampaignRepository {
                         List<Campaign> campaigns = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : snapshots) {
                             Campaign campaign = doc.toObject(Campaign.class);
-                            campaign.setId(doc.getId());  // Set document ID
+                            campaign.setId(doc.getId()); // Set document ID
                             campaigns.add(campaign);
                         }
                         liveData.setValue(campaigns);
@@ -283,7 +281,7 @@ public class CampaignRepository {
                         List<Campaign> campaigns = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : snapshots) {
                             Campaign campaign = doc.toObject(Campaign.class);
-                            campaign.setId(doc.getId());  // Set document ID
+                            campaign.setId(doc.getId()); // Set document ID
                             campaigns.add(campaign);
                         }
                         liveData.setValue(campaigns);
@@ -352,22 +350,21 @@ public class CampaignRepository {
         return liveData;
     }
 
-
-    public LiveData<List<Campaign>> getCampaignsNeedingSponsor(){
+    public LiveData<List<Campaign>> getCampaignsNeedingSponsor() {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
         db.collection(COLLECTION)
                 .whereEqualTo("needsSponsor", true)
                 .addSnapshotListener((snapshot, error) -> {
-                    if(error != null){
+                    if (error != null) {
                         Log.e(TAG, "Error getting campaigns needing sponsor", error);
                         liveData.setValue(new ArrayList<>());
                         return;
                     }
 
-                    if(snapshot != null){
+                    if (snapshot != null) {
                         List<Campaign> campaigns = new ArrayList<>();
-                        for (QueryDocumentSnapshot doc : snapshot){
+                        for (QueryDocumentSnapshot doc : snapshot) {
                             Campaign campaign = doc.toObject(Campaign.class);
                             campaign.setId(doc.getId());
 
@@ -472,7 +469,7 @@ public class CampaignRepository {
     public void insertMockCampaigns(OnCampaignListener listener) {
         List<Campaign> mockCampaigns = createMockData();
 
-        int[] successCount = {0};
+        int[] successCount = { 0 };
         int totalCampaigns = mockCampaigns.size();
 
         for (Campaign campaign : mockCampaigns) {
@@ -581,6 +578,7 @@ public class CampaignRepository {
 
     public interface OnCampaignListener {
         void onSuccess(String result);
+
         void onFailure(String error);
     }
 
@@ -670,12 +668,12 @@ public class CampaignRepository {
                                                 public void onFailure(String error) {
                                                     Log.e(TAG, "Failed to send notifications: " + error);
                                                 }
-                                            }
-                                    );
+                                            });
                                 } else if ("DONATION".equals(campaign.getCampaignType())) {
                                     // Campaign quyên góp - gửi thông báo quyên góp
-                                    String donationType = campaign.getDonationTypeEnum() != null ?
-                                            campaign.getDonationTypeEnum().getDisplayName() : "vật phẩm";
+                                    String donationType = campaign.getDonationTypeEnum() != null
+                                            ? campaign.getDonationTypeEnum().getDisplayName()
+                                            : "vật phẩm";
 
                                     notificationRepo.notifyVolunteersAboutNewDonationCampaign(
                                             campaign.getId(),
@@ -692,8 +690,7 @@ public class CampaignRepository {
                                                 public void onFailure(String error) {
                                                     Log.e(TAG, "Failed to send donation notifications: " + error);
                                                 }
-                                            }
-                                    );
+                                            });
                                 }
 
                                 listener.onSuccess("Tạo thành công!");
@@ -762,7 +759,7 @@ public class CampaignRepository {
 
     private void fetchCampaignDetails(List<String> campaignIds, MutableLiveData<List<Campaign>> liveData) {
         List<Campaign> campaigns = new ArrayList<>();
-        int[] completedQueries = {0};
+        int[] completedQueries = { 0 };
         int totalQueries = campaignIds.size();
 
         for (String campaignId : campaignIds) {
@@ -832,6 +829,7 @@ public class CampaignRepository {
 
     public interface OnDonationSaveListener {
         void onSuccess();
+
         void onFailure(String error);
     }
 
@@ -866,9 +864,10 @@ public class CampaignRepository {
     public interface OnDonationAmountListener {
         void onResult(double amount);
     }
+
     // THÊM METHOD MỚI CHO ĐIỂM DANH
     public void confirmAttendance(String registrationId, String userId, String campaignId,
-                                  OnAttendanceListener listener) {
+            OnAttendanceListener listener) {
 
         android.util.Log.d("ATTENDANCE", "=== CONFIRMING ATTENDANCE ===");
 
@@ -938,7 +937,7 @@ public class CampaignRepository {
 
     // Method phụ: Cập nhật attendance và cộng điểm
     private void updateAttendanceAndPoints(String registrationId, String userId, int points,
-                                           OnAttendanceListener listener) {
+            OnAttendanceListener listener) {
 
         // Cập nhật registration status
         java.util.Map<String, Object> regUpdates = new java.util.HashMap<>();
@@ -982,7 +981,8 @@ public class CampaignRepository {
                     }
 
                     int newPoints = currentPoints + points;
-                    android.util.Log.d("ATTENDANCE", "Current points: " + currentPoints + " → New points: " + newPoints);
+                    android.util.Log.d("ATTENDANCE",
+                            "Current points: " + currentPoints + " → New points: " + newPoints);
 
                     // Cập nhật điểm
                     db.collection("users")
@@ -1008,11 +1008,12 @@ public class CampaignRepository {
         void onPointsReceived(int points);
     }
 
-
     public interface OnAttendanceListener {
         void onSuccess(String message);
+
         void onFailure(String error);
     }
+
     // Lấy tổng số tiền đã tài trợ
     public LiveData<Double> getTotalDonationAmount() {
         MutableLiveData<Double> liveData = new MutableLiveData<>();
