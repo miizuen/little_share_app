@@ -1,6 +1,7 @@
 package com.example.little_share.ui.ngo;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -17,6 +18,9 @@ import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.button.MaterialButtonToggleGroup;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.Timestamp;
 
 public class activity_ngo_campaign_detail extends AppCompatActivity {
 
@@ -29,6 +33,8 @@ public class activity_ngo_campaign_detail extends AppCompatActivity {
     private Campaign campaign;
     private String campaignId;
     private CampaignRepository repository;
+    private FirebaseFirestore db;
+    private static final String TAG = "NGOCampaignDetail";
 
 
     @Override
@@ -38,11 +44,15 @@ public class activity_ngo_campaign_detail extends AppCompatActivity {
         setContentView(R.layout.activity_ngo_campaign_detail);
 
         repository = new CampaignRepository();
+        db = FirebaseFirestore.getInstance();
         campaignId = getIntent().getStringExtra("campaignId");
 
         initViews();
         setupListeners();
         loadCampaignData();
+        
+        // Xóa dữ liệu test nếu có
+        cleanupTestDataForCampaign();
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
@@ -78,8 +88,8 @@ public class activity_ngo_campaign_detail extends AppCompatActivity {
         tvPointsReward.setText(String.valueOf(campaign.getPointsReward()));
         tvCampaignCategory.setText(campaign.getCategory() != null ? campaign.getCategory() : "");
 
-        //Mock data
-        tvDuration.setText("7");
+        //Load số tình nguyện viên chờ duyệt thật từ Firebase
+        loadPendingVolunteersCount(campaignId);
 
         int progress = campaign.getProgressPercentage();
         tvProgress.setText(progress + "%");
@@ -136,6 +146,82 @@ public class activity_ngo_campaign_detail extends AppCompatActivity {
         getSupportFragmentManager().beginTransaction()
                 .replace(R.id.tabContainer, fragment)
                 .commit();
+    }
+
+    // Load số tình nguyện viên chờ duyệt cho chiến dịch này - CHỈ DỮ LIỆU THẬT
+    private void loadPendingVolunteersCount(String campaignId) {
+        if (campaignId == null) {
+            Log.e(TAG, "Campaign ID is null");
+            tvDuration.setText("0");
+            return;
+        }
+
+        Log.d(TAG, "Loading pending volunteers for campaign: " + campaignId);
+
+        db.collection("volunteer_registrations")
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("status", "pending")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error loading pending volunteers: " + error.getMessage());
+                        tvDuration.setText("0");
+                        return;
+                    }
+
+                    java.util.Set<String> uniquePendingVolunteers = new java.util.HashSet<>();
+                    if (snapshots != null) {
+                        Log.d(TAG, "Found " + snapshots.size() + " pending registrations for campaign");
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String userId = doc.getString("userId");
+                            String status = doc.getString("status");
+                            String docCampaignId = doc.getString("campaignId");
+                            Log.d(TAG, "Pending registration - userId: " + userId + ", status: " + status + ", campaignId: " + docCampaignId);
+                            if (userId != null) {
+                                uniquePendingVolunteers.add(userId);
+                            }
+                        }
+                    } else {
+                        Log.d(TAG, "No pending registrations found for campaign: " + campaignId);
+                    }
+
+                    int totalPendingVolunteers = uniquePendingVolunteers.size();
+                    Log.d(TAG, "Real pending volunteers count for campaign: " + totalPendingVolunteers);
+
+                    // Cập nhật UI với dữ liệu thật
+                    tvDuration.setText(String.valueOf(totalPendingVolunteers));
+                    Log.d(TAG, "✅ Updated pending volunteers count: " + totalPendingVolunteers);
+                });
+    }
+    
+    // Xóa tất cả dữ liệu test/ảo cho chiến dịch
+    private void cleanupTestDataForCampaign() {
+        Log.d(TAG, "Cleaning up test data for campaigns...");
+        
+        // Xóa tất cả volunteer registrations có userId bắt đầu bằng "test"
+        db.collection("volunteer_registrations")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    if (snapshots != null) {
+                        int deletedCount = 0;
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String userId = doc.getString("userId");
+                            if (userId != null && (userId.startsWith("test") || userId.contains("test_"))) {
+                                doc.getReference().delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "✅ Deleted test registration: " + doc.getId());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "❌ Failed to delete test registration: " + e.getMessage());
+                                        });
+                                deletedCount++;
+                            }
+                        }
+                        Log.d(TAG, "Cleaned up " + deletedCount + " test registrations");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading registrations for cleanup: " + e.getMessage());
+                });
     }
 
     

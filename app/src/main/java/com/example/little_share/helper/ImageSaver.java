@@ -13,159 +13,79 @@ import android.util.Log;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
 
-/**
- * Helper class để lưu ảnh QR code vào thư viện ảnh của thiết bị
- * Hỗ trợ cả Android 10+ (MediaStore) và phiên bản cũ hơn (External Storage)
- */
 public class ImageSaver {
     private static final String TAG = "ImageSaver";
-    private static final String FOLDER_NAME = "LittleShare";
-    
-    public interface OnImageSavedListener {
-        void onSuccess(String filePath);
-        void onFailure(String error);
-    }
-    
-    /**
-     * Lưu bitmap QR code vào thư viện ảnh
-     * @param context Context của activity/fragment
-     * @param bitmap Bitmap của QR code cần lưu
-     * @param fileName Tên file (không bao gồm extension)
-     * @param listener Callback để nhận kết quả
-     */
-    public static void saveQRCodeToGallery(Context context, Bitmap bitmap, String fileName, OnImageSavedListener listener) {
-        if (bitmap == null) {
-            if (listener != null) {
-                listener.onFailure("Bitmap QR code không hợp lệ");
-            }
-            return;
-        }
-        
-        // Tạo tên file với timestamp để tránh trùng lặp
-        String timestamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String finalFileName = fileName + "_" + timestamp + ".png";
-        
+
+    public static boolean saveBitmapToGallery(Context context, Bitmap bitmap, String fileName, String description) {
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                // Android 10+ - Sử dụng MediaStore
-                saveToMediaStore(context, bitmap, finalFileName, listener);
+                // Android 10+ - Use MediaStore
+                return saveBitmapToMediaStore(context, bitmap, fileName, description);
             } else {
-                // Android 9 và thấp hơn - Sử dụng External Storage
-                saveToExternalStorage(context, bitmap, finalFileName, listener);
+                // Android 9 and below - Use External Storage
+                return saveBitmapToExternalStorage(context, bitmap, fileName);
             }
         } catch (Exception e) {
-            Log.e(TAG, "Lỗi khi lưu QR code: " + e.getMessage(), e);
-            if (listener != null) {
-                listener.onFailure("Lỗi khi lưu ảnh: " + e.getMessage());
-            }
+            Log.e(TAG, "Error saving bitmap to gallery", e);
+            return false;
         }
     }
-    
-    /**
-     * Lưu ảnh sử dụng MediaStore (Android 10+)
-     */
-    private static void saveToMediaStore(Context context, Bitmap bitmap, String fileName, OnImageSavedListener listener) {
+
+    private static boolean saveBitmapToMediaStore(Context context, Bitmap bitmap, String fileName, String description) {
         ContentResolver resolver = context.getContentResolver();
-        
         ContentValues contentValues = new ContentValues();
+        
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, fileName);
         contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/png");
-        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/" + FOLDER_NAME);
+        contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/LittleShare");
         
+        if (description != null) {
+            contentValues.put(MediaStore.Images.Media.DESCRIPTION, description);
+        }
+
         Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
         
-        if (imageUri == null) {
-            if (listener != null) {
-                listener.onFailure("Không thể tạo file trong thư viện ảnh");
+        if (imageUri != null) {
+            try (OutputStream outputStream = resolver.openOutputStream(imageUri)) {
+                if (outputStream != null) {
+                    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+                    return true;
+                }
+            } catch (Exception e) {
+                Log.e(TAG, "Error writing to MediaStore", e);
+                // Clean up failed insert
+                resolver.delete(imageUri, null, null);
             }
-            return;
         }
         
-        try (OutputStream outputStream = resolver.openOutputStream(imageUri)) {
-            if (outputStream == null) {
-                if (listener != null) {
-                    listener.onFailure("Không thể mở stream để ghi file");
-                }
-                return;
-            }
-            
-            boolean success = bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
-            
-            if (success) {
-                Log.d(TAG, "QR code đã được lưu thành công vào MediaStore: " + imageUri.toString());
-                if (listener != null) {
-                    listener.onSuccess(imageUri.toString());
-                }
-            } else {
-                if (listener != null) {
-                    listener.onFailure("Lỗi khi nén và lưu ảnh");
-                }
-            }
-            
-        } catch (Exception e) {
-            Log.e(TAG, "Lỗi khi lưu vào MediaStore: " + e.getMessage(), e);
-            if (listener != null) {
-                listener.onFailure("Lỗi khi lưu ảnh: " + e.getMessage());
-            }
-        }
+        return false;
     }
-    
-    /**
-     * Lưu ảnh sử dụng External Storage (Android 9 và thấp hơn)
-     */
-    private static void saveToExternalStorage(Context context, Bitmap bitmap, String fileName, OnImageSavedListener listener) {
-        // Tạo thư mục Pictures/LittleShare
+
+    private static boolean saveBitmapToExternalStorage(Context context, Bitmap bitmap, String fileName) {
         File picturesDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES);
-        File appDir = new File(picturesDir, FOLDER_NAME);
+        File appDir = new File(picturesDir, "LittleShare");
         
-        if (!appDir.exists()) {
-            boolean created = appDir.mkdirs();
-            if (!created) {
-                Log.w(TAG, "Không thể tạo thư mục " + FOLDER_NAME);
-            }
+        if (!appDir.exists() && !appDir.mkdirs()) {
+            Log.e(TAG, "Failed to create directory");
+            return false;
         }
         
         File imageFile = new File(appDir, fileName);
         
         try (FileOutputStream outputStream = new FileOutputStream(imageFile)) {
-            boolean success = bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream);
             
-            if (success) {
-                // Thông báo cho MediaScanner để ảnh xuất hiện trong thư viện
-                android.media.MediaScannerConnection.scanFile(
-                    context,
-                    new String[]{imageFile.getAbsolutePath()},
-                    new String[]{"image/png"},
-                    null
-                );
-                
-                Log.d(TAG, "QR code đã được lưu thành công: " + imageFile.getAbsolutePath());
-                if (listener != null) {
-                    listener.onSuccess(imageFile.getAbsolutePath());
-                }
-            } else {
-                if (listener != null) {
-                    listener.onFailure("Lỗi khi nén và lưu ảnh");
-                }
-            }
+            // Notify media scanner
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DATA, imageFile.getAbsolutePath());
+            values.put(MediaStore.Images.Media.MIME_TYPE, "image/png");
+            context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             
+            return true;
         } catch (Exception e) {
-            Log.e(TAG, "Lỗi khi lưu vào External Storage: " + e.getMessage(), e);
-            if (listener != null) {
-                listener.onFailure("Lỗi khi lưu ảnh: " + e.getMessage());
-            }
+            Log.e(TAG, "Error saving to external storage", e);
+            return false;
         }
-    }
-    
-    /**
-     * Kiểm tra xem có thể lưu ảnh vào external storage không
-     */
-    public static boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
     }
 }
