@@ -474,4 +474,114 @@ public class NotificationRepository {
         void onSuccess(String message);
         void onFailure(String error);
     }
+
+    // ========== THÔNG BÁO CHO NGO KHI NHẬN QUYÊN GÓP TỪ SPONSOR ==========
+    
+    // Thông báo cho NGO khi có sponsor quyên góp tiền
+    public void notifyNGONewSponsorDonation(String orgId, String sponsorName, 
+                                             String campaignName, double amount) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String title = "Tài trợ mới từ " + sponsorName;
+        String description = sponsorName + " đã tài trợ " + formatMoney(amount) + 
+                             " VNĐ cho chiến dịch \"" + campaignName + "\"";
+
+        Notification notification = new Notification(orgId, title, description, 
+                Notification.NotificationType.SPONSORSHIP_SUCCESS.getValue());
+        createNotification(notification, null);
+    }
+
+    // Thông báo cho NGO khi sponsor hoàn tất thanh toán
+    public void notifyNGOSponsorPaymentCompleted(String orgId, String sponsorName, 
+                                                  String campaignName, double amount,
+                                                  String donationId) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String title = "Thanh toán tài trợ hoàn tất";
+        String description = sponsorName + " đã hoàn tất thanh toán " + formatMoney(amount) + 
+                             " VNĐ cho chiến dịch \"" + campaignName + "\".\nVui lòng kiểm tra tài khoản.";
+
+        Notification notification = new Notification(orgId, title, description, 
+                Notification.NotificationType.SPONSORSHIP_SUCCESS.getValue(), donationId);
+        createNotification(notification, null);
+    }
+
+    // ========== THÔNG BÁO ĐĂNG KÝ TÌNH NGUYỆN VIÊN ==========
+
+    public void notifyNGONewRegistration(String orgId, String volunteerName, String campaignName,
+                                         String roleName, String shiftName, String date) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String title = "Đăng ký mới";
+        String description = volunteerName + " đã đăng ký tham gia chiến dịch " + campaignName +
+                "\nVai trò: " + roleName +
+                "\nCa: " + shiftName +
+                "\nNgày: " + date;
+
+        Notification notification = new Notification(orgId, title, description, "new_registration");
+        createNotification(notification, null);
+    }
+
+    // 2. Thông báo khi TNV hủy tham gia
+    public void notifyNGOCancelRegistration(String orgId, String volunteerName, String campaignName,
+                                            String roleName, String date) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String title = "Hủy tham gia";
+        String description = volunteerName + " đã hủy tham gia chiến dịch " + campaignName +
+                "\nVai trò: " + roleName +
+                "\nNgày: " + date;
+
+        Notification notification = new Notification(orgId, title, description, "volunteer_cancelled");
+        createNotification(notification, null);
+    }
+
+    // 3. Thông báo khi có quyên góp vật phẩm mới
+    public void notifyNGONewItemDonation(String orgId, String volunteerName, String campaignName,
+                                         String itemDescription) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String title = "Quyên góp vật phẩm mới";
+        String description = volunteerName + " đã quyên góp cho chiến dịch " + campaignName +
+                "\nVật phẩm: " + itemDescription;
+
+        Notification notification = new Notification(orgId, title, description, "new_item_donation");
+        createNotification(notification, null);
+    }
+
+    // 4. Helper: Tự động lấy tên user rồi gửi thông báo đăng ký
+    public void notifyNGONewRegistrationWithUserLookup(String orgId, String oderId, String campaignName,
+                                                       String roleName, String shiftName, String date) {
+        if (orgId == null || orgId.isEmpty() || oderId == null) return;
+
+        db.collection("users").document(oderId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String userName = "Tình nguyện viên";
+                    if (userDoc.exists()) {
+                        String fullName = userDoc.getString("fullName");
+                        if (fullName != null && !fullName.isEmpty()) {
+                            userName = fullName;
+                        }
+                    }
+                    notifyNGONewRegistration(orgId, userName, campaignName, roleName, shiftName, date);
+                });
+    }
+
+    // 5. Helper: Tự động lấy tên user rồi gửi thông báo hủy
+    public void notifyNGOCancelRegistrationWithUserLookup(String orgId, String oderId, String campaignName,
+                                                          String roleName, String date) {
+        if (orgId == null || orgId.isEmpty() || oderId == null) return;
+
+        db.collection("users").document(oderId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String userName = "Tình nguyện viên";
+                    if (userDoc.exists()) {
+                        String fullName = userDoc.getString("fullName");
+                        if (fullName != null && !fullName.isEmpty()) {
+                            userName = fullName;
+                        }
+                    }
+                    notifyNGOCancelRegistration(orgId, userName, campaignName, roleName, date);
+                });
+    }
 }

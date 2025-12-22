@@ -28,6 +28,7 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -482,5 +483,32 @@ public class activity_volunteer_donation_confirm extends AppCompatActivity {
         } else {
             return DonationItem.ItemCondition.ACCEPTABLE;
         }
+    }
+    private void sendDonationNotificationToOrg(String orgId, String campaignName, String itemDescription) {
+        if (orgId == null || orgId.isEmpty()) return;
+
+        String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+
+        db.collection("users").document(userId).get()
+                .addOnSuccessListener(userDoc -> {
+                    String userName = "Tình nguyện viên";
+                    if (userDoc.exists()) {
+                        String fullName = userDoc.getString("fullName");
+                        if (fullName != null && !fullName.isEmpty()) {
+                            userName = fullName;
+                        }
+                    }
+
+                    java.util.Map<String, Object> notification = new java.util.HashMap<>();
+                    notification.put("userId", orgId);
+                    notification.put("title", "Quyên góp mới");
+                    notification.put("message", userName + " đã quyên góp cho chiến dịch " + campaignName +
+                            "\nVật phẩm: " + itemDescription);
+                    notification.put("type", "new_donation");
+                    notification.put("isRead", false);
+                    notification.put("createdAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+
+                    db.collection("notifications").add(notification);
+                });
     }
 }
