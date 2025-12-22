@@ -1,6 +1,7 @@
 package com.example.little_share.ui.ngo.adapter;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,10 +15,12 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.utils.DateUtilsClass;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.chip.Chip;
 
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
@@ -55,31 +58,70 @@ public class NGOCampaignAdapter extends RecyclerView.Adapter<NGOCampaignAdapter.
         }
 
         // Category chip
+        // Category chip
         if (holder.chipCategory != null) {
-            holder.chipCategory.setText(campaign.getCategory() != null ? campaign.getCategory() : "");
+            // ✅ THAY ĐỔI: Hiển thị tên tiếng Việt thay vì enum
+            try {
+                String categoryStr = campaign.getCategory();
+                if (categoryStr != null) {
+                    Campaign.CampaignCategory category = Campaign.CampaignCategory.valueOf(categoryStr);
+                    holder.chipCategory.setText(category.getDisplayName()); // Sử dụng getDisplayName()
+                } else {
+                    holder.chipCategory.setText("Khác");
+                }
+            } catch (Exception e) {
+                holder.chipCategory.setText(campaign.getCategory() != null ? campaign.getCategory() : "Khác");
+            }
         }
 
+
         // Status chip
+// Status chip
         if (holder.chipStatus != null) {
-            String status = campaign.getStatus() != null ? campaign.getStatus() : "";
-            switch (status.toUpperCase()) {
-                case "ONGOING":
+            String status;
+            if (campaign.getStartDate() != null && campaign.getEndDate() != null) {
+                // ✅ SỬA: Logic tính trạng thái chính xác hơn
+                Date now = new Date();
+                Date startDate = DateUtilsClass.getStartOfDay(campaign.getStartDate()); // 00:00:00
+                Date endDate = DateUtilsClass.getEndOfDay(campaign.getEndDate());       // 23:59:59
+
+                if (now.before(startDate)) {
+                    status = "Sắp diễn ra";
+                } else if (now.after(endDate)) {
+                    status = "Đã kết thúc";
+                } else {
+                    status = "Đang diễn ra";
+                }
+            } else {
+                status = "Chưa xác định";
+            }
+
+            // ✅ SỬA: Màu nền khác cho từng trạng thái
+            switch (status) {
+                case "Đang diễn ra":
                     holder.chipStatus.setText("Đang diễn ra");
-                    holder.chipStatus.setChipBackgroundColorResource(android.R.color.holo_orange_light);
+                    holder.chipStatus.setChipBackgroundColor(ColorStateList.valueOf(0xFFE8F5E8)); // Xanh lá nhạt
+                    holder.chipStatus.setTextColor(0xFF2E7D32); // Xanh lá đậm
                     break;
-                case "UPCOMING":
+                case "Sắp diễn ra":
                     holder.chipStatus.setText("Sắp diễn ra");
-                    holder.chipStatus.setChipBackgroundColorResource(android.R.color.holo_blue_light);
+                    holder.chipStatus.setChipBackgroundColor(ColorStateList.valueOf(0xFFE3F2FD)); // Xanh dương nhạt
+                    holder.chipStatus.setTextColor(0xFF1976D2); // Xanh dương đậm
                     break;
-                case "COMPLETED":
-                    holder.chipStatus.setText("Đã hoàn thành");
-                    holder.chipStatus.setChipBackgroundColorResource(android.R.color.holo_green_light);
+                case "Đã kết thúc":
+                    holder.chipStatus.setText("Đã kết thúc");
+                    holder.chipStatus.setChipBackgroundColor(ColorStateList.valueOf(0xFFF5F5F5)); // Xám nhạt
+                    holder.chipStatus.setTextColor(0xFF757575); // Xám đậm
                     break;
                 default:
                     holder.chipStatus.setText(status);
+                    holder.chipStatus.setChipBackgroundColor(ColorStateList.valueOf(0xFFF5F5F5));
+                    holder.chipStatus.setTextColor(0xFF757575);
                     break;
             }
         }
+
+
 
         // Địa điểm (tvCampaignDate trong layout - tên sai nhưng dùng cho location)
         if (holder.tvLocation != null) {
