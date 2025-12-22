@@ -9,9 +9,12 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
@@ -37,6 +40,7 @@ public class frm_volunteer_home extends Fragment {
     private TextView tvUrgentTitle, tvUrgentLocation;
     private Campaign currentUrgentCampaign;
     private ImageView ivUserAvatar;
+    private EditText etSearch;
     private Chip chipAll, chipEducation, chipFood, chipEnvironment, chipHealth, chipUrgent;
     private RecyclerView rvCampaigns, rvUrgentCampaigns;
     private LinearLayout layoutUrgentSection;
@@ -45,6 +49,7 @@ public class frm_volunteer_home extends Fragment {
     private CampaignAdapter adapter;
     private CampaignRepository repository;
     private String selectedCategory = "ALL";
+    private List<Campaign> allCampaigns = new ArrayList<>();
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -75,6 +80,7 @@ public class frm_volunteer_home extends Fragment {
         chipUrgent = view.findViewById(R.id.chipUrgent);
         layoutUrgentSection = view.findViewById(R.id.layoutUrgentSection);
         rvUrgentCampaigns = view.findViewById(R.id.rvUrgentCampaigns);
+        etSearch = view.findViewById(R.id.etSearch);
 
         loadCurrentUserData();
 
@@ -86,9 +92,49 @@ public class frm_volunteer_home extends Fragment {
 
         setupChips();
 
+        setupSearch();
+
         loadCampaigns();
 
         loadUrgentDonationCampaigns();
+    }
+
+    private void setupSearch() {
+        etSearch.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                filterCampaigns(s.toString());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+
+    private void filterCampaigns(String query) {
+        if (query.isEmpty()) {
+            adapter.updateData(allCampaigns);
+            updateCampaignCount(allCampaigns.size());
+            return;
+        }
+
+        String lowerQuery = query.toLowerCase().trim();
+        List<Campaign> filtered = new ArrayList<>();
+
+        for (Campaign campaign : allCampaigns) {
+            String name = campaign.getName() != null ? campaign.getName().toLowerCase() : "";
+            String orgName = campaign.getOrganizationName() != null ? campaign.getOrganizationName().toLowerCase() : "";
+
+            if (name.contains(lowerQuery) || orgName.contains(lowerQuery)) {
+                filtered.add(campaign);
+            }
+        }
+
+        adapter.updateData(filtered);
+        updateCampaignCount(filtered.size());
     }
 
     private void setupUrgentRecyclerView() {
@@ -123,6 +169,7 @@ public class frm_volunteer_home extends Fragment {
                     if (campaigns.isEmpty()) {
                         // No data, insert mock campaigns
                     } else {
+                        allCampaigns = new ArrayList<>(campaigns);
                         adapter.updateData(campaigns);
                         updateCampaignCount(campaigns.size());
                     }
@@ -133,6 +180,7 @@ public class frm_volunteer_home extends Fragment {
             repository.getCampaignsByCategory(selectedCategory)
                     .observe(getViewLifecycleOwner(), campaigns -> {
                         if (campaigns != null) {
+                            allCampaigns = new ArrayList<>(campaigns);
                             adapter.updateData(campaigns);
                             updateCampaignCount(campaigns.size());
                         }
