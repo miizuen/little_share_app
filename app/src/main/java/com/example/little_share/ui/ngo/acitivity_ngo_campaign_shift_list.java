@@ -47,7 +47,7 @@ public class acitivity_ngo_campaign_shift_list extends AppCompatActivity {
 
     // Data từ các bước trước
     private String campaignName, campaignDescription, category, imageUrl;
-    private String location, specificLocation, startDate, endDate;
+    private String location, specificLocation, yeuCau, startDate, endDate;
     private boolean needsSponsor;
     private String targetBudget, budgetPurpose;
     private List<CampaignRole> roleList;
@@ -98,6 +98,7 @@ public class acitivity_ngo_campaign_shift_list extends AppCompatActivity {
         intent.putExtra("imageUrl", imageUrl);
         intent.putExtra("location", location);
         intent.putExtra("specificLocation", specificLocation);
+        intent.putExtra("yeuCau", yeuCau);
         intent.putExtra("startDate", startDate);
         intent.putExtra("endDate", endDate);
         intent.putExtra("needsSponsor", needsSponsor);
@@ -192,6 +193,7 @@ public class acitivity_ngo_campaign_shift_list extends AppCompatActivity {
         imageUrl = intent.getStringExtra("imageUrl");
         location = intent.getStringExtra("location");
         specificLocation = intent.getStringExtra("specificLocation");
+        yeuCau = intent.getStringExtra("yeuCau");
         startDate = intent.getStringExtra("startDate");
         endDate = intent.getStringExtra("endDate");
         needsSponsor = intent.getBooleanExtra("needsSponsor", false);

@@ -44,8 +44,8 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
     private MaterialToolbar toolbar;
     private TextView tvCampaignName, tvCampaignDescription, tvCategory;
     private ImageView ivCampaignImage;
-    private TextView tvStartDate, tvEndDate, tvLocation, tvSpecificLocation;
-    private CardView layoutSponsorSection, layoutRolesSection, layoutShiftsSection;
+    private TextView tvStartDate, tvEndDate, tvLocation, tvSpecificLocation, tvYeuCau;
+    private CardView layoutSponsorSection, layoutRolesSection, layoutShiftsSection, layoutYeuCauSection;
     private LinearLayout layoutRolesContainer, layoutShiftsContainer;
     private SwitchMaterial switchSponsorDisplay;
     private TextView tvBudget;
@@ -53,7 +53,7 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
 
     // Data
     private String campaignName, campaignDescription, category, imageUrl;
-    private String location, specificLocation, startDate, endDate;
+    private String location, specificLocation, yeuCau, startDate, endDate;
     private boolean needsSponsor;
     private String targetBudget, budgetPurpose;
     private List<CampaignRole> roleList;
@@ -94,6 +94,7 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         imageUrl = intent.getStringExtra("imageUrl");
         location = intent.getStringExtra("location");
         specificLocation = intent.getStringExtra("specificLocation");
+        yeuCau = intent.getStringExtra("yeuCau");
         startDate = intent.getStringExtra("startDate");
         endDate = intent.getStringExtra("endDate");
         needsSponsor = intent.getBooleanExtra("needsSponsor", false);
@@ -115,11 +116,13 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         tvEndDate = findViewById(R.id.tvEndDate);
         tvLocation = findViewById(R.id.tvLocation);
         tvSpecificLocation = findViewById(R.id.tvSpecificLocation);
+        tvYeuCau = findViewById(R.id.tvYeuCau);
 
         // CardView sections
         layoutSponsorSection = findViewById(R.id.layoutSponsorSection);
         layoutRolesSection = findViewById(R.id.layoutRolesSection);
         layoutShiftsSection = findViewById(R.id.layoutShiftsSection);
+        layoutYeuCauSection = findViewById(R.id.layoutYeuCauSection);
 
         switchSponsorDisplay = findViewById(R.id.switchSponsorDisplay);
         tvBudget = findViewById(R.id.tvBudget);
@@ -151,6 +154,14 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         tvLocation.setText(location);
         tvSpecificLocation.setText(specificLocation != null && !specificLocation.isEmpty()
                 ? specificLocation : "Không có");
+
+        // Yeu Cau section
+        if (yeuCau != null && !yeuCau.trim().isEmpty()) {
+            layoutYeuCauSection.setVisibility(View.VISIBLE);
+            tvYeuCau.setText(yeuCau);
+        } else {
+            layoutYeuCauSection.setVisibility(View.GONE);
+        }
 
         // Image
         if (imageUrl != null && !imageUrl.isEmpty()) {
@@ -266,6 +277,7 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         campaign.setCategory(category);
         campaign.setLocation(location);
         campaign.setSpecificLocation(specificLocation);
+        campaign.setRequirements(yeuCau);
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         try {

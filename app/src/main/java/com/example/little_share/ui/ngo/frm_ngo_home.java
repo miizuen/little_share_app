@@ -86,6 +86,7 @@ public class frm_ngo_home extends Fragment {
             btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
         }
         if (btnAttendance != null) {
+            btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
             btnAttendance.setOnClickListener(v -> {
                 // Kiểm tra quyền camera trước khi mở QR Scanner
                 if (checkCameraPermission()) {

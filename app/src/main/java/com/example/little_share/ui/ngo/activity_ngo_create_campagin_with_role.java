@@ -48,6 +48,7 @@ public class activity_ngo_create_campagin_with_role extends AppCompatActivity {
     private String imageUrl;
     private String location;
     private String specificLocation;
+    private String yeuCau;
     private String startDate;
     private String endDate;
     private boolean needsSponsor;
@@ -98,6 +99,7 @@ public class activity_ngo_create_campagin_with_role extends AppCompatActivity {
         intent.putExtra("imageUrl", imageUrl);
         intent.putExtra("location", location);
         intent.putExtra("specificLocation", specificLocation);
+        intent.putExtra("yeuCau", yeuCau);
         intent.putExtra("startDate", startDate);
         intent.putExtra("endDate", endDate);
         intent.putExtra("needsSponsor", needsSponsor);
@@ -168,6 +170,7 @@ public class activity_ngo_create_campagin_with_role extends AppCompatActivity {
         imageUrl = intent.getStringExtra("imageUrl");
         location = intent.getStringExtra("location");
         specificLocation = intent.getStringExtra("specificLocation");
+        yeuCau = intent.getStringExtra("yeuCau");
         startDate = intent.getStringExtra("startDate");
         endDate = intent.getStringExtra("endDate");
         needsSponsor = intent.getBooleanExtra("needsSponsor", false);
