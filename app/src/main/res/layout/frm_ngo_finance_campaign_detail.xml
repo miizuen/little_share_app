@@ -42,6 +42,7 @@
 
         <!-- Progress bar -->
         <ProgressBar
+            android:id="@+id/progressBar"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
             android:layout_height="10dp"
@@ -94,28 +95,6 @@
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:fontFamily="@font/inter" />
-
         </LinearLayout>
-
-        <!-- Tiêu đề -->
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:text="Thông tin tài trợ"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"
-            android:fontFamily="@font/inter" />
-
-        <!-- Danh sách nhà tài trợ -->
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rcvSponsor"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="12dp"
-            tools:listitem="@layout/item_sponsor" />
-
     </LinearLayout>
-
 </FrameLayout>
