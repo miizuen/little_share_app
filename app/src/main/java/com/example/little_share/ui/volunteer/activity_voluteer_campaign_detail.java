@@ -16,6 +16,7 @@ import androidx.core.view.WindowInsetsCompat;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.bumptech.glide.Glide;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -130,6 +131,18 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     }
 
     private void bindData() {
+        // Load ảnh chiến dịch
+        String imageUrl = campaign.getImageUrl();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            Glide.with(this)
+                    .load(imageUrl)
+                    .placeholder(R.drawable.img_nauanchoem)
+                    .error(R.drawable.img_nauanchoem)
+                    .centerCrop()
+                    .into(imgFood);
+        } else {
+            imgFood.setImageResource(R.drawable.img_nauanchoem);
+        }
         String requirements = campaign.getRequirements();
         tvRequirements.setText(requirements != null && !requirements.isEmpty() ? requirements : "Không có yêu cầu đặc biệt");
 
@@ -183,8 +196,7 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvActivity = findViewById(R.id.tvActivity);
         btnRegister = findViewById(R.id.btnRegister);
         tvRequirements = findViewById(R.id.tvRequirements);
-
-        ImageView btnBack = findViewById(R.id.btnBack);
+        ImageView btnBack = findViewById(R.id.btn_Back);
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }

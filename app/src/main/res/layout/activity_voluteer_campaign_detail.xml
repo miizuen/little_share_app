@@ -18,21 +18,18 @@
             android:layout_width="match_parent"
             android:layout_height="280dp">
 
-            <!-- Gradient Overlay -->
-
             <ImageView
                 android:id="@+id/imgFood"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/img_nauanchoem"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_nauanchoem" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_gravity="bottom" />
 
-            <!-- Title and Logo -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -41,6 +38,7 @@
                 android:padding="16dp">
 
                 <ImageView
+                    android:id="@+id/btn_Back"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:background="@drawable/icon_back" />
@@ -59,7 +57,7 @@
                     android:paddingVertical="6dp"
                     android:gravity="center"
                     android:background="@drawable/bg_bell">
-                <TextView
+                    <TextView
                         android:id="@+id/tvCategoryBadge"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
@@ -69,7 +67,6 @@
                         android:textStyle="bold"
                         android:fontFamily="serif" />
                 </LinearLayout>
-
 
                 <TextView
                     android:id="@+id/tvCampaignTitle"
@@ -83,7 +80,7 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Main Content Card -->
+        <!-- Main Content Card - Chỉ còn Progress -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -91,7 +88,52 @@
             app:cardCornerRadius="30dp"
             app:cardElevation="4dp"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="16dp"/>
+            android:layout_marginEnd="16dp">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:padding="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical">
+
+                    <TextView
+                        android:text="Tiến độ"
+                        android:textColor="#616161"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+
+                    <View
+                        android:layout_width="0dp"
+                        android:layout_height="0dp"
+                        android:layout_weight="1" />
+
+                    <TextView
+                        android:id="@+id/tvProgressNumber"
+                        android:text="73%"
+                        android:textColor="#616161"
+                        android:textSize="12sp"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content" />
+                </LinearLayout>
+
+                <ProgressBar
+                    android:id="@+id/progressBar"
+                    style="?android:attr/progressBarStyleHorizontal"
+                    android:layout_width="match_parent"
+                    android:layout_height="8dp"
+                    android:progress="73"
+                    android:layout_marginTop="10dp"
+                    android:progressDrawable="@drawable/bg_progress_custom" />
+
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
 
         <!-- Thông tin tổ chức -->
         <androidx.cardview.widget.CardView
@@ -187,9 +229,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -203,7 +243,6 @@
                     android:id="@+id/tvDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="NẤU ĂN CHO EM - Á MỘT DỊI ẤN THIỆN NGUYỆN DÀY Ý NGHĨA, ĐƯỢC BIẾT ĐẾN RỘNG RÃI CỦA MỸ PHẨM HẠNH PHÚC VỚI PHƯƠNG CHÂM &quot;NẤU ĂN CHỨC BỎ, NHÓM TÌNH NGUYỆN NIỀM TIN, DỰ ÁN TÌNH NGUYỆN NẤU ĂN CHO EM THUỘC NHÓ THIẾT THỰC MANG NHỮNG BỮA CƠM ẨM LÒNG VÀ XÂY DỰNG NHỮNG DIỄM THƯƠNG HOANG TRÁNG CHO TRẺ EM VÙNG CAO, QUÊ CẬN ĐỒ VÀ CÁC EM HỌC TRƯỜNG SÁT HÒN VÀ MỘT TRƯỚC TẠI TỘN GIÀNG HỒN, TOÀN BỘ DOANH THU TỪ CÁ HOẠC NÀU CHÚC KẾT DÙI ĐÃU TIÊN NÀY SÉ GỘP DÙNG ĐẾ ĐÓNG GÓP TRỰC TIÉP VÀO QUỸ NẤY."
                     android:textSize="14sp"
                     android:textColor="#333333"
                     android:lineSpacingExtra="4dp"
@@ -223,7 +262,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_margin="16dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -340,7 +379,7 @@
                             android:id="@+id/tvActivity"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Không giới hạn số lượng (đã có 200 suất cơm)"
+                            android:text="Không giới hạn số lượng"
                             android:textSize="14sp"
                             android:textColor="#000000"
                             android:textStyle="bold" />
@@ -381,7 +420,6 @@
                     android:lineSpacingExtra="4dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
 
         <!-- Button đăng ký -->
         <Button
