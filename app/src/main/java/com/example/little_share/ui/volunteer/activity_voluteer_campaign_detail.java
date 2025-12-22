@@ -94,7 +94,9 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private void loadOrganizationName() {
         String orgId = campaign.getOrganizationId();
         if (orgId == null || orgId.isEmpty()) {
-            tvOrganization.setText("Chưa có thông tin");
+            if (tvOrganization != null) {
+                tvOrganization.setText("Chưa có thông tin");
+            }
             return;
         }
 
@@ -102,84 +104,145 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
                 .document(orgId)
                 .get()
                 .addOnSuccessListener(doc -> {
-                    if (doc.exists()) {
-                        String name = doc.getString("name");
-                        tvOrganization.setText(name != null ? name : "Chưa có thông tin");
-                    } else {
-                        tvOrganization.setText("Chưa có thông tin");
+                    if (tvOrganization != null) { // Kiểm tra null trước khi setText
+                        if (doc.exists()) {
+                            String name = doc.getString("name");
+                            tvOrganization.setText(name != null ? name : "Chưa có thông tin");
+                        } else {
+                            tvOrganization.setText("Chưa có thông tin");
+                        }
                     }
                 })
                 .addOnFailureListener(e -> {
-                    tvOrganization.setText("Chưa có thông tin");
+                    if (tvOrganization != null) { // Kiểm tra null trước khi setText
+                        tvOrganization.setText("Chưa có thông tin");
+                    }
+                    android.util.Log.e("CampaignDetail", "Error loading organization name", e);
                 });
     }
     private void loadSponsorInfo() {
+        // Kiểm tra tvSponsor có null không
+        if (tvSponsor == null) {
+            android.util.Log.e("CampaignDetail", "tvSponsor is null!");
+            return;
+        }
+        
         db.collection("sponsorDonations")
                 .whereEqualTo("campaignId", campaign.getId())
                 .whereEqualTo("status", "COMPLETED")
                 .limit(1)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        String sponsorName = querySnapshot.getDocuments().get(0).getString("sponsorName");
-                        tvSponsor.setText(sponsorName != null ? sponsorName : "");
-                    } else {
-                        tvSponsor.setText(""); // Không có nhà tài trợ
+                    if (tvSponsor != null) { // Kiểm tra lại trước khi setText
+                        if (!querySnapshot.isEmpty()) {
+                            String sponsorName = querySnapshot.getDocuments().get(0).getString("sponsorName");
+                            tvSponsor.setText(sponsorName != null ? sponsorName : "Chưa có nhà tài trợ");
+                        } else {
+                            tvSponsor.setText("Chưa có nhà tài trợ");
+                        }
                     }
                 })
-                .addOnFailureListener(e -> tvSponsor.setText(""));
+                .addOnFailureListener(e -> {
+                    if (tvSponsor != null) { // Kiểm tra lại trước khi setText
+                        tvSponsor.setText("Chưa có nhà tài trợ");
+                    }
+                    android.util.Log.e("CampaignDetail", "Error loading sponsor info", e);
+                });
     }
 
     private void bindData() {
+        // Kiểm tra campaign có null không
+        if (campaign == null) {
+            android.util.Log.e("CampaignDetail", "Campaign is null!");
+            finish();
+            return;
+        }
+        
         // Load ảnh chiến dịch
-        String imageUrl = campaign.getImageUrl();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            Glide.with(this)
-                    .load(imageUrl)
-                    .placeholder(R.drawable.img_nauanchoem)
-                    .error(R.drawable.img_nauanchoem)
-                    .centerCrop()
-                    .into(imgFood);
-        } else {
-            imgFood.setImageResource(R.drawable.img_nauanchoem);
+        if (imgFood != null) {
+            String imageUrl = campaign.getImageUrl();
+            if (imageUrl != null && !imageUrl.isEmpty()) {
+                Glide.with(this)
+                        .load(imageUrl)
+                        .placeholder(R.drawable.img_nauanchoem)
+                        .error(R.drawable.img_nauanchoem)
+                        .centerCrop()
+                        .into(imgFood);
+            } else {
+                imgFood.setImageResource(R.drawable.img_nauanchoem);
+            }
         }
-        String requirements = campaign.getRequirements();
-        tvRequirements.setText(requirements != null && !requirements.isEmpty() ? requirements : "Không có yêu cầu đặc biệt");
-
-        tvCampaignTitle.setText(campaign.getName());
-        try {
-            tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
-        } catch (Exception e) {
-            tvCategoryBadge.setText(campaign.getCategory());
+        
+        // Set requirements
+        if (tvRequirements != null) {
+            String requirements = campaign.getRequirements();
+            tvRequirements.setText(requirements != null && !requirements.isEmpty() ? requirements : "Không có yêu cầu đặc biệt");
         }
 
-        int progress = campaign.getProgressPercentage();
-        tvProgressNumber.setText(progress + "%");
-        progressBar.setProgress(progress);
+        // Set campaign title
+        if (tvCampaignTitle != null) {
+            tvCampaignTitle.setText(campaign.getName() != null ? campaign.getName() : "Chiến dịch thiện nguyện");
+        }
+        
+        // Set category
+        if (tvCategoryBadge != null) {
+            try {
+                tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
+            } catch (Exception e) {
+                tvCategoryBadge.setText(campaign.getCategory() != null ? campaign.getCategory() : "Thiện nguyện");
+            }
+        }
+
+        // Set progress
+        if (tvProgressNumber != null && progressBar != null) {
+            int progress = campaign.getProgressPercentage();
+            tvProgressNumber.setText(progress + "%");
+            progressBar.setProgress(progress);
+        }
 
         // Hiển thị tên tổ chức
-        String orgName = campaign.getOrganizationName();
-        if (orgName != null && !orgName.isEmpty()) {
-            tvOrganization.setText(orgName);
-        } else {
-            // Nếu không có sẵn, query từ collection organization
-            loadOrganizationName();
+        if (tvOrganization != null) {
+            String orgName = campaign.getOrganizationName();
+            if (orgName != null && !orgName.isEmpty()) {
+                tvOrganization.setText(orgName);
+            } else {
+                // Nếu không có sẵn, query từ collection organization
+                loadOrganizationName();
+            }
         }
+        
         // Kiểm tra và hiển thị nhà tài trợ
         loadSponsorInfo();
-        tvDescription.setText(campaign.getDescription());
+        
+        // Set description
+        if (tvDescription != null) {
+            tvDescription.setText(campaign.getDescription() != null ? campaign.getDescription() : "Không có mô tả");
+        }
 
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
-        String dateRange = sdf.format(campaign.getStartDate()) + " - " + sdf.format(campaign.getEndDate());
-        tvTime.setText(dateRange);
+        // Set time
+        if (tvTime != null && campaign.getStartDate() != null && campaign.getEndDate() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+            String dateRange = sdf.format(campaign.getStartDate()) + " - " + sdf.format(campaign.getEndDate());
+            tvTime.setText(dateRange);
+        }
 
-        tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
-        tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
+        // Set location
+        if (tvLocation != null) {
+            tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : 
+                              (campaign.getLocation() != null ? campaign.getLocation() : "Chưa xác định"));
+        }
+        
+        // Set activity
+        if (tvActivity != null) {
+            tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
+        }
 
         // Kiểm tra đã đăng ký chưa trước khi cho đăng ký
-        btnRegister.setOnClickListener(v -> {
-            checkAlreadyRegistered();
-        });
+        if (btnRegister != null) {
+            btnRegister.setOnClickListener(v -> {
+                checkAlreadyRegistered();
+            });
+        }
     }
 
     private void initView() {
@@ -197,6 +260,14 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         btnRegister = findViewById(R.id.btnRegister);
         tvRequirements = findViewById(R.id.tvRequirements);
         ImageView btnBack = findViewById(R.id.btn_Back);
+        
+        // Log để debug views nào bị null
+        android.util.Log.d("CampaignDetail", "=== VIEW INITIALIZATION ===");
+        android.util.Log.d("CampaignDetail", "tvSponsor: " + (tvSponsor != null ? "OK" : "NULL"));
+        android.util.Log.d("CampaignDetail", "tvOrganization: " + (tvOrganization != null ? "OK" : "NULL"));
+        android.util.Log.d("CampaignDetail", "tvCampaignTitle: " + (tvCampaignTitle != null ? "OK" : "NULL"));
+        android.util.Log.d("CampaignDetail", "btnRegister: " + (btnRegister != null ? "OK" : "NULL"));
+        
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
