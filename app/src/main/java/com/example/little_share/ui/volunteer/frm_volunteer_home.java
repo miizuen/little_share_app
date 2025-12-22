@@ -113,23 +113,7 @@ public class frm_volunteer_home extends Fragment {
         tvCampaignCount.setText(count + " chiến dịch");
     }
 
-    private void insertMockData() {
-        repository.insertMockCampaigns(new CampaignRepository.OnCampaignListener() {
-            @Override
-            public void onSuccess(String result) {
-                Toast.makeText(getContext(),
-                        "Đã thêm dữ liệu mẫu",
-                        Toast.LENGTH_SHORT).show();
-            }
 
-            @Override
-            public void onFailure(String error) {
-                Toast.makeText(getContext(),
-                        "Lỗi thêm dữ liệu: " + error,
-                        Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
 
     private void loadCampaigns() {
         if ("ALL".equals(selectedCategory)) {
@@ -138,7 +122,6 @@ public class frm_volunteer_home extends Fragment {
                 if (campaigns != null) {
                     if (campaigns.isEmpty()) {
                         // No data, insert mock campaigns
-                        insertMockData();
                     } else {
                         adapter.updateData(campaigns);
                         updateCampaignCount(campaigns.size());

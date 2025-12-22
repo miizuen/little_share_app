@@ -21,11 +21,8 @@ import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.data.repositories.OrganizationRepository;
-<<<<<<< Updated upstream
-=======
 import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
 import com.example.little_share.utils.QRCodeGenerator;
->>>>>>> Stashed changes
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -89,9 +86,7 @@ public class frm_ngo_home extends Fragment {
             btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
         }
         if (btnAttendance != null) {
-<<<<<<< Updated upstream
             btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
-=======
             btnAttendance.setOnClickListener(v -> {
                 // Kiểm tra quyền camera trước khi mở QR Scanner
                 if (checkCameraPermission()) {
@@ -101,7 +96,6 @@ public class frm_ngo_home extends Fragment {
                     startActivity(new Intent(getActivity(), activity_ngo_attendance.class));
                 }
             });
->>>>>>> Stashed changes
         }
         if (btnReport != null) {
             btnReport.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_finance_report.class)));
@@ -430,8 +424,6 @@ public class frm_ngo_home extends Fragment {
             }
         }
     }
-<<<<<<< Updated upstream
-=======
 
     // ===== PHƯƠNG THỨC MỚI CHO ĐIỂM DANH TRỰC TIẾP =====
     
@@ -536,5 +528,4 @@ public class frm_ngo_home extends Fragment {
                     .show();
         }
     }
->>>>>>> Stashed changes
 }

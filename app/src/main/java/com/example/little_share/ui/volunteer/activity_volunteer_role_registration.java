@@ -13,11 +13,10 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-<<<<<<< Updated upstream
-=======
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.example.little_share.data.repositories.NotificationRepository;
->>>>>>> Stashed changes
+
+
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -122,10 +121,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         btnConfirm.setEnabled(false);
         btnConfirm.setText("Đang kiểm tra...");
 
-<<<<<<< Updated upstream
-        // THÊM: Kiểm tra slot trước khi đăng ký
-        checkCampaignSlots();
-=======
         // Kiểm tra trùng lặp đăng ký (vai trò + ca + ngày) trước khi đăng ký
         checkDuplicateRegistration(currentUser.getUid());
     }
@@ -210,7 +205,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                 .setNegativeButton("Quay lại", (dialog, which) -> finish())
                 .setCancelable(true)
                 .show();
->>>>>>> Stashed changes
     }
 
     // THÊM METHOD MỚI: Kiểm tra slot còn trống không

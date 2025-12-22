@@ -15,11 +15,8 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
-<<<<<<< Updated upstream
-=======
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.bumptech.glide.Glide;
->>>>>>> Stashed changes
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -36,11 +33,15 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
     private TextView tvRequirements;
 
 
+    private FirebaseFirestore db;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_voluteer_campaign_detail);
+
+        db = FirebaseFirestore.getInstance();
 
         initView();
         getDataFromIntent();
@@ -60,9 +61,15 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
             campaign = (Campaign) getIntent().getSerializableExtra("campaign");
         }
     }
+
+    private void checkAlreadyRegistered() {
+        // Cho phép TNV đăng ký nhiều lần trong cùng chiến dịch
+        // Việc kiểm tra trùng vai trò/ca/ngày sẽ được thực hiện ở màn hình đăng ký
+        checkCampaignHasRoles();
+    }
+
     private void checkCampaignHasRoles() {
-        com.google.firebase.firestore.FirebaseFirestore.getInstance()
-                .collection("campaign_roles")
+        db.collection("campaign_roles")
                 .whereEqualTo("campaignId", campaign.getId())
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -169,12 +176,11 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation.setText(campaign.getSpecificLocation() != null ? campaign.getSpecificLocation() : campaign.getLocation());
         tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Tham gia tình nguyện đa dạng");
 
-        // Thêm lại logic đăng ký
+        // Kiểm tra đã đăng ký chưa trước khi cho đăng ký
         btnRegister.setOnClickListener(v -> {
-            checkCampaignHasRoles();
+            checkAlreadyRegistered();
         });
     }
-
 
     private void initView() {
         imgFood = findViewById(R.id.imgFood);
@@ -189,17 +195,10 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         tvLocation = findViewById(R.id.tvLocation);
         tvActivity = findViewById(R.id.tvActivity);
         btnRegister = findViewById(R.id.btnRegister);
-<<<<<<< Updated upstream
-
-        // Thêm nút back
-        ImageView btnBack = findViewById(R.id.btnBack);
-=======
         tvRequirements = findViewById(R.id.tvRequirements);
         ImageView btnBack = findViewById(R.id.btn_Back);
->>>>>>> Stashed changes
         if (btnBack != null) {
             btnBack.setOnClickListener(v -> finish());
         }
     }
-
 }

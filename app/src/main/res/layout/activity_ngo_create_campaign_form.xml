@@ -191,7 +191,7 @@
                 </RelativeLayout>
             </androidx.cardview.widget.CardView>
 
-            <!-- Section: Thông tin cơ bản (Dates) -->
+            <!-- Section: Thời gian và địa điểm -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -208,7 +208,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Thông tin cơ bản"
+                    android:text="Thời gian và địa điểm"
                     android:textSize="15sp"
                     android:textStyle="bold" />
             </LinearLayout>
@@ -473,39 +473,6 @@
                         android:lineSpacingExtra="2dp" />
                 </LinearLayout>
             </LinearLayout>
-
-            <!-- Radio Group: Role Assignment -->
-            <RadioGroup
-                android:id="@+id/radioGroupRoleType"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="24dp">
-
-                <RadioButton
-                    android:id="@+id/rbNoRoleAssignment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Không phân chia vai trò"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp" />
-
-                <RadioButton
-                    android:id="@+id/rbWithRoleAssignment"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Phân chia vai trò"
-                    android:textColor="@color/text_primary"
-                    android:textSize="14sp"
-                    android:paddingStart="8dp"
-                    android:paddingEnd="8dp"
-                    android:paddingTop="12dp"
-                    android:paddingBottom="12dp"
-                    android:checked="true" />
-            </RadioGroup>
 
             <!-- Tiếp theo Button -->
             <com.google.android.material.button.MaterialButton

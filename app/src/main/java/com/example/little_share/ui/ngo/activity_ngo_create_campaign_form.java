@@ -10,7 +10,6 @@ import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RadioGroup;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -23,9 +22,7 @@ import androidx.core.view.WindowInsetsCompat;
 
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
-import com.example.little_share.data.models.Campain.Campaign;
 import com.google.android.material.appbar.MaterialToolbar;
-import com.google.android.material.button.MaterialButton;
 import com.google.android.material.switchmaterial.SwitchMaterial;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -41,7 +38,6 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
     private View layoutImagePlaceholder;
     private SwitchMaterial switchNeedSponsor;
     private LinearLayout layoutSponsorDetails;
-    private RadioGroup radioGroupRoleType;
     private Uri imageUri;
 
     private final Calendar startCalendar = Calendar.getInstance();
@@ -88,12 +84,6 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         findViewById(R.id.btnNext).setOnClickListener(v -> {
             if (!validateBasicInfo()) return;
 
-            int checkedId = radioGroupRoleType.getCheckedRadioButtonId();
-            if (checkedId == -1) {
-                Toast.makeText(this, "Vui lòng chọn hình thức phân vai trò!", Toast.LENGTH_LONG).show();
-                return;
-            }
-
             // Lấy dữ liệu từ form
             String name = etCampaignName.getText() != null ? etCampaignName.getText().toString().trim() : "";
             String desc = etDescription.getText() != null ? etDescription.getText().toString().trim() : "";
@@ -115,67 +105,10 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
                 purposeStr = etPurpose.getText() != null ? etPurpose.getText().toString().trim() : "";
             }
 
-            // Kiểm tra loại role
-            boolean isWithRole = checkedId == R.id.rbWithRoleAssignment;
+            // Chỉ đi màn hình thêm role (with role)
+            Intent intent = new Intent(this, activity_ngo_create_campagin_with_role.class);
 
-            Intent intent;
-            if (isWithRole) {
-                // Có phân vai trò -> đi màn hình thêm role
-                intent = new Intent(this, activity_ngo_create_campagin_with_role.class);
-            } else {
-                // Không phân vai trò -> đi màn hình no role
-                intent = new Intent(this, activity_ngo_create_campaign_no_role.class);
-
-                // No role vẫn cần Campaign object
-                Campaign temp = new Campaign();
-                temp.setName(name);
-                temp.setDescription(desc);
-
-                // Set category enum
-                switch (category) {
-                    case "Môi trường":
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.ENVIRONMENT);
-                        break;
-                    case "Giáo dục":
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
-                        break;
-                    case "Y tế":
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.HEALTH);
-                        break;
-                    case "Nấu ăn và dinh dưỡng":
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.FOOD);
-                        break;
-                    case "Khẩn cấp":
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.URGENT);
-                        break;
-                    default:
-                        temp.setCategoryCampaign(Campaign.CampaignCategory.EDUCATION);
-                        break;
-                }
-
-                temp.setImageUrl(imageUri != null ? imageUri.toString() : "");
-                temp.setStartDate(startCalendar.getTime());
-                temp.setEndDate(endCalendar.getTime());
-                temp.setLocation(location);
-                temp.setSpecificLocation(specificLoc);
-                temp.setNeedsSponsor(switchNeedSponsor.isChecked());
-
-                if (switchNeedSponsor.isChecked()) {
-                    try {
-                        double budget = TextUtils.isEmpty(budgetStr) ? 0 : Double.parseDouble(budgetStr);
-                        temp.setTargetBudget(budget);
-                    } catch (Exception e) {
-                        temp.setTargetBudget(0);
-                    }
-                    temp.setBudgetPurpose(purposeStr);
-                }
-
-                intent.putExtra("temp_campaign", temp);
-                startActivity(intent);
-                return;
-            }
-
-            // Truyền dữ liệu dưới dạng String cho màn hình có role
+            // Truyền dữ liệu
             intent.putExtra("campaignName", name);
             intent.putExtra("campaignDescription", desc);
             intent.putExtra("category", category);
@@ -213,14 +146,12 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
                 endCalendar.get(Calendar.YEAR),
                 endCalendar.get(Calendar.MONTH),
                 endCalendar.get(Calendar.DAY_OF_MONTH)).show());
-
     }
 
     private void updateDate(TextInputEditText editText, Calendar calendar) {
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
         editText.setText(sdf.format(calendar.getTime()));
     }
-
 
     private void setupImagePicker() {
         findViewById(R.id.cardImageUpload).setOnClickListener(v -> {
@@ -237,7 +168,6 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
     }
 
     private void setupToolbar() {
-
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
@@ -258,9 +188,7 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         layoutSponsorDetails = findViewById(R.id.layoutSponsorDetails);
         etBudget = findViewById(R.id.etBudget);
         etPurpose = findViewById(R.id.etPurpose);
-        radioGroupRoleType = findViewById(R.id.radioGroupRoleType);
     }
-
 
     private boolean validateBasicInfo() {
         if (TextUtils.isEmpty(etCampaignName.getText())) {
@@ -281,5 +209,4 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         }
         return true;
     }
-
 }

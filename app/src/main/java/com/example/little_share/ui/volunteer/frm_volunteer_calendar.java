@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -324,9 +325,12 @@ public class frm_volunteer_calendar extends Fragment {
 
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> {
-            // Xử lý nút back
+            // Quay về trang chủ
             if (getActivity() != null) {
-                getActivity().onBackPressed();
+                BottomNavigationView bottomNav = getActivity().findViewById(R.id.bottomNavigation);
+                if (bottomNav != null) {
+                    bottomNav.setSelectedItemId(R.id.nav_home);
+                }
             }
         });
     }
