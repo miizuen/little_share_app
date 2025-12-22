@@ -54,7 +54,6 @@ public class frm_volunteer_calendar extends Fragment {
 
         initViews(view);
         setupRecyclerView();
-        loadUserRegistrations(); // Load dữ liệu thật từ Firebase
         setupClickListeners();
     }
 
@@ -93,7 +92,8 @@ public class frm_volunteer_calendar extends Fragment {
 
         currentUserId = user.getUid();
         android.util.Log.d("CALENDAR_DEBUG", "Loading registrations for user: " + currentUserId);
-
+        historyList = new ArrayList<>();
+        registrationsList.clear();
         // Query registrations (bỏ orderBy để tránh lỗi index)
         db.collection("volunteer_registrations")
                 .whereEqualTo("userId", currentUserId)
@@ -337,8 +337,7 @@ public class frm_volunteer_calendar extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
-        // Refresh dữ liệu mỗi khi fragment được hiển thị lại
-        refreshData();
+        loadUserRegistrations();
     }
 
     // THÊM METHOD REFRESH

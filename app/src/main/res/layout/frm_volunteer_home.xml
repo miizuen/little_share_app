@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".ui.volunteer.frm_volunteer_home">
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:fitsSystemWindows="true">
@@ -414,73 +414,73 @@
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Tất cả"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
                                 android:checkable="true"
-                                android:checked="true" />
+                                android:checked="true"
+                                android:text="Tất cả"
+                                android:textColor="@android:color/white"
+                                app:chipBackgroundColor="@color/bottom_nav_active"
+                                app:chipCornerRadius="18dp" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chipEducation"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Giáo dục"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
-                                android:checkable="false" />
+                                android:checkable="false"
+                                android:text="Giáo dục"
+                                android:textColor="@color/black"
+                                app:chipBackgroundColor="@color/gray_light"
+                                app:chipCornerRadius="18dp" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chipFood"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Nấu ăn"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
-                                android:checkable="true" />
+                                android:checkable="true"
+                                android:text="Nấu ăn và dinh dưỡng"
+                                android:textColor="@color/black"
+                                app:chipBackgroundColor="@color/gray_light"
+                                app:chipCornerRadius="18dp" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chipEnvironment"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Môi trường"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
-                                android:checkable="false" />
+                                android:checkable="false"
+                                android:text="Môi trường"
+                                android:textColor="@color/black"
+                                app:chipBackgroundColor="@color/gray_light"
+                                app:chipCornerRadius="18dp" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chipHealth"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Y tế"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
-                                android:checkable="false" />
+                                android:checkable="false"
+                                android:text="Y tế"
+                                android:textColor="@color/black"
+                                app:chipBackgroundColor="@color/gray_light"
+                                app:chipCornerRadius="18dp" />
 
                             <com.google.android.material.chip.Chip
                                 android:id="@+id/chipUrgent"
                                 style="@style/Widget.MaterialComponents.Chip.Choice"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="Khẩn cấp"
                                 android:layout_marginEnd="8dp"
-                                android:textColor="@android:color/white"
-                                app:chipBackgroundColor="@drawable/chip_selector"
-                                app:chipCornerRadius="18dp"
-                                android:checkable="false" />
+                                android:checkable="false"
+                                android:text="Khẩn cấp"
+                                android:textColor="@color/black"
+                                app:chipBackgroundColor="@color/gray_light"
+                                app:chipCornerRadius="18dp" />
                         </LinearLayout>
                     </HorizontalScrollView>
 
@@ -561,8 +561,8 @@
                         android:id="@+id/rvCampaigns"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:nestedScrollingEnabled="false"
                         android:clipToPadding="false"
+                        android:nestedScrollingEnabled="false"
                         android:paddingBottom="16dp"
                         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                         tools:listitem="@layout/item_campaign_card" />
