@@ -24,7 +24,7 @@ public class frm_profile_volunteer extends Fragment {
 
     private static final String TAG = "frm_profile_volunteer";
     private UserRepository userRepository;
-    private LinearLayout layoutLogout, layoutMyAccount;
+    private LinearLayout layoutLogout, layoutMyAccount, layoutAboutApp;
     private ImageView ivAvatar;
     private TextView tvUserName, tvUserEmail;
 
@@ -41,6 +41,7 @@ public class frm_profile_volunteer extends Fragment {
             // Initialize views
             layoutMyAccount = view.findViewById(R.id.layoutMyAccount);
             layoutLogout = view.findViewById(R.id.layoutLogout);
+            layoutAboutApp = view.findViewById(R.id.layoutAboutApp);
             ivAvatar = view.findViewById(R.id.ivAvatar);
             tvUserName = view.findViewById(R.id.tvUserName);
             tvUserEmail = view.findViewById(R.id.tvUserEmail);
