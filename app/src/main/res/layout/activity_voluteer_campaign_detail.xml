@@ -18,21 +18,18 @@
             android:layout_width="match_parent"
             android:layout_height="280dp">
 
-            <!-- Gradient Overlay -->
-
             <ImageView
                 android:id="@+id/imgFood"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:background="@drawable/img_nauanchoem"
-                android:scaleType="centerCrop" />
+                android:scaleType="centerCrop"
+                android:src="@drawable/img_nauanchoem" />
 
             <View
                 android:layout_width="match_parent"
                 android:layout_height="120dp"
                 android:layout_gravity="bottom" />
 
-            <!-- Title and Logo -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -41,6 +38,7 @@
                 android:padding="16dp">
 
                 <ImageView
+                    android:id="@+id/btn_Back"
                     android:layout_width="20dp"
                     android:layout_height="20dp"
                     android:background="@drawable/icon_back" />
@@ -53,8 +51,10 @@
                 android:orientation="vertical"
                 android:padding="10dp">
                 <LinearLayout
-                    android:layout_width="180dp"
-                    android:layout_height="25dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:paddingHorizontal="16dp"
+                    android:paddingVertical="6dp"
                     android:gravity="center"
                     android:background="@drawable/bg_bell">
                     <TextView
@@ -68,7 +68,6 @@
                         android:fontFamily="serif" />
                 </LinearLayout>
 
-
                 <TextView
                     android:id="@+id/tvCampaignTitle"
                     android:layout_width="wrap_content"
@@ -81,7 +80,7 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Main Content Card -->
+        <!-- Main Content Card - Chỉ còn Progress -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -97,87 +96,10 @@
                 android:orientation="vertical"
                 android:padding="20dp">
 
-                <!-- Điểm và Người đánh giá -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:orientation="horizontal"
-                    android:gravity="center_vertical">
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:background="@drawable/bg_badge_points">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_star"
-                            app:tint="#FFB800" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Điểm"
-                            android:textSize="12sp"
-                            android:textColor="#666666"
-                            android:layout_marginTop="4dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="5.0"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#000000" />
-                    </LinearLayout>
-
-                    <View
-                        android:layout_width="1dp"
-                        android:layout_height="60dp"
-                        android:background="#E0E0E0"
-                        android:layout_marginStart="16dp"
-                        android:layout_marginEnd="16dp" />
-
-                    <LinearLayout
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:orientation="vertical"
-                        android:gravity="center"
-                        android:background="@drawable/bg_quickaction_calendar">
-
-                        <ImageView
-                            android:layout_width="32dp"
-                            android:layout_height="32dp"
-                            android:src="@drawable/ic_calendar"
-                            app:tint="#4A90E2" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Người đánh giá"
-                            android:textSize="12sp"
-                            android:textColor="#666666"
-                            android:layout_marginTop="4dp" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="449,700"
-                            android:textSize="16sp"
-                            android:textStyle="bold"
-                            android:textColor="#000000" />
-                    </LinearLayout>
-                </LinearLayout>
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
                     android:gravity="center_vertical">
 
                     <TextView
@@ -200,7 +122,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content" />
                 </LinearLayout>
-                <!-- Progress Bar -->
+
                 <ProgressBar
                     android:id="@+id/progressBar"
                     style="?android:attr/progressBarStyleHorizontal"
@@ -307,9 +229,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_margin="16dp"
-                app:cardCornerRadius="16dp"
-                app:cardElevation="2dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -323,7 +243,6 @@
                     android:id="@+id/tvDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="NẤU ĂN CHO EM - Á MỘT DỊI ẤN THIỆN NGUYỆN DÀY Ý NGHĨA, ĐƯỢC BIẾT ĐẾN RỘNG RÃI CỦA MỸ PHẨM HẠNH PHÚC VỚI PHƯƠNG CHÂM &quot;NẤU ĂN CHỨC BỎ, NHÓM TÌNH NGUYỆN NIỀM TIN, DỰ ÁN TÌNH NGUYỆN NẤU ĂN CHO EM THUỘC NHÓ THIẾT THỰC MANG NHỮNG BỮA CƠM ẨM LÒNG VÀ XÂY DỰNG NHỮNG DIỄM THƯƠNG HOANG TRÁNG CHO TRẺ EM VÙNG CAO, QUÊ CẬN ĐỒ VÀ CÁC EM HỌC TRƯỜNG SÁT HÒN VÀ MỘT TRƯỚC TẠI TỘN GIÀNG HỒN, TOÀN BỘ DOANH THU TỪ CÁ HOẠC NÀU CHÚC KẾT DÙI ĐÃU TIÊN NÀY SÉ GỘP DÙNG ĐẾ ĐÓNG GÓP TRỰC TIÉP VÀO QUỸ NẤY."
                     android:textSize="14sp"
                     android:textColor="#333333"
                     android:lineSpacingExtra="4dp"
@@ -343,7 +262,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_margin="16dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -460,7 +379,7 @@
                             android:id="@+id/tvActivity"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Không giới hạn số lượng (đã có 200 suất cơm)"
+                            android:text="Không giới hạn số lượng"
                             android:textSize="14sp"
                             android:textColor="#000000"
                             android:textStyle="bold" />
@@ -481,7 +400,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:layout_margin="16dp">
+                android:padding="16dp">
 
                 <TextView
                     android:layout_width="wrap_content"
@@ -491,51 +410,14 @@
                     android:textStyle="bold"
                     android:textColor="#000000" />
 
-                <LinearLayout
+                <TextView
+                    android:id="@+id/tvRequirements"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:orientation="horizontal"
                     android:layout_marginTop="12dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/icon_check"
-                        app:tint="#4CAF50" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Có sức khỏe đảm bảo để tham gia"
-                        android:textSize="14sp"
-                        android:textColor="#333333"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:layout_marginTop="8dp"
-                    android:gravity="center_vertical">
-
-                    <ImageView
-                        android:layout_width="20dp"
-                        android:layout_height="20dp"
-                        android:src="@drawable/icon_check"
-                        app:tint="#4CAF50" />
-
-                    <TextView
-                        android:layout_width="0dp"
-                        android:layout_height="wrap_content"
-                        android:layout_weight="1"
-                        android:text="Có tâm và hoàn thành phần"
-                        android:textSize="14sp"
-                        android:textColor="#333333"
-                        android:layout_marginStart="8dp" />
-                </LinearLayout>
+                    android:textSize="14sp"
+                    android:textColor="#333333"
+                    android:lineSpacingExtra="4dp" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
