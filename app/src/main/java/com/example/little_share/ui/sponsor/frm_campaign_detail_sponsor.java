@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.ui.common.ImageViewerDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -26,6 +27,7 @@ public class frm_campaign_detail_sponsor extends Fragment {
     private ImageView imgBanner;
     private TextView tvCampaignName, tvOrganization, tvLocation, tvDescription;
     private TextView tvSponsorAmount, tvBeneficiaries, tvDuration, tvLocation2, tvActivity;
+    private Campaign currentCampaign;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -71,6 +73,17 @@ public class frm_campaign_detail_sponsor extends Fragment {
         tvDuration = view.findViewById(R.id.tvDuration);
         tvLocation2 = view.findViewById(R.id.tvLocation2);
         tvActivity = view.findViewById(R.id.tvActivity);
+        
+        // Click listener để xem ảnh phóng to
+        imgBanner.setOnClickListener(v -> {
+            if (currentCampaign != null) {
+                String imageUrl = currentCampaign.getImageUrl();
+                if (imageUrl != null && !imageUrl.isEmpty()) {
+                    ImageViewerDialog dialog = new ImageViewerDialog(getContext(), imageUrl);
+                    dialog.show();
+                }
+            }
+        });
     }
 
     private void loadCampaignById(String campaignId) {
@@ -88,6 +101,9 @@ public class frm_campaign_detail_sponsor extends Fragment {
 
     private void displayCampaignData(Campaign campaign) {
         android.util.Log.d("CAMPAIGN_DETAIL", "=== SETTING UI DATA ===");
+        
+        // Lưu campaign hiện tại
+        this.currentCampaign = campaign;
         
         // FORCE SET campaign name - quan trọng nhất
         tvCampaignName.setText(campaign.getName());
