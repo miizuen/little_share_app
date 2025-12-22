@@ -158,7 +158,7 @@ public class frm_ngo_volunteer_list extends Fragment {
 
         allVolunteerInfos.clear();
 
-        // Group registrations by userId để tránh trùng lặp
+        // Group registrations by userId
         Map<String, List<VolunteerRegistration>> groupedByUser = new HashMap<>();
 
         for (VolunteerRegistration reg : allRegistrations) {
@@ -183,7 +183,6 @@ public class frm_ngo_volunteer_list extends Fragment {
             String userId = entry.getKey();
             List<VolunteerRegistration> userRegistrations = entry.getValue();
 
-            // Lấy registration đầu tiên để hiển thị thông tin user
             VolunteerRegistration firstReg = userRegistrations.get(0);
 
             // Load thông tin user từ collection users
@@ -195,20 +194,15 @@ public class frm_ngo_volunteer_list extends Fragment {
                         if (userDoc.exists()) {
                             String fullName = userDoc.getString("fullName");
                             String avatar = userDoc.getString("avatar");
-                            Long totalPoints = userDoc.getLong("totalPoints");
 
                             if (fullName != null && !fullName.isEmpty()) {
                                 firstReg.setUserName(fullName);
                             }
-
                             volunteerInfo.setAvatar(avatar);
-                            volunteerInfo.setTotalPoints(totalPoints != null ? totalPoints.intValue() : 0);
-                        } else {
-                            volunteerInfo.setTotalPoints(0);
                         }
 
-                        // Sử dụng Cách 2: Tính số sự kiện chính xác cho tổ chức này
-                        calculateEventsForOrganization(userId, volunteerInfo, () -> {
+                        // ✅ THAY ĐỔI: Tính điểm từ volunteer_registrations thay vì users
+                        calculatePointsAndEvents(userId, volunteerInfo, () -> {
                             allVolunteerInfos.add(volunteerInfo);
                             loadedCount[0]++;
 
@@ -219,10 +213,8 @@ public class frm_ngo_volunteer_list extends Fragment {
                     })
                     .addOnFailureListener(e -> {
                         VolunteerInfo volunteerInfo = new VolunteerInfo(firstReg);
-                        volunteerInfo.setTotalPoints(0);
 
-                        // Tính số sự kiện ngay cả khi load user thất bại
-                        calculateEventsForOrganization(userId, volunteerInfo, () -> {
+                        calculatePointsAndEvents(userId, volunteerInfo, () -> {
                             allVolunteerInfos.add(volunteerInfo);
                             loadedCount[0]++;
 
@@ -234,42 +226,64 @@ public class frm_ngo_volunteer_list extends Fragment {
         }
     }
 
-    private void calculateEventsForOrganization(String userId, VolunteerInfo volunteerInfo, Runnable onComplete) {
+    // ✅ THÊM PHƯƠNG THỨC MỚI: Tính cả điểm và số sự kiện từ volunteer_registrations
+    private void calculatePointsAndEvents(String userId, VolunteerInfo volunteerInfo, Runnable onComplete) {
         db.collection("volunteer_registrations")
                 .whereEqualTo("userId", userId)
-                .whereEqualTo("organizationId", organizationId) // Chỉ tính sự kiện của tổ chức này
+                .whereEqualTo("organizationId", organizationId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    // Đếm số sự kiện duy nhất (theo campaignId)
-                    Set<String> uniqueCampaigns = new HashSet<>();
+                    Set<String> uniqueEventNames = new HashSet<>();
+                    int totalPoints = 0;
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
                         String status = reg.getStatus();
-                        String campaignId = reg.getCampaignId();
+                        String eventName = reg.getCampaignName();
 
-                        // Chỉ tính các sự kiện đã tham gia hoặc hoàn thành
-                        if (("approved".equals(status) || "joined".equals(status) || "completed".equals(status))
-                                && campaignId != null && !campaignId.isEmpty()) {
-                            uniqueCampaigns.add(campaignId);
+                        // ✅ THÊM: Loại bỏ các sự kiện đã hủy và bị từ chối
+                        if ("cancelled".equals(status) || "rejected".equals(status)) {
+                            continue; // Bỏ qua sự kiện đã hủy hoặc bị từ chối
+                        }
+
+                        // CHỈ tính sự kiện có status hợp lệ
+                        if (("approved".equals(status) || "joined".equals(status) || "completed".equals(status) || "pending".equals(status) || "attended".equals(status))) {
+
+                            // Chỉ thêm tên sự kiện nếu không null và không rỗng
+                            if (eventName != null && !eventName.trim().isEmpty()) {
+                                uniqueEventNames.add(eventName.trim());
+                            }
+
+                            // Cộng điểm từ pointsEarned
+                            Integer points = reg.getPointsEarned();
+                            if (points != null) {
+                                totalPoints += points;
+                            }
                         }
                     }
 
-                    volunteerInfo.setTotalCampaigns(uniqueCampaigns.size());
+                    volunteerInfo.setTotalPoints(totalPoints);
+                    volunteerInfo.setTotalCampaigns(uniqueEventNames.size());
 
-                    // Log để debug
-                    android.util.Log.d("EVENTS_DEBUG",
+                    android.util.Log.d("VOLUNTEER_INFO_DEBUG",
                             "User: " + volunteerInfo.getRegistration().getUserName() +
-                                    " - Events: " + uniqueCampaigns.size());
+                                    " - Points: " + totalPoints +
+                                    " - Unique Events: " + uniqueEventNames.toString() +
+                                    " - Count: " + uniqueEventNames.size());
 
                     onComplete.run();
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("EVENTS_ERROR", "Error calculating events for user: " + userId, e);
+                    android.util.Log.e("VOLUNTEER_ERROR", "Error calculating for user: " + userId, e);
+                    volunteerInfo.setTotalPoints(0);
                     volunteerInfo.setTotalCampaigns(0);
                     onComplete.run();
                 });
     }
+
+
+
+
 
     private void filterData() {
         isLoading = false; // Reset loading state
