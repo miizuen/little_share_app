@@ -29,6 +29,11 @@ public class VolunteerRegistration implements Serializable {
     private int points;
 
     private int pointsEarned; // Điểm đã nhận từ chiến dịch này
+    private int cancelCount;
+
+    public int getCancelCount() { return cancelCount; }
+    public void setCancelCount(int cancelCount) { this.cancelCount = cancelCount; }
+
 
     public int getPointsEarned() { return pointsEarned; }
     public void setPointsEarned(int pointsEarned) { this.pointsEarned = pointsEarned; }

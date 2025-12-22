@@ -133,24 +133,59 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                 .whereEqualTo("date", selectedDate)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
-                    if (!querySnapshot.isEmpty()) {
-                        // Lấy thông tin đăng ký đã tồn tại
-                        DocumentSnapshot existingDoc = querySnapshot.getDocuments().get(0);
-                        String existingRoleName = existingDoc.getString("roleName");
-                        String existingShiftName = existingDoc.getString("shiftName");
-                        String existingDate = existingDoc.getString("date");
+                    boolean hasDuplicate = false;
+                    String existingRoleName = "";
+                    String existingShiftName = "";
+                    String existingDate = "";
 
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String status = doc.getString("status");
+                        // Chỉ block nếu status KHÔNG phải cancelled hoặc rejected
+                        if (status != null && !status.equals("cancelled") && !status.equals("rejected")) {
+                            hasDuplicate = true;
+                            existingRoleName = doc.getString("roleName");
+                            existingShiftName = doc.getString("shiftName");
+                            existingDate = doc.getString("date");
+                            break;
+                        }
+                    }
+
+                    if (hasDuplicate) {
                         resetConfirmButton();
                         showDuplicateRegistrationDialog(existingRoleName, existingShiftName, existingDate);
+                    } else {
+                        // Kiểm tra số lần hủy trước khi cho đăng ký
+                        checkCancelCount(userId);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    checkCampaignSlots();
+                });
+    }
+
+    // Thêm method kiểm tra số lần hủy
+    private void checkCancelCount(String userId) {
+        db.collection("volunteer_registrations")
+                .whereEqualTo("userId", userId)
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("status", "cancelled")
+                .get()
+                .addOnSuccessListener(querySnapshot -> {
+                    int cancelCount = querySnapshot.size();
+                    if (cancelCount >= 2) {
+                        resetConfirmButton();
+                        new androidx.appcompat.app.AlertDialog.Builder(this)
+                                .setTitle("Không thể đăng ký")
+                                .setMessage("Bạn đã hủy tham gia chiến dịch này 2 lần.\nKhông thể đăng ký lại.")
+                                .setPositiveButton("Đã hiểu", null)
+                                .show();
                     } else {
                         checkCampaignSlots();
                     }
                 })
-                .addOnFailureListener(e -> {
-                    android.util.Log.e("DUPLICATE_CHECK", "Error: " + e.getMessage());
-                    checkCampaignSlots();
-                });
+                .addOnFailureListener(e -> checkCampaignSlots());
     }
+
 
     // Hiển thị dialog khi đăng ký trùng
     private void showDuplicateRegistrationDialog(String existingRoleName, String existingShiftName, String existingDate) {
