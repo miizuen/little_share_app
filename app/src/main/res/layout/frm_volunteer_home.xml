@@ -441,7 +441,7 @@
                                 android:layout_height="wrap_content"
                                 android:layout_marginEnd="8dp"
                                 android:checkable="true"
-                                android:text="Nấu ăn"
+                                android:text="Nấu ăn và dinh dưỡng"
                                 android:textColor="@color/black"
                                 app:chipBackgroundColor="@color/gray_light"
                                 app:chipCornerRadius="18dp" />
