@@ -14,6 +14,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.example.little_share.data.repositories.NotificationRepository;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
@@ -379,6 +380,8 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         db.collection("volunteer_registrations")
                 .add(registration)
                 .addOnSuccessListener(documentReference -> {
+                    // THÊM: Gửi thông báo cho tổ chức
+                    sendRegistrationNotificationToOrg(organizationId);
                     showSuccessDialog(false, oderId);
                 })
                 .addOnFailureListener(e -> {
@@ -629,4 +632,16 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             tvSummaryShift.setText(selectedShift.getShiftName() + " (" + selectedShift.getTimeRange() + ")");
         }
     }
+    private void sendRegistrationNotificationToOrg(String orgId) {
+        NotificationRepository notificationRepo = new NotificationRepository();
+        notificationRepo.notifyNGONewRegistrationWithUserLookup(
+                orgId,
+                FirebaseAuth.getInstance().getCurrentUser().getUid(),
+                campaignName,
+                role != null ? role.getRoleName() : "Tình nguyện viên",
+                selectedShift.getShiftName(),
+                selectedDate
+        );
+    }
+
 }
