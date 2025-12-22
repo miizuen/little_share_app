@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
+import com.example.little_share.ui.common.ImageViewerDialog;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -99,6 +100,15 @@ public class CampaignAdapter extends RecyclerView.Adapter<CampaignAdapter.Campai
             } else {
                 imgCampaign.setImageResource(R.drawable.img_nauanchoem);
             }
+
+            // Click listener để xem ảnh phóng to
+            imgCampaign.setOnClickListener(v -> {
+                String imageToShow = imageUrl != null && !imageUrl.isEmpty() ? imageUrl : null;
+                if (imageToShow != null) {
+                    ImageViewerDialog dialog = new ImageViewerDialog(context, imageToShow);
+                    dialog.show();
+                }
+            });
 
             // Set category
             try {
