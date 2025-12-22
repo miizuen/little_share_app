@@ -191,25 +191,37 @@ public class frm_volunteer_home extends Fragment {
     private void filterByCategory(String category) {
         selectedCategory = category;
 
-        // Bỏ chọn tất cả chip
-        chipAll.setChecked(false);
-        chipEducation.setChecked(false);
-        chipFood.setChecked(false);
-        chipEnvironment.setChecked(false);
-        chipHealth.setChecked(false);
-        chipUrgent.setChecked(false);
+        // Reset tất cả chip về màu xám
+        resetChipStyle(chipAll);
+        resetChipStyle(chipEducation);
+        resetChipStyle(chipFood);
+        resetChipStyle(chipEnvironment);
+        resetChipStyle(chipHealth);
+        resetChipStyle(chipUrgent);
 
-
+        // Set chip được chọn thành màu cam
         switch (category) {
-            case "ALL": chipAll.setChecked(true); break;
-            case "EDUCATION": chipEducation.setChecked(true); break;
-            case "FOOD": chipFood.setChecked(true); break;
-            case "ENVIRONMENT": chipEnvironment.setChecked(true); break;
-            case "HEALTH": chipHealth.setChecked(true); break;
-            case "URGENT": chipUrgent.setChecked(true); break;
+            case "ALL": setSelectedChipStyle(chipAll); break;
+            case "EDUCATION": setSelectedChipStyle(chipEducation); break;
+            case "FOOD": setSelectedChipStyle(chipFood); break;
+            case "ENVIRONMENT": setSelectedChipStyle(chipEnvironment); break;
+            case "HEALTH": setSelectedChipStyle(chipHealth); break;
+            case "URGENT": setSelectedChipStyle(chipUrgent); break;
         }
 
         loadCampaigns();
+    }
+
+    // Chip được chọn: nền cam, chữ trắng
+    private void setSelectedChipStyle(Chip chip) {
+        chip.setChipBackgroundColorResource(R.color.primary_orange);
+        chip.setTextColor(getResources().getColor(R.color.white));
+    }
+
+    // Chip không được chọn: nền xám, chữ đen
+    private void resetChipStyle(Chip chip) {
+        chip.setChipBackgroundColorResource(R.color.gray_light);
+        chip.setTextColor(getResources().getColor(R.color.black));
     }
 
     private void setupRecyclerView() {
