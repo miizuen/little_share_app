@@ -58,19 +58,30 @@ public class VolunteerEventAdapter extends RecyclerView.Adapter<VolunteerEventAd
 
             // Set status với màu sắc tương ứng
             String status = event.getStatus();
+
             if ("completed".equals(status)) {
                 tvStatus.setText("Đã hoàn thành");
                 tvStatus.setBackgroundResource(R.drawable.bg_status_completed);
-                tvStatus.setTextColor(Color.parseColor("#16A34A"));
-            } else if ("joined".equals(status)) {
-                tvStatus.setText("Đã tham gia");
+                tvStatus.setTextColor(Color.parseColor("#16A34A")); // Xanh lá
+
+            } else if ("approved".equals(status) || "joined".equals(status) || "attended".equals(status)) {
+                tvStatus.setText("Đang tham gia");
                 tvStatus.setBackgroundResource(R.drawable.bg_status_joined);
-                tvStatus.setTextColor(Color.parseColor("#2563EB"));
-            } else if ("approved".equals(status)) {
+                tvStatus.setTextColor(Color.parseColor("#2563EB")); // Xanh dương
+
+            } else if ("pending".equals(status)) {
                 tvStatus.setText("Đã đăng ký");
+                tvStatus.setBackgroundResource(R.drawable.bg_status_registered);
+                tvStatus.setTextColor(Color.parseColor("#6B7280")); // Xám
+
+            } else {
+                // Trạng thái khác (cancelled, rejected, etc.)
+                tvStatus.setText(status);
                 tvStatus.setBackgroundResource(R.drawable.bg_status_registered);
                 tvStatus.setTextColor(Color.parseColor("#6B7280"));
             }
         }
+
+
     }
 }

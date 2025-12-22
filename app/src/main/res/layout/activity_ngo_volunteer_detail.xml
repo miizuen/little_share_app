@@ -114,7 +114,7 @@
                 android:background="@drawable/bg_tab_unselected"
                 android:paddingHorizontal="20dp"
                 android:paddingVertical="10dp"
-                android:text="Đã tham gia"
+                android:text="Đang tham gia"
                 android:textColor="#666666"
                 android:textSize="14sp" />
 

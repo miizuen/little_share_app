@@ -18,7 +18,9 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class activity_ngo_volunteer_detail extends AppCompatActivity {
 
@@ -91,50 +93,65 @@ public class activity_ngo_volunteer_detail extends AppCompatActivity {
         });
 
         tabJoined.setOnClickListener(v -> {
-            currentFilter = "joined";
+            currentFilter = "joined";  // Đã tham gia
             updateTabUI();
             filterEvents();
         });
 
         tabCompleted.setOnClickListener(v -> {
-            currentFilter = "completed";
+            currentFilter = "completed";  // Hoàn thành
             updateTabUI();
             filterEvents();
         });
 
         tabRegistered.setOnClickListener(v -> {
-            currentFilter = "approved";
+            currentFilter = "approved";  // Đã đăng ký (pending)
             updateTabUI();
             filterEvents();
         });
     }
 
+
     private void updateTabUI() {
-        // Reset tất cả tabs
-        tabAll.setBackgroundResource(R.drawable.bg_tab_unselected);
-        tabAll.setTextColor(getColor(android.R.color.darker_gray));
-
-        tabJoined.setBackgroundResource(R.drawable.bg_tab_unselected);
-        tabJoined.setTextColor(getColor(android.R.color.darker_gray));
-
-        tabCompleted.setBackgroundResource(R.drawable.bg_tab_unselected);
-        tabCompleted.setTextColor(getColor(android.R.color.darker_gray));
-
-        tabRegistered.setBackgroundResource(R.drawable.bg_tab_unselected);
-        tabRegistered.setTextColor(getColor(android.R.color.darker_gray));
+        // Reset tất cả tabs về trạng thái unselected
+        resetTabStyle(tabAll);
+        resetTabStyle(tabJoined);
+        resetTabStyle(tabCompleted);
+        resetTabStyle(tabRegistered);
 
         // Highlight tab được chọn
-        TextView selectedTab;
+        TextView selectedTab = null;
         switch (currentFilter) {
-            case "joined": selectedTab = tabJoined; break;
-            case "completed": selectedTab = tabCompleted; break;
-            case "approved": selectedTab = tabRegistered; break;
-            default: selectedTab = tabAll;
+            case "all":
+                selectedTab = tabAll;
+                break;
+            case "joined":
+                selectedTab = tabJoined;
+                break;
+            case "completed":
+                selectedTab = tabCompleted;
+                break;
+            case "approved":
+                selectedTab = tabRegistered;
+                break;
         }
 
-        selectedTab.setBackgroundResource(R.drawable.bg_tab_selected);
-        selectedTab.setTextColor(getColor(android.R.color.white));
+        if (selectedTab != null) {
+            setSelectedTabStyle(selectedTab);
+        }
     }
+
+    // Helper methods để set style
+    private void resetTabStyle(TextView tab) {
+        tab.setBackgroundResource(R.drawable.bg_tab_unselected);
+        tab.setTextColor(getColor(android.R.color.darker_gray));
+    }
+
+    private void setSelectedTabStyle(TextView tab) {
+        tab.setBackgroundResource(R.drawable.bg_tab_selected);
+        tab.setTextColor(getColor(android.R.color.white));
+    }
+
 
     private void loadVolunteerEvents() {
         db.collection("volunteer_registrations")
@@ -142,22 +159,45 @@ public class activity_ngo_volunteer_detail extends AppCompatActivity {
                 .whereEqualTo("organizationId", organizationId)
                 .get()
                 .addOnSuccessListener(querySnapshot -> {
+                    android.util.Log.d("DETAIL_DEBUG", "Total records: " + querySnapshot.size());
+
                     allEvents.clear();
+                    Set<String> uniqueEventKeys = new HashSet<>();
 
                     for (QueryDocumentSnapshot doc : querySnapshot) {
                         VolunteerRegistration reg = doc.toObject(VolunteerRegistration.class);
 
-                        VolunteerEventDetail event = new VolunteerEventDetail();
-                        event.setEventId(reg.getCampaignId());
-                        event.setEventName(reg.getCampaignName());
-                        event.setEventDate(reg.getDate());
-                        event.setStatus(reg.getStatus());
-                        event.setRoleName(reg.getRoleName());
-                        event.setPointsEarned(reg.getPointsEarned());
+                        String eventName = reg.getCampaignName() != null ? reg.getCampaignName() : "";
+                        String eventDate = reg.getDate() != null ? reg.getDate() : "";
+                        String status = reg.getStatus() != null ? reg.getStatus() : "";
 
-                        allEvents.add(event);
+                        android.util.Log.d("DETAIL_DEBUG",
+                                "Event: " + eventName + ", Status: " + status + ", Date: " + eventDate);
+
+                        // ✅ THÊM: Loại bỏ các sự kiện đã hủy và bị từ chối
+                        if ("cancelled".equals(status) || "rejected".equals(status)) {
+                            android.util.Log.d("DETAIL_DEBUG", "Skipping cancelled/rejected event: " + eventName);
+                            continue; // Bỏ qua sự kiện đã hủy hoặc bị từ chối
+                        }
+
+                        String uniqueKey = eventName + "|" + eventDate + "|" + status;
+
+                        if (!uniqueEventKeys.contains(uniqueKey)) {
+                            uniqueEventKeys.add(uniqueKey);
+
+                            VolunteerEventDetail event = new VolunteerEventDetail();
+                            event.setEventId(reg.getCampaignId());
+                            event.setEventName(eventName);
+                            event.setEventDate(eventDate);
+                            event.setStatus(status);
+                            event.setRoleName(reg.getRoleName());
+                            event.setPointsEarned(reg.getPointsEarned());
+
+                            allEvents.add(event);
+                        }
                     }
 
+                    calculateUniqueEventCount();
                     filterEvents();
                 })
                 .addOnFailureListener(e -> {
@@ -165,15 +205,77 @@ public class activity_ngo_volunteer_detail extends AppCompatActivity {
                 });
     }
 
+
+
+
+
+
     private void filterEvents() {
         List<VolunteerEventDetail> filtered = new ArrayList<>();
 
         for (VolunteerEventDetail event : allEvents) {
-            if (currentFilter.equals("all") || currentFilter.equals(event.getStatus())) {
+            boolean shouldInclude = false;
+            String status = event.getStatus();
+
+            switch (currentFilter) {
+                case "all":
+                    // Hiển thị tất cả
+                    shouldInclude = true;
+                    break;
+
+                case "approved":
+                    // Tab "Đã đăng ký" - chỉ hiển thị status pending
+                    shouldInclude = "pending".equals(status);
+                    break;
+
+                case "joined":
+                    // Tab "Đã tham gia" - hiển thị approved, joined, attended
+                    shouldInclude = "approved".equals(status) ||
+                            "joined".equals(status) ||
+                            "attended".equals(status);
+                    break;
+
+                case "completed":
+                    // Tab "Hoàn thành" - chỉ hiển thị completed
+                    shouldInclude = "completed".equals(status);
+                    break;
+
+                default:
+                    shouldInclude = false;
+            }
+
+            if (shouldInclude) {
                 filtered.add(event);
             }
         }
 
+        // Log để debug
+        android.util.Log.d("FILTER_DEBUG",
+                "Filter: " + currentFilter + ", Total: " + allEvents.size() + ", Filtered: " + filtered.size());
+
         adapter.setData(filtered);
     }
+
+    private void calculateUniqueEventCount() {
+        Set<String> uniqueEventNames = new HashSet<>();
+
+        for (VolunteerEventDetail event : allEvents) {
+            String eventName = event.getEventName();
+            if (eventName != null && !eventName.trim().isEmpty()) {
+                uniqueEventNames.add(eventName.trim());
+            }
+        }
+
+        int uniqueCount = uniqueEventNames.size();
+
+        // Cập nhật hiển thị
+        tvTotalEvents.setText(uniqueCount + " sự kiện");
+
+        // Log để debug
+        android.util.Log.d("UNIQUE_EVENTS_DEBUG",
+                "Unique event names: " + uniqueEventNames.toString() +
+                        " - Count: " + uniqueCount);
+    }
+
+
 }
