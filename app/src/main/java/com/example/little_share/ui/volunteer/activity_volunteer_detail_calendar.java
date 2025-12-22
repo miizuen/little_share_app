@@ -21,6 +21,7 @@ import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.android.material.button.MaterialButton;
+import com.google.firebase.firestore.FieldValue;
 import android.widget.Toast;
 
 public class activity_volunteer_detail_calendar extends AppCompatActivity {
@@ -232,16 +233,14 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
         btnCancel.setText("Đang xử lý...");
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        
+
+        // Bước 1: Update status thành cancelled
         db.collection("volunteer_registrations")
                 .document(registration.getId())
                 .update("status", "cancelled")
                 .addOnSuccessListener(aVoid -> {
-                    // Gửi thông báo cho tổ chức
-                    sendCancelNotificationToOrg();
-                    
-                    Toast.makeText(this, "Đã hủy tham gia thành công", Toast.LENGTH_SHORT).show();
-                    finish();
+                    // Bước 2: Giảm currentVolunteers của campaign
+                    decrementCampaignVolunteers(db);
                 })
                 .addOnFailureListener(e -> {
                     btnCancel.setEnabled(true);
@@ -250,6 +249,36 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
                 });
     }
 
+    // Giảm số lượng tình nguyện viên của campaign
+    private void decrementCampaignVolunteers(FirebaseFirestore db) {
+        String campaignId = registration.getCampaignId();
+        if (campaignId == null || campaignId.isEmpty()) {
+            finishCancellation();
+            return;
+        }
+
+        db.collection("campaigns")
+                .document(campaignId)
+                .update("currentVolunteers", com.google.firebase.firestore.FieldValue.increment(-1))
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("CANCEL_DEBUG", "Campaign volunteers decremented");
+                    finishCancellation();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("CANCEL_DEBUG", "Failed to decrement: " + e.getMessage());
+                    // Vẫn hoàn tất hủy dù không giảm được số lượng
+                    finishCancellation();
+                });
+    }
+
+    // Hoàn tất quá trình hủy
+    private void finishCancellation() {
+        // Gửi thông báo cho tổ chức
+        sendCancelNotificationToOrg();
+
+        Toast.makeText(this, "Đã hủy tham gia thành công", Toast.LENGTH_SHORT).show();
+        finish();
+    }
     // Gửi thông báo hủy cho tổ chức
     private void sendCancelNotificationToOrg() {
         if (registration == null) return;
