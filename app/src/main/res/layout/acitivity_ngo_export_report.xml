@@ -216,7 +216,7 @@
                 android:layout_height="48dp"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Chỉnh sửa"
+                android:text="Quay lại"
                 android:textColor="#333"
                 app:strokeColor="#DDD"
                 app:strokeWidth="1dp"/>
@@ -227,8 +227,8 @@
                 android:layout_height="48dp"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
-                android:text="Xuất PDF"
-                app:backgroundTint="#FF5722"/>
+                android:text="Lưu"
+                app:backgroundTint="#4CAF50"/>
         </LinearLayout>
     </LinearLayout>
 </ScrollView>

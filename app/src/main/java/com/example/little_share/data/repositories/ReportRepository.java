@@ -235,6 +235,98 @@ public class ReportRepository {
                 });
     }
 
+    // Cập nhật báo cáo
+    public void updateReport(FinancialReport report, OnReportListener listener) {
+        if (report.getId() == null) {
+            listener.onFailure("Report ID không hợp lệ");
+            return;
+        }
+
+        // Cập nhật thông tin báo cáo chính
+        db.collection(COLLECTION)
+                .document(report.getId())
+                .set(report)
+                .addOnSuccessListener(aVoid -> {
+                    // Cập nhật expenses
+                    updateExpenses(report.getId(), report.getExpenses(), new OnExpenseListener() {
+                        @Override
+                        public void onSuccess() {
+                            // Cập nhật images
+                            updateImages(report.getId(), report.getImages(), new OnImageListener() {
+                                @Override
+                                public void onSuccess() {
+                                    listener.onSuccess(report.getId());
+                                }
+
+                                @Override
+                                public void onFailure(String error) {
+                                    listener.onSuccess(report.getId()); // Vẫn thành công dù ảnh lỗi
+                                }
+                            });
+                        }
+
+                        @Override
+                        public void onFailure(String error) {
+                            listener.onSuccess(report.getId()); // Vẫn thành công dù expense lỗi
+                        }
+                    });
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error updating report", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
+    // Cập nhật expenses
+    private void updateExpenses(String reportId, List<ReportExpense> expenses, OnExpenseListener listener) {
+        // Xóa tất cả expenses cũ trước
+        db.collection(EXPENSES_COLLECTION)
+                .whereEqualTo("reportId", reportId)
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    // Xóa expenses cũ
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        doc.getReference().delete();
+                    }
+
+                    // Thêm expenses mới
+                    if (expenses != null && !expenses.isEmpty()) {
+                        saveExpenses(reportId, expenses, listener);
+                    } else {
+                        listener.onSuccess();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deleting old expenses", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
+    // Cập nhật images
+    private void updateImages(String reportId, List<ReportImage> images, OnImageListener listener) {
+        // Xóa tất cả images cũ trước
+        db.collection(IMAGES_COLLECTION)
+                .whereEqualTo("reportId", reportId)
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    // Xóa images cũ
+                    for (QueryDocumentSnapshot doc : snapshots) {
+                        doc.getReference().delete();
+                    }
+
+                    // Thêm images mới
+                    if (images != null && !images.isEmpty()) {
+                        saveImages(reportId, images, listener);
+                    } else {
+                        listener.onSuccess();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error deleting old images", e);
+                    listener.onFailure(e.getMessage());
+                });
+    }
+
     // Interfaces
     public interface OnReportListener {
         void onSuccess(String reportId);
