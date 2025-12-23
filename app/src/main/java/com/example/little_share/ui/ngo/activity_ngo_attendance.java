@@ -29,6 +29,7 @@ import com.example.little_share.ui.ngo.dialog.QRScannerDialog;
 import com.google.android.material.button.MaterialButton;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 public class activity_ngo_attendance extends AppCompatActivity {
@@ -295,4 +296,6 @@ public class activity_ngo_attendance extends AppCompatActivity {
             qrDialog.dismiss();
         }
     }
+
+
 }
