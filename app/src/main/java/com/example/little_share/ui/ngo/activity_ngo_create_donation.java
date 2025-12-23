@@ -20,16 +20,14 @@ import com.bumptech.glide.Glide;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
+import com.example.little_share.helper.ImgBBUploader;  // <-- Thêm import này
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.google.android.material.textfield.TextInputEditText;
-import com.google.firebase.storage.FirebaseStorage;
-import com.google.firebase.storage.StorageReference;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 public class activity_ngo_create_donation extends AppCompatActivity {
@@ -59,10 +57,6 @@ public class activity_ngo_create_donation extends AppCompatActivity {
     // Repository
     private CampaignRepository repository;
 
-    // Firebase Storage
-    private FirebaseStorage storage;
-    private StorageReference storageRef;
-
     // Image picker
     private ActivityResultLauncher<String> imagePickerLauncher;
 
@@ -83,8 +77,6 @@ public class activity_ngo_create_donation extends AppCompatActivity {
     private void initializeComponents() {
         // Repository
         repository = new CampaignRepository();
-        storage = FirebaseStorage.getInstance();
-        storageRef = storage.getReference();
 
         // Views
         toolbar = findViewById(R.id.toolbar);
@@ -230,7 +222,9 @@ public class activity_ngo_create_donation extends AppCompatActivity {
         });
     }
 
+    // validateInputs() giữ nguyên hoàn toàn như code cũ của bạn
     private boolean validateInputs() {
+        // ... (giữ nguyên code validate cũ)
         String name = edtCampaignName.getText().toString().trim();
         String description = edtDescription.getText().toString().trim();
         String donationType = actvDonationType.getText().toString().trim();
@@ -244,59 +238,48 @@ public class activity_ngo_create_donation extends AppCompatActivity {
             edtCampaignName.requestFocus();
             return false;
         }
-
         if (description.isEmpty()) {
             edtDescription.setError("Vui lòng nhập mô tả");
             edtDescription.requestFocus();
             return false;
         }
-
         if (donationType.isEmpty()) {
             Toast.makeText(this, "Vui lòng chọn loại quyên góp", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         if (startDate.isEmpty()) {
             Toast.makeText(this, "Vui lòng chọn ngày bắt đầu", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         if (endDate.isEmpty()) {
             Toast.makeText(this, "Vui lòng chọn ngày kết thúc", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         if (startCalendar.after(endCalendar)) {
             Toast.makeText(this, "Ngày kết thúc phải sau ngày bắt đầu", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         if (location.isEmpty()) {
             etLocation.setError("Vui lòng nhập địa điểm");
             etLocation.requestFocus();
             return false;
         }
-
         if (openTime.isEmpty() || closeTime.isEmpty()) {
             Toast.makeText(this, "Vui lòng chọn giờ hoạt động", Toast.LENGTH_SHORT).show();
             return false;
         }
-
         if (contact.isEmpty()) {
             etContact.setError("Vui lòng nhập thông tin liên hệ");
             etContact.requestFocus();
             return false;
         }
-
         return true;
     }
 
     private void createCampaign() {
-        // Disable button
         btnCreateCampaign.setEnabled(false);
         btnCreateCampaign.setText("Đang tạo...");
 
-        // Get form data
         String name = edtCampaignName.getText().toString().trim();
         String description = edtDescription.getText().toString().trim();
         String donationTypeStr = actvDonationType.getText().toString().trim();
@@ -304,18 +287,13 @@ public class activity_ngo_create_donation extends AppCompatActivity {
         String contact = etContact.getText().toString().trim();
         boolean isUrgent = cbUrgent.isChecked();
 
-        // Convert donation type display name to enum
         Campaign.DonationType donationType = convertDonationType(donationTypeStr);
-
-        // Convert to category for backward compatibility
         Campaign.CampaignCategory category = isUrgent ?
                 Campaign.CampaignCategory.URGENT :
                 Campaign.CampaignCategory.EDUCATION;
 
-        // Create working hours string
         String workingHours = openTime + " - " + closeTime;
 
-        // Create campaign object
         Campaign campaign = new Campaign();
         campaign.setName(name);
         campaign.setDescription(description);
@@ -328,21 +306,35 @@ public class activity_ngo_create_donation extends AppCompatActivity {
         campaign.setEndDate(endCalendar.getTime());
         campaign.setContactPhone(contact);
         campaign.setStatus(Campaign.CampaignStatus.UPCOMING.name());
-        campaign.setPointsReward(0); // Không cần điểm cho donation campaign
-        campaign.setMaxVolunteers(0); // Không cần số lượng tình nguyện viên
+        campaign.setPointsReward(0);
+        campaign.setMaxVolunteers(0);
         campaign.setCurrentVolunteers(0);
 
-        Log.d(TAG, "Creating donation campaign:");
-        Log.d(TAG, "  Name: " + name);
-        Log.d(TAG, "  Donation Type: " + donationType.name());
-        Log.d(TAG, "  Category: " + category.name());
-        Log.d(TAG, "  Location: " + location);
-        Log.d(TAG, "  Working Hours: " + workingHours);
-
-        // Upload image if selected
+        // Xử lý ảnh bằng ImgBB
         if (selectedImageUri != null) {
-            uploadImageAndCreateCampaign(campaign);
+            ImgBBUploader.uploadImage(this, selectedImageUri, new ImgBBUploader.UploadListener() {
+                @Override
+                public void onSuccess(String imageUrl) {
+                    campaign.setImageUrl(imageUrl);
+                    saveCampaignToFirebase(campaign);
+                }
+
+                @Override
+                public void onFailure(String error) {
+                    Log.e(TAG, "ImgBB upload failed: " + error);
+                    Toast.makeText(activity_ngo_create_donation.this,
+                            "Lỗi tải ảnh lên. Tạo chiến dịch không có ảnh...", Toast.LENGTH_SHORT).show();
+                    campaign.setImageUrl(""); // hoặc để null nếu model cho phép
+                    saveCampaignToFirebase(campaign);
+                }
+
+                @Override
+                public void onProgress(int progress) {
+                    // Có thể cập nhật progress bar ở đây nếu muốn
+                }
+            });
         } else {
+            campaign.setImageUrl("");
             saveCampaignToFirebase(campaign);
         }
     }
@@ -362,24 +354,6 @@ public class activity_ngo_create_donation extends AppCompatActivity {
         }
     }
 
-    private void uploadImageAndCreateCampaign(Campaign campaign) {
-        String fileName = "campaign_" + System.currentTimeMillis() + ".jpg";
-        StorageReference imageRef = storageRef.child("campaigns/" + fileName);
-
-        imageRef.putFile(selectedImageUri)
-                .addOnSuccessListener(taskSnapshot -> {
-                    imageRef.getDownloadUrl().addOnSuccessListener(uri -> {
-                        campaign.setImageUrl(uri.toString());
-                        saveCampaignToFirebase(campaign);
-                    });
-                })
-                .addOnFailureListener(e -> {
-                    Log.e(TAG, "Image upload failed: " + e.getMessage());
-                    Toast.makeText(this, "Lỗi tải ảnh lên. Tạo chiến dịch không có ảnh...", Toast.LENGTH_SHORT).show();
-                    saveCampaignToFirebase(campaign);
-                });
-    }
-
     private void saveCampaignToFirebase(Campaign campaign) {
         repository.getOrganizationNameAndCreate(campaign, new CampaignRepository.OnCampaignListener() {
             @Override
@@ -388,7 +362,6 @@ public class activity_ngo_create_donation extends AppCompatActivity {
                     Toast.makeText(activity_ngo_create_donation.this,
                             "Tạo chiến dịch quyên góp thành công!",
                             Toast.LENGTH_LONG).show();
-
                     Log.d(TAG, "Campaign created successfully: " + result);
                     finish();
                 });
@@ -400,10 +373,7 @@ public class activity_ngo_create_donation extends AppCompatActivity {
                     Toast.makeText(activity_ngo_create_donation.this,
                             "Lỗi: " + error,
                             Toast.LENGTH_LONG).show();
-
                     Log.e(TAG, "Failed to create campaign: " + error);
-
-                    // Re-enable button
                     btnCreateCampaign.setEnabled(true);
                     btnCreateCampaign.setText("Tạo hoạt động");
                 });

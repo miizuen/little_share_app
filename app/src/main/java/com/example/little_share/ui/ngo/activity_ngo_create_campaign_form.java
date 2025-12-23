@@ -127,11 +127,16 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
     }
 
     private void setupDatePickers() {
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+
         DatePickerDialog.OnDateSetListener startListener = (view, year, month, dayOfMonth) -> {
             startCalendar.set(Calendar.YEAR, year);
             startCalendar.set(Calendar.MONTH, month);
             startCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
             updateDate(etStartDate, startCalendar);
+
+            // Cập nhật lại endDate để giới hạn không chọn trước startDate
+            // (nếu người dùng thay đổi lại ngày bắt đầu)
         };
 
         DatePickerDialog.OnDateSetListener endListener = (view, year, month, dayOfMonth) -> {
@@ -141,19 +146,33 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
             updateDate(etEndDate, endCalendar);
         };
 
+        // Ngày bắt đầu: không cho chọn ngày quá khứ
         etStartDate.setOnClickListener(v -> {
-            DatePickerDialog dialog = new DatePickerDialog(this, startListener,
+            DatePickerDialog dialog = new DatePickerDialog(
+                    this,
+                    startListener,
                     startCalendar.get(Calendar.YEAR),
                     startCalendar.get(Calendar.MONTH),
-                    startCalendar.get(Calendar.DAY_OF_MONTH));
+                    startCalendar.get(Calendar.DAY_OF_MONTH)
+            );
+
+            // Không cho chọn ngày trước hôm nay
+            dialog.getDatePicker().setMinDate(System.currentTimeMillis() - 1000); // -1000 để bỏ qua millisecond chênh lệch
             dialog.show();
         });
 
+        // Ngày kết thúc: không cho chọn trước ngày bắt đầu
         etEndDate.setOnClickListener(v -> {
-            DatePickerDialog dialog = new DatePickerDialog(this, endListener,
+            DatePickerDialog dialog = new DatePickerDialog(
+                    this,
+                    endListener,
                     endCalendar.get(Calendar.YEAR),
                     endCalendar.get(Calendar.MONTH),
-                    endCalendar.get(Calendar.DAY_OF_MONTH));
+                    endCalendar.get(Calendar.DAY_OF_MONTH)
+            );
+
+            // Min date là ngày bắt đầu đã chọn
+            dialog.getDatePicker().setMinDate(startCalendar.getTimeInMillis());
             dialog.show();
         });
     }
