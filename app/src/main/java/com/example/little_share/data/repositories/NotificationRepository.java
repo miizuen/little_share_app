@@ -27,6 +27,7 @@ public class NotificationRepository {
     }
 
     // Lấy tất cả notifications của user hiện tại
+// Lấy tất cả notifications của user hiện tại
     public LiveData<List<Notification>> getUserNotifications() {
         MutableLiveData<List<Notification>> liveData = new MutableLiveData<>();
 
@@ -37,7 +38,6 @@ public class NotificationRepository {
 
         db.collection(COLLECTION)
                 .whereEqualTo("userId", currentUserId)
-                .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error getting notifications", error);
@@ -54,12 +54,21 @@ public class NotificationRepository {
                         }
                     }
 
+                    // Sắp xếp: mới nhất lên đầu
+                    notifications.sort((n1, n2) -> {
+                        if (n1.getCreatedAt() == null && n2.getCreatedAt() == null) return 0;
+                        if (n1.getCreatedAt() == null) return -1;
+                        if (n2.getCreatedAt() == null) return 1;
+                        return n2.getCreatedAt().compareTo(n1.getCreatedAt());
+                    });
+
                     liveData.setValue(notifications);
                     Log.d(TAG, "Loaded " + notifications.size() + " notifications");
                 });
 
         return liveData;
     }
+
 
     // Đếm số notifications chưa đọc
     public LiveData<Integer> getUnreadCount() {

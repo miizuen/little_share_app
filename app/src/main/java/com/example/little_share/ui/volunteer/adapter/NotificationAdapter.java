@@ -76,9 +76,21 @@ public class NotificationAdapter extends RecyclerView.Adapter<NotificationAdapte
     }
 
     public void setNotifications(List<Notification> notifications) {
-        this.notificationList = notifications != null ? notifications : new ArrayList<>();
+        this.notificationList = notifications != null ? new ArrayList<>(notifications) : new ArrayList<>();
+
+        // Sắp xếp: thông báo mới nhất lên đầu
+        java.util.Collections.sort(this.notificationList, (n1, n2) -> {
+            java.util.Date d1 = n1.getCreatedAt();
+            java.util.Date d2 = n2.getCreatedAt();
+            if (d1 == null && d2 == null) return 0;
+            if (d1 == null) return -1;
+            if (d2 == null) return 1;
+            return d2.compareTo(d1);
+        });
+
         notifyDataSetChanged();
     }
+
 
     public void removeItem(int position) {
         if (position >= 0 && position < notificationList.size()) {
