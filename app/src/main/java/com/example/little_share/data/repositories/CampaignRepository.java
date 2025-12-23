@@ -204,7 +204,8 @@ public class CampaignRepository {
         campaign.setOrganizationId(currentUserId);
 
         // Lấy tên tổ chức từ Firestore trước khi tạo
-        db.collection("users").document(currentUserId)
+        db.collection("organization").document(currentUserId)
+
                 .get()
                 .addOnSuccessListener(doc -> {
                     if (doc.exists()) {
