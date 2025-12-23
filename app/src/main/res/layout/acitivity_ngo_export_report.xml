@@ -168,40 +168,6 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
-        <!-- Tình nguyện viên list -->
-        <androidx.cardview.widget.CardView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            app:cardBackgroundColor="#FFF"
-            app:cardCornerRadius="16dp">
-
-            <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical" android:padding="16dp">
-
-                <TextView android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="Tình nguyện viên" android:textColor="#333" android:textSize="16sp" android:textStyle="bold"/>
-
-                <!-- Table Header -->
-                <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="12dp" android:paddingVertical="8dp">
-                    <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="2" android:text="Tên" android:textColor="#999" android:textSize="11sp"/>
-                    <TextView android:layout_width="55dp" android:layout_height="wrap_content" android:text="Vai trò" android:textColor="#999" android:textSize="11sp" android:gravity="center"/>
-                    <TextView android:layout_width="50dp" android:layout_height="wrap_content" android:text="Giờ làm" android:textColor="#999" android:textSize="11sp" android:gravity="center"/>
-                    <TextView android:layout_width="45dp" android:layout_height="wrap_content" android:text="Điểm" android:textColor="#999" android:textSize="11sp" android:gravity="center"/>
-                </LinearLayout>
-
-                <View android:layout_width="match_parent" android:layout_height="1dp" android:background="#EEE"/>
-
-                <!-- RecyclerView for Volunteers -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/rvVolunteers"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:nestedScrollingEnabled="false"
-                    tools:itemCount="3"
-                    tools:listitem="@layout/item_volunteer"/>
-            </LinearLayout>
-        </androidx.cardview.widget.CardView>
-
         <!-- Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
