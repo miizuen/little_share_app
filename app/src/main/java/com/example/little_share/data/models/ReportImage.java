@@ -13,7 +13,6 @@ public class ReportImage implements Serializable {
     private String reportId;
     private String imageUrl;
     private String caption;
-    @ServerTimestamp
     private Date uploadedAt;
 
     // Constructors

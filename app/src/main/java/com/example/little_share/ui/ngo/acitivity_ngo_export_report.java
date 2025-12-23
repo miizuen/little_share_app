@@ -196,13 +196,16 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
     }
 
     private void displayReportData(FinancialReport report) {
+        currentReport = report;
+
+        if (currentReport.getId() == null && reportId != null) {
+            currentReport.setId(reportId);
+        }
+        reportId = currentReport.getId();
+
         // Campaign name
         tvCampaignName.setText(report.getCampaignName());
-
-        // Date (you might want to get this from Campaign object)
         tvDate.setText("N/A");
-
-        // Location (you might want to get this from Campaign object)
         tvLocation.setText("N/A");
 
         // Total spending
@@ -212,13 +215,17 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
         // Volunteers
         tvVolunteerCount.setText(report.getTotalVolunteers() + " người");
 
-        // Expenses
+        // ===== SỬA PHẦN NÀY =====
+        // Expenses - CHỈ LOAD LẦN ĐẦU, không clear nếu đã có data
         if (report.getExpenses() != null && !report.getExpenses().isEmpty()) {
-            expenses.clear();
-            expenses.addAll(report.getExpenses());
-            expenseAdapter.notifyDataSetChanged();
+            // Chỉ load nếu expenses list đang rỗng (lần đầu load)
+            if (expenses.isEmpty()) {
+                expenses.addAll(report.getExpenses());
+                expenseAdapter.notifyDataSetChanged();
+            }
+            // Nếu đã có data trong expenses, giữ nguyên (không overwrite)
 
-            // Calculate total
+            // Calculate total từ expenses hiện tại trong memory
             double total = 0;
             for (ReportExpense expense : expenses) {
                 total += expense.getAmount();
@@ -226,22 +233,20 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
             tvExpenseTotal.setText(formatMoney(total) + " đ");
         }
 
-        // Images
+        // Images - tương tự
         if (report.getImages() != null && !report.getImages().isEmpty()) {
-            images.clear();
-            images.addAll(report.getImages());
-            
-            // Force complete refresh of image adapter
-            imageAdapter.notifyDataSetChanged();
-            
-            // Also try to refresh the RecyclerView layout
-            rvImages.post(() -> {
-                rvImages.requestLayout();
+            // Chỉ load nếu images list đang rỗng
+            if (images.isEmpty()) {
+                images.addAll(report.getImages());
                 imageAdapter.notifyDataSetChanged();
-            });
-            
+
+                rvImages.post(() -> {
+                    rvImages.requestLayout();
+                    imageAdapter.notifyDataSetChanged();
+                });
+            }
+
             Log.d(TAG, "Loaded " + images.size() + " images from report");
-            debugAdapterState();
         } else {
             Log.d(TAG, "No images found in report");
         }
@@ -249,20 +254,18 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
         Log.d(TAG, "Displayed report: " + report.getCampaignName());
         Log.d(TAG, "Expenses: " + expenses.size());
         Log.d(TAG, "Images: " + images.size());
-        Log.d(TAG, "Adapter item count: " + imageAdapter.getItemCount());
     }
 
     private void showAddExpenseDialog() {
         AddSpendingDialog dialog = new AddSpendingDialog();
         dialog.setOnExpenseAddedListener(expense -> {
-            // Thêm vào danh sách local
+            if (currentReport != null && currentReport.getId() != null) {
+                expense.setReportId(currentReport.getId());
+            }
             expenses.add(expense);
             expenseAdapter.notifyItemInserted(expenses.size() - 1);
             updateTotalExpense();
-            
-            // Lưu ngay vào Firebase
-            saveExpenseToFirebase(expense);
-            
+
             Toast.makeText(this, "Đã thêm khoản chi", Toast.LENGTH_SHORT).show();
         });
         dialog.show(getSupportFragmentManager(), "AddSpendingDialog");
@@ -271,14 +274,14 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
     private void showEditExpenseDialog(ReportExpense expense, int position) {
         AddSpendingDialog dialog = AddSpendingDialog.newInstanceForEdit(expense);
         dialog.setOnExpenseAddedListener(updatedExpense -> {
-            // Cập nhật trong danh sách local
+            if (currentReport != null && currentReport.getId() != null) {
+                updatedExpense.setReportId(currentReport.getId());
+            }
+
             expenses.set(position, updatedExpense);
             expenseAdapter.notifyItemChanged(position);
             updateTotalExpense();
-            
-            // Cập nhật trong Firebase
-            updateExpenseInFirebase(updatedExpense);
-            
+
             Toast.makeText(this, "Đã cập nhật", Toast.LENGTH_SHORT).show();
         });
         dialog.show(getSupportFragmentManager(), "EditSpendingDialog");
@@ -293,9 +296,7 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
                     expenses.remove(position);
                     expenseAdapter.notifyItemRemoved(position);
                     updateTotalExpense();
-                    
-                    // Xóa khỏi Firebase
-                    deleteExpenseFromFirebase(expense);
+
                     
                     Toast.makeText(this, "Đã xóa", Toast.LENGTH_SHORT).show();
                 })
@@ -313,9 +314,7 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
                     // Xóa khỏi danh sách local
                     images.remove(position);
                     imageAdapter.notifyItemRemoved(position);
-                    
-                    // Xóa khỏi Firebase
-                    deleteImageFromFirebase(imageToDelete);
+
                     
                     Toast.makeText(this, "Đã xóa ảnh", Toast.LENGTH_SHORT).show();
                 })
@@ -352,32 +351,15 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
             @Override
             public void onSuccess(String imageUrl) {
                 runOnUiThread(() -> {
-                    ReportImage reportImage = new ReportImage(reportId, imageUrl);
-                    
-                    // Thêm vào danh sách local
+                    String correctReportId = currentReport != null ? currentReport.getId() : reportId;
+
+                    ReportImage reportImage = new ReportImage(correctReportId, imageUrl);
+
                     images.add(reportImage);
-                    
-                    // Debug log trước khi notify
-                    Log.d(TAG, "About to notify adapter. Images size: " + images.size());
-                    Log.d(TAG, "New image URL: " + imageUrl);
-                    
-                    // Notify adapter về item mới - thử cả hai cách
-                    int newPosition = images.size() - 1;
-                    imageAdapter.notifyItemInserted(newPosition);
-                    
-                    // Thêm delay nhỏ rồi force refresh toàn bộ adapter
-                    rvImages.postDelayed(() -> {
-                        imageAdapter.notifyDataSetChanged();
-                        rvImages.scrollToPosition(newPosition);
-                        debugAdapterState();
-                    }, 100);
-                    
-                    // Lưu vào Firebase (không cần chờ)
-                    saveImageToFirebase(reportImage);
-                    
-                    Toast.makeText(acitivity_ngo_export_report.this, "Đã thêm ảnh thành công!", Toast.LENGTH_SHORT).show();
-                    
-                    Log.d(TAG, "Image added successfully. Total images: " + images.size());
+                    imageAdapter.notifyDataSetChanged();
+                    rvImages.scrollToPosition(images.size() - 1);
+
+                    Toast.makeText(acitivity_ngo_export_report.this, "Đã thêm ảnh (chưa lưu)", Toast.LENGTH_SHORT).show();
                 });
             }
 
@@ -385,13 +367,12 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
             public void onFailure(String error) {
                 runOnUiThread(() -> {
                     Toast.makeText(acitivity_ngo_export_report.this, "Lỗi tải ảnh: " + error, Toast.LENGTH_SHORT).show();
-                    Log.e(TAG, "Failed to upload image: " + error);
                 });
             }
 
             @Override
             public void onProgress(int progress) {
-                // Optional: show progress
+
             }
         });
     }
@@ -459,135 +440,5 @@ public class acitivity_ngo_export_report extends AppCompatActivity {
                 });
             }
         });
-    }
-
-    // Helper methods để thao tác với Firebase
-    private void saveExpenseToFirebase(ReportExpense expense) {
-        if (currentReport != null) {
-            // Cập nhật danh sách expenses trong report
-            currentReport.setExpenses(expenses);
-            
-            // Tính lại tổng chi tiêu
-            double totalExpense = 0;
-            for (ReportExpense exp : expenses) {
-                totalExpense += exp.getAmount();
-            }
-            currentReport.setTotalExpense(totalExpense);
-            
-            // Lưu vào Firebase
-            reportRepository.updateReport(currentReport, new ReportRepository.OnReportListener() {
-                @Override
-                public void onSuccess(String reportId) {
-                    Log.d(TAG, "Expense saved to Firebase");
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Log.e(TAG, "Failed to save expense: " + error);
-                }
-            });
-        }
-    }
-
-    private void updateExpenseInFirebase(ReportExpense expense) {
-        saveExpenseToFirebase(expense); // Sử dụng cùng logic
-    }
-
-    private void deleteExpenseFromFirebase(ReportExpense expense) {
-        if (currentReport != null) {
-            // Cập nhật danh sách expenses trong report
-            currentReport.setExpenses(expenses);
-            
-            // Tính lại tổng chi tiêu
-            double totalExpense = 0;
-            for (ReportExpense exp : expenses) {
-                totalExpense += exp.getAmount();
-            }
-            currentReport.setTotalExpense(totalExpense);
-            
-            // Lưu vào Firebase
-            reportRepository.updateReport(currentReport, new ReportRepository.OnReportListener() {
-                @Override
-                public void onSuccess(String reportId) {
-                    Log.d(TAG, "Expense deleted from Firebase");
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Log.e(TAG, "Failed to delete expense: " + error);
-                }
-            });
-        }
-    }
-
-    private void deleteImageFromFirebase(ReportImage image) {
-        if (currentReport != null) {
-            // Cập nhật danh sách images trong report
-            currentReport.setImages(images);
-            
-            // Lưu vào Firebase
-            reportRepository.updateReport(currentReport, new ReportRepository.OnReportListener() {
-                @Override
-                public void onSuccess(String reportId) {
-                    Log.d(TAG, "Image deleted from Firebase");
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Log.e(TAG, "Failed to delete image: " + error);
-                }
-            });
-        }
-    }
-
-    private void saveImageToFirebase(ReportImage image) {
-        if (currentReport != null) {
-            // Cập nhật danh sách images trong report
-            currentReport.setImages(images);
-            
-            // Lưu vào Firebase
-            reportRepository.updateReport(currentReport, new ReportRepository.OnReportListener() {
-                @Override
-                public void onSuccess(String reportId) {
-                    Log.d(TAG, "Image saved to Firebase");
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    Log.e(TAG, "Failed to save image: " + error);
-                }
-            });
-        }
-    }
-
-    // Method helper để refresh image adapter
-    private void refreshImageAdapter() {
-        if (imageAdapter != null) {
-            runOnUiThread(() -> {
-                Log.d(TAG, "Refreshing image adapter...");
-                imageAdapter.notifyDataSetChanged();
-                
-                // Force layout refresh
-                rvImages.post(() -> {
-                    rvImages.requestLayout();
-                    rvImages.invalidate();
-                });
-                
-                Log.d(TAG, "Image adapter refreshed. Total images: " + images.size());
-                debugAdapterState();
-            });
-        }
-    }
-
-    // Method để kiểm tra trạng thái adapter
-    private void debugAdapterState() {
-        Log.d(TAG, "=== ADAPTER DEBUG ===");
-        Log.d(TAG, "Images list size: " + images.size());
-        Log.d(TAG, "Adapter item count: " + (imageAdapter != null ? imageAdapter.getItemCount() : "null"));
-        Log.d(TAG, "RecyclerView adapter: " + (rvImages.getAdapter() != null ? "attached" : "null"));
-        
-        if (images.size() > 0) {
-            Log.d(TAG, "First image URL: " + images.get(0).getImageUrl());
-        }
     }
 }
