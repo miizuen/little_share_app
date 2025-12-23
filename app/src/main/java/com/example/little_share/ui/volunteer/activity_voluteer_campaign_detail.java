@@ -81,10 +81,35 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
 
         tvCampaignTitle.setText(campaign.getName());
 
+        // Set category badge với logic tương tự CampaignAdapter
+        android.util.Log.d("CATEGORY_DEBUG", "Setting category badge for campaign: " + campaign.getName());
+        android.util.Log.d("CATEGORY_DEBUG", "Raw category value: " + campaign.getCategory());
+
         try {
-            tvCategoryBadge.setText(campaign.getCategoryEnum().getDisplayName());
+            String categoryStr = campaign.getCategory();
+            Campaign.CampaignCategory category;
+
+            // Nếu là string thô từ Firestore
+            if (categoryStr != null) {
+                category = Campaign.CampaignCategory.valueOf(categoryStr);
+                android.util.Log.d("CATEGORY_DEBUG", "Converted to enum: " + category);
+                tvCategoryBadge.setText(category.getDisplayName());
+                android.util.Log.d("CATEGORY_DEBUG", "Display name: " + category.getDisplayName());
+            } else {
+                category = campaign.getCategoryEnum();
+                if (category != null) {
+                    tvCategoryBadge.setText(category.getDisplayName());
+                    android.util.Log.d("CATEGORY_DEBUG", "Using getCategoryEnum: " + category.getDisplayName());
+                } else {
+                    tvCategoryBadge.setText("Chưa phân loại");
+                    android.util.Log.w("CATEGORY_DEBUG", "No category found");
+                }
+            }
         } catch (Exception e) {
-            tvCategoryBadge.setText(campaign.getCategory());
+            // Fallback nếu có lỗi
+            android.util.Log.e("CATEGORY_DEBUG", "Error setting category: " + e.getMessage());
+            String cat = campaign.getCategory();
+            tvCategoryBadge.setText(cat != null ? getCategoryDisplayName(cat) : "Chưa phân loại");
         }
 
         int progress = campaign.getProgressPercentage();
@@ -97,7 +122,16 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
                         : "Không có yêu cầu đặc biệt"
         );
 
-        tvDescription.setText(campaign.getDescription());
+        // Hiển thị description thực tế của chiến dịch
+        android.util.Log.d("CATEGORY_DEBUG", "Campaign description: " + campaign.getDescription());
+        android.util.Log.d("CATEGORY_DEBUG", "Campaign category: " + campaign.getCategory());
+
+        tvDescription.setText(
+                campaign.getDescription() != null && !campaign.getDescription().isEmpty()
+                        ? campaign.getDescription()
+                        : "Không có mô tả"
+        );
+
 
         SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
         tvTime.setText(
@@ -192,4 +226,27 @@ public class activity_voluteer_campaign_detail extends AppCompatActivity {
         ImageView btnBack = findViewById(R.id.btn_Back);
         if (btnBack != null) btnBack.setOnClickListener(v -> finish());
     }
+
+    private String getCategoryDisplayName(String category) {
+        if (category == null) return "Chưa phân loại";
+
+        android.util.Log.d("CATEGORY_DEBUG", "Converting category: " + category);
+
+        switch (category.toUpperCase()) {
+            case "EDUCATION":
+                return "Giáo dục";
+            case "FOOD":
+                return "Nấu ăn và dinh dưỡng";
+            case "ENVIRONMENT":
+                return "Môi trường";
+            case "HEALTH":
+                return "Y tế";
+            case "URGENT":
+                return "Khẩn cấp";
+            default:
+                android.util.Log.w("CATEGORY_DEBUG", "Unknown category: " + category);
+                return category;
+        }
+    }
+
 }

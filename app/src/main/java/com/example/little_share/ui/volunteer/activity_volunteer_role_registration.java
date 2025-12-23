@@ -602,42 +602,131 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             // Set dữ liệu
             tvTime.setText(shift.getTimeRange());
 
-            // Tính số chỗ trống
-            int currentVolunteers = shift.getCurrentVolunteers();
-            int maxVolunteers = shift.getMaxVolunteers();
-            int availableSlots = maxVolunteers - currentVolunteers;
-
-            if (availableSlots <= 0) {
-                tvSlots.setText("Đã đủ người");
-                tvSlots.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
-                cardShift.setEnabled(false);
-                cardShift.setAlpha(0.5f);
-                if (ivIcon != null) {
-                    ivIcon.setColorFilter(getResources().getColor(android.R.color.darker_gray));
-                }
-            } else {
-                tvSlots.setText("Còn " + availableSlots + "/" + maxVolunteers + " chỗ");
-                tvSlots.setTextColor(getResources().getColor(R.color.text_secondary));
-                cardShift.setEnabled(true);
-                cardShift.setAlpha(1.0f);
-                if (ivIcon != null) {
-                    ivIcon.setImageResource(R.drawable.ic_journey);
-                    ivIcon.setColorFilter(getResources().getColor(R.color.text_secondary));
-                }
-            }
+            // TÍNH SỐ CHỖ DỰA TRÊN VAI TRÒ CỤ THỂ
+            calculateRoleSlots(shift, tvSlots, cardShift, ivIcon);
 
             // Set tag để lưu shift object
             shiftView.setTag(shift);
-
-            // Xử lý click
-            if (availableSlots > 0) {
-                cardShift.setOnClickListener(v -> selectShift(shiftView, shift));
-            }
 
             // Thêm vào container
             containerShifts.addView(shiftView);
         }
     }
+
+    private void calculateRoleSlots(Shift shift, TextView tvSlots, CardView cardShift, ImageView ivIcon) {
+        if (role == null) {
+            // Nếu không có vai trò cụ thể, hiển thị tổng số chỗ
+            int availableSlots = shift.getMaxVolunteers() - shift.getCurrentVolunteers();
+            displaySlotInfo(availableSlots, shift.getCurrentVolunteers(), shift.getMaxVolunteers(),
+                    tvSlots, cardShift, ivIcon);
+            return;
+        }
+
+        String roleId = role.getId();
+        String shiftId = shift.getId();
+
+        android.util.Log.d("ROLE_SLOTS", "=== CALCULATING SLOTS ===");
+        android.util.Log.d("ROLE_SLOTS", "Campaign ID: " + campaignId);
+        android.util.Log.d("ROLE_SLOTS", "Shift ID: " + shiftId);
+        android.util.Log.d("ROLE_SLOTS", "Role ID: " + roleId);
+        android.util.Log.d("ROLE_SLOTS", "Role Name: " + role.getRoleName());
+        android.util.Log.d("ROLE_SLOTS", "Role Max Volunteers: " + role.getMaxVolunteers());
+
+        // Query để đếm số người đã đăng ký vai trò này trong ca này
+        db.collection("volunteer_registrations")
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("shiftId", shiftId)
+                .whereEqualTo("roleId", roleId)
+                .get() // Bỏ filter status để debug
+                .addOnSuccessListener(querySnapshot -> {
+                    android.util.Log.d("ROLE_SLOTS", "=== QUERY RESULTS ===");
+                    android.util.Log.d("ROLE_SLOTS", "Total documents found: " + querySnapshot.size());
+
+                    int approvedCount = 0;
+                    int pendingCount = 0;
+                    int otherCount = 0;
+
+                    // Debug từng document
+                    for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
+                        String status = doc.getString("status");
+                        String userName = doc.getString("userName");
+                        String docRoleId = doc.getString("roleId");
+                        String docShiftId = doc.getString("shiftId");
+                        String docCampaignId = doc.getString("campaignId");
+
+                        android.util.Log.d("ROLE_SLOTS", "Document: " + doc.getId());
+                        android.util.Log.d("ROLE_SLOTS", "  User: " + userName);
+                        android.util.Log.d("ROLE_SLOTS", "  Status: " + status);
+                        android.util.Log.d("ROLE_SLOTS", "  Role ID: " + docRoleId);
+                        android.util.Log.d("ROLE_SLOTS", "  Shift ID: " + docShiftId);
+                        android.util.Log.d("ROLE_SLOTS", "  Campaign ID: " + docCampaignId);
+
+                        if ("approved".equals(status)) {
+                            approvedCount++;
+                        } else if ("pending".equals(status)) {
+                            pendingCount++;
+                        } else {
+                            otherCount++;
+                        }
+                    }
+
+                    int currentRegistrations = approvedCount + pendingCount; // Chỉ đếm approved và pending
+                    int maxForRole = role.getMaxVolunteers();
+                    int availableForRole = maxForRole - currentRegistrations;
+
+                    android.util.Log.d("ROLE_SLOTS", "=== FINAL CALCULATION ===");
+                    android.util.Log.d("ROLE_SLOTS", "Approved: " + approvedCount);
+                    android.util.Log.d("ROLE_SLOTS", "Pending: " + pendingCount);
+                    android.util.Log.d("ROLE_SLOTS", "Other status: " + otherCount);
+                    android.util.Log.d("ROLE_SLOTS", "Current registrations (approved + pending): " + currentRegistrations);
+                    android.util.Log.d("ROLE_SLOTS", "Max for role: " + maxForRole);
+                    android.util.Log.d("ROLE_SLOTS", "Available: " + availableForRole);
+
+                    displaySlotInfo(availableForRole, currentRegistrations, maxForRole,
+                            tvSlots, cardShift, ivIcon);
+
+                    // Set click listener dựa trên availability
+                    if (availableForRole > 0) {
+                        cardShift.setOnClickListener(v -> selectShift((View) cardShift, shift));
+                    } else {
+                        cardShift.setOnClickListener(null);
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("ROLE_SLOTS", "Error calculating role slots: " + e.getMessage());
+                    e.printStackTrace();
+                    // Fallback: hiển thị như có chỗ
+                    displaySlotInfo(1, 0, role.getMaxVolunteers(), tvSlots, cardShift, ivIcon);
+                    cardShift.setOnClickListener(v -> selectShift((View) cardShift, shift));
+                });
+    }
+
+
+    private void displaySlotInfo(int available, int current, int max, TextView tvSlots,
+                                 CardView cardShift, ImageView ivIcon) {
+        if (available <= 0) {
+            // Hết chỗ cho vai trò này
+            tvSlots.setText("Đã đủ người (" + current + "/" + max + ")");
+            tvSlots.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+            cardShift.setEnabled(false);
+            cardShift.setAlpha(0.5f);
+            if (ivIcon != null) {
+                ivIcon.setColorFilter(getResources().getColor(android.R.color.darker_gray));
+            }
+        } else {
+            // Còn chỗ cho vai trò này
+            tvSlots.setText("Còn " + available + " chỗ (" + current + "/" + max + ")");
+            tvSlots.setTextColor(getResources().getColor(R.color.text_secondary));
+            cardShift.setEnabled(true);
+            cardShift.setAlpha(1.0f);
+            if (ivIcon != null) {
+                ivIcon.setImageResource(R.drawable.ic_journey);
+                ivIcon.setColorFilter(getResources().getColor(R.color.text_secondary));
+            }
+        }
+    }
+
+
 
 
 
@@ -698,6 +787,21 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         } else {
             tvSummaryShift.setText("-");
         }
+    }
+    // Thêm method này sau refreshShiftData()
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // Refresh data khi quay lại màn hình
+        if (shiftList != null && !shiftList.isEmpty()) {
+            refreshShiftData();
+        }
+    }
+
+    // Thêm method này sau updateSummary()
+    private void refreshShiftData() {
+        android.util.Log.d("REFRESH_SHIFTS", "Refreshing shift data...");
+        loadShifts(); // Load lại shifts từ database
     }
 
     private void sendRegistrationNotificationToOrg(String orgId) {
