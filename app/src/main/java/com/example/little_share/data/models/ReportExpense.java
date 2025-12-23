@@ -14,9 +14,8 @@ public class ReportExpense implements Serializable {
     private String category;
     private double amount;
     private String notes;
-    @ServerTimestamp
+
     private Date expenseDate;
-    @ServerTimestamp
     private Date createdAt;
 
     // Constructors
