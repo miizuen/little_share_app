@@ -38,18 +38,15 @@ import java.util.Locale;
 public class acitivity_ngo_export_report extends AppCompatActivity {
     private static final String TAG = "ExportReport";
     private static final int MAX_IMAGES = 10;
-
     private ImageView btnBack;
     private TextView tvCampaignName, tvDate, tvLocation, tvTotalSpending, tvVolunteerCount, tvExpenseTotal;
     private TextView btnAddExpense, btnAddImage;
     private LinearLayout btnCamera;
     private RecyclerView rvExpenses, rvImages;
     private MaterialButton btnEdit, btnExportPdf;
-
     private ReportRepository reportRepository;
     private String reportId, campaignId, campaignName;
     private FinancialReport currentReport;
-
     private ExpenseAdapter expenseAdapter;
     private ReportImageAdapter imageAdapter;
     private List<ReportExpense> expenses;
