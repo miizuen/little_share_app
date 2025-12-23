@@ -15,6 +15,7 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.example.little_share.R;
+import com.example.little_share.utils.LittleShareNotification;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 
@@ -65,6 +66,16 @@ public class activity_volunteer_main extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
+        
+        // Test notification sau 3 giây
+        testNotification();
+    }
+    
+    private void testNotification() {
+        new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
+            android.util.Log.d("VolunteerMain", "Testing notification...");
+            LittleShareNotification.testNotification(this);
+        }, 3000);
     }
 
     private void replaceFragment(Fragment fragment) {
