@@ -193,36 +193,16 @@
 
                 <!-- Ghi chú -->
                 <!-- Trong activity_register_shift.xml -->
-                <RadioGroup
-                    android:id="@+id/radioGroupShifts"
+                <LinearLayout
+                    android:id="@+id/containerShifts"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp">
+                    android:layout_marginTop="16dp"
+                    android:orientation="vertical">
 
-                    <!-- CA 1 -->
-                    <include
-                        android:id="@+id/includeShift1"
-                        layout="@layout/item_shift"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"/>
+                    <!-- Các shift sẽ được thêm động vào đây -->
 
-                    <!-- CA 2 -->
-                    <include
-                        android:id="@+id/includeShift2"
-                        layout="@layout/item_shift"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"/>
-
-                    <!-- CA 3 -->
-                    <include
-                        android:id="@+id/includeShift3"
-                        layout="@layout/item_shift"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_marginBottom="20dp"/>
-                </RadioGroup>
+                </LinearLayout>
 
                 <EditText
                     android:id="@+id/etNote"
