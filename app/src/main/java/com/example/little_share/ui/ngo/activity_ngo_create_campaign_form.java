@@ -202,23 +202,85 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
     }
 
     private boolean validateBasicInfo() {
+        boolean isValid = true;
+
+        // Kiểm tra tên chiến dịch
         if (TextUtils.isEmpty(etCampaignName.getText())) {
             etCampaignName.setError("Vui lòng nhập tên chiến dịch");
-            return false;
+            etCampaignName.requestFocus();
+            isValid = false;
         }
+
+        // Kiểm tra mô tả
         if (TextUtils.isEmpty(etDescription.getText())) {
-            etDescription.setError("Vui lòng nhập mô tả");
-            return false;
+            etDescription.setError("Vui lòng nhập mô tả hoạt động");
+            if (isValid) etDescription.requestFocus();
+            isValid = false;
         }
+
+        // Kiểm tra lĩnh vực
         if (TextUtils.isEmpty(actvCategory.getText())) {
-            Toast.makeText(this, "Vui lòng chọn lĩnh vực", Toast.LENGTH_SHORT).show();
-            return false;
+            Toast.makeText(this, "Vui lòng chọn lĩnh vực hoạt động", Toast.LENGTH_SHORT).show();
+            if (isValid) actvCategory.requestFocus();
+            isValid = false;
         }
-        if (TextUtils.isEmpty(etStartDate.getText()) || TextUtils.isEmpty(etEndDate.getText())) {
-            Toast.makeText(this, "Vui lòng chọn ngày bắt đầu và kết thúc", Toast.LENGTH_SHORT).show();
-            return false;
+
+        // Kiểm tra ngày bắt đầu
+        if (TextUtils.isEmpty(etStartDate.getText())) {
+            Toast.makeText(this, "Vui lòng chọn thời gian bắt đầu", Toast.LENGTH_SHORT).show();
+            if (isValid) etStartDate.requestFocus();
+            isValid = false;
         }
-        return true;
+
+        // Kiểm tra ngày kết thúc
+        if (TextUtils.isEmpty(etEndDate.getText())) {
+            Toast.makeText(this, "Vui lòng chọn thời gian kết thúc", Toast.LENGTH_SHORT).show();
+            if (isValid) etEndDate.requestFocus();
+            isValid = false;
+        }
+
+        // Kiểm tra địa điểm
+        if (TextUtils.isEmpty(etLocation.getText())) {
+            etLocation.setError("Vui lòng nhập địa điểm");
+            if (isValid) etLocation.requestFocus();
+            isValid = false;
+        }
+
+        // Kiểm tra địa điểm cụ thể
+        if (TextUtils.isEmpty(etSpecificLocation.getText())) {
+            etSpecificLocation.setError("Vui lòng nhập địa điểm cụ thể");
+            if (isValid) etSpecificLocation.requestFocus();
+            isValid = false;
+        }
+
+        // Kiểm tra yêu cầu
+        if (TextUtils.isEmpty(etYeuCau.getText())) {
+            etYeuCau.setError("Vui lòng nhập yêu cầu");
+            if (isValid) etYeuCau.requestFocus();
+            isValid = false;
+        }
+
+        // Kiểm tra thông tin tài trợ nếu bật switch
+        if (switchNeedSponsor.isChecked()) {
+            if (TextUtils.isEmpty(etBudget.getText())) {
+                etBudget.setError("Vui lòng nhập ngân sách dự kiến");
+                if (isValid) etBudget.requestFocus();
+                isValid = false;
+            }
+
+            if (TextUtils.isEmpty(etPurpose.getText())) {
+                etPurpose.setError("Vui lòng nhập mục đích sử dụng");
+                if (isValid) etPurpose.requestFocus();
+                isValid = false;
+            }
+        }
+
+        // Thông báo tổng hợp nếu có lỗi
+        if (!isValid) {
+            Toast.makeText(this, "Vui lòng điền đầy đủ thông tin bắt buộc", Toast.LENGTH_LONG).show();
+        }
+
+        return isValid;
     }
 }
 

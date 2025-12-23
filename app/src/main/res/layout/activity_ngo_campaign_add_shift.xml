@@ -108,6 +108,7 @@
                         android:layout_height="wrap_content"
                         app:endIconMode="custom"
                         app:endIconDrawable="@drawable/ic_clock"
+                        app:hintEnabled="false"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -143,6 +144,7 @@
                         android:layout_height="wrap_content"
                         app:endIconMode="custom"
                         app:endIconDrawable="@drawable/ic_clock"
+                        app:hintEnabled="false"
                         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                         <com.google.android.material.textfield.TextInputEditText
