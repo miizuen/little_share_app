@@ -180,8 +180,10 @@ public class activity_ngo_volunteer_detail extends AppCompatActivity {
                             continue; // Bỏ qua sự kiện đã hủy hoặc bị từ chối
                         }
 
+                        // ✅ SỬA: Tạo uniqueKey để loại bỏ trùng lặp
                         String uniqueKey = eventName + "|" + eventDate + "|" + status;
 
+                        // ✅ SỬA: Kiểm tra uniqueKey
                         if (!uniqueEventKeys.contains(uniqueKey)) {
                             uniqueEventKeys.add(uniqueKey);
 
@@ -204,6 +206,7 @@ public class activity_ngo_volunteer_detail extends AppCompatActivity {
                     Toast.makeText(this, "Lỗi load dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
+
 
 
 
