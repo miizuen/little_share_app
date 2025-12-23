@@ -89,12 +89,12 @@ public class Notification implements Serializable {
         this.userId = userId;
         this.title = title;
         this.description = description;
-        this.message = description; // Keep in sync
+        this.message = description;
         this.type = type;
         this.isRead = false;
         this.iconType = getDefaultIconForType(type);
+        this.createdAt = new Date();  // ← THÊM DÒNG NÀY
     }
-
     public Notification(String userId, String title, String description, String type, String relatedId) {
         this(userId, title, description, type);
         this.relatedId = relatedId;
