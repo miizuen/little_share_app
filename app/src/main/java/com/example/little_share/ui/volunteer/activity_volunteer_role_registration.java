@@ -92,7 +92,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         btnConfirm = findViewById(R.id.btnConfirm);
         etNote = findViewById(R.id.etNote);
         btnConfirm.setOnClickListener(v -> registerVolunteer());
-
         btnBack.setOnClickListener(v -> finish());
 
         db = FirebaseFirestore.getInstance();
@@ -430,33 +429,22 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         TextView tvTitle = dialog.findViewById(R.id.tvTitle);
         TextView tvRoleInfo = dialog.findViewById(R.id.tvRoleInfo);
         TextView tvDateTime = dialog.findViewById(R.id.tvDateTime);
-        CardView cardQRCode = dialog.findViewById(R.id.cardQRCode);
         ImageView ivQRCode = dialog.findViewById(R.id.ivQRCode);
-        TextView tvNote = dialog.findViewById(R.id.tvNote);
         MaterialButton btnComplete = dialog.findViewById(R.id.btnComplete);
-        ImageButton btnBack = dialog.findViewById(R.id.btnBack);
 
         tvRoleInfo.setText("Bạn đã đăng kí với vai trò: " + (role != null ? role.getRoleName() : "Tình nguyện viên"));
         tvDateTime.setText("Ngày: " + selectedDate + " · " + selectedShift.getTimeRange());
 
         if (isApproved) {
             tvTitle.setText("Đăng ký thành công");
-            cardQRCode.setVisibility(View.VISIBLE);
-            tvNote.setText("Lưu ý: Vui lòng chụp màn hình lại mã QR này hoặc lưu vào ảnh. Bạn sẽ cần xuất trình mã khi điểm danh.");
             Bitmap qrBitmap = generateQrCode(qrContent);
             if (qrBitmap != null) {
                 ivQRCode.setImageBitmap(qrBitmap);
             }
         } else {
             tvTitle.setText("Đăng ký thành công!");
-            cardQRCode.setVisibility(View.GONE);
-            tvNote.setText("Đơn đăng ký của bạn đang chờ tổ chức thiện nguyện duyệt.\nBạn sẽ nhận được thông báo khi có kết quả.");
         }
 
-        btnBack.setOnClickListener(v -> {
-            dialog.dismiss();
-            finish();
-        });
 
         btnComplete.setOnClickListener(v -> {
             dialog.dismiss();
