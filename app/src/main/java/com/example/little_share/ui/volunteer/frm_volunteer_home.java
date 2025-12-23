@@ -261,11 +261,10 @@ public class frm_volunteer_home extends Fragment {
             public void onSuccess(User user) {
                 if (user != null && isAdded()) {
                     tvUserName.setText(user.getFullName());
-
                     tvTotalPoints.setText(String.valueOf(user.getTotalPoints()));
                     tvTotalDonations.setText(String.valueOf(user.getTotalDonations()));
-                    tvTotalCampaigns.setText(String.valueOf(user.getTotalCampaigns()));
 
+                    // Load avatar
                     String avatarUrl = user.getAvatar();
                     if (avatarUrl != null && !avatarUrl.isEmpty()) {
                         Glide.with(frm_volunteer_home.this)
@@ -277,6 +276,9 @@ public class frm_volunteer_home extends Fragment {
                     } else {
                         ivUserAvatar.setImageResource(R.drawable.placeholder_avatar);
                     }
+
+                    // ===== LOAD SỐ CHIẾN DỊCH TỪ FIREBASE =====
+                    loadCompletedCampaignsCount();
                 }
             }
 
@@ -284,6 +286,18 @@ public class frm_volunteer_home extends Fragment {
             public void onFailure(String error) {
                 if (isAdded()) {
                     Toast.makeText(getContext(), "Lỗi tải thông tin: " + error, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
+    private void loadCompletedCampaignsCount() {
+        repository.getRegistrationStats(new CampaignRepository.OnRegistrationStatsListener() {
+            @Override
+            public void onSuccess(int totalCampaigns, int totalPoints) {
+                if (isAdded()) {
+                    android.util.Log.d("HOME", "Completed campaigns: " + totalCampaigns);
+                    tvTotalCampaigns.setText(String.valueOf(totalCampaigns));
                 }
             }
         });

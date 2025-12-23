@@ -169,6 +169,7 @@
                                 android:layout_weight="1" />
 
                             <TextView
+                                android:id="@+id/tvProgressPercent"
                                 android:text="73%"
                                 android:textColor="#616161"
                                 android:textSize="12sp"
@@ -178,6 +179,7 @@
 
                         <!-- Thanh tiến độ -->
                         <ProgressBar
+                            android:id="@+id/progressBarBudget"
                             style="?android:attr/progressBarStyleHorizontal"
                             android:layout_width="match_parent"
                             android:layout_height="8dp"
@@ -470,10 +472,10 @@
                         <!-- Button Gửi Email -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnCall"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:layout_marginTop="12dp"
-                            android:background="@drawable/gradient_sponsor"
+                            android:background="@drawable/bg_button_green"
                             android:text="📞 Gọi điện"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
@@ -483,10 +485,10 @@
                         <!-- Button Gọi điện -->
                         <com.google.android.material.button.MaterialButton
                             android:id="@+id/btnEmail"
-                            android:layout_width="match_parent"
+                            android:layout_width="wrap_content"
                             android:layout_height="48dp"
                             android:layout_marginTop="8dp"
-                            android:background="@drawable/gradient_sponsor"
+                            android:background="@drawable/bg_button_green"
                             android:text="✉️ Gửi Email"
                             android:textColor="#FFFFFF"
                             android:textSize="14sp"
