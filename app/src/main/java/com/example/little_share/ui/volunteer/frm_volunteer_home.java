@@ -11,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -163,6 +164,7 @@ public class frm_volunteer_home extends Fragment {
             android.util.Log.d("CHIP_CLICK", "Clicked EDUCATION");
             filterByCategory("EDUCATION");
         });
+
         chipFood.setOnClickListener(v -> {
             android.util.Log.d("CHIP_CLICK", "Clicked FOOD");
             filterByCategory("FOOD");
@@ -237,7 +239,6 @@ public class frm_volunteer_home extends Fragment {
 
     private void filterCampaignsByCategory(String selectedCategory) {
         if ("ALL".equals(selectedCategory)) {
-            // Hiển thị tất cả campaigns
             adapter.updateData(allCampaigns);
             updateCampaignCount(allCampaigns.size());
             return;
@@ -246,29 +247,51 @@ public class frm_volunteer_home extends Fragment {
         List<Campaign> filteredCampaigns = new ArrayList<>();
 
         for (Campaign campaign : allCampaigns) {
+            boolean shouldInclude = false;
+
             try {
                 String categoryStr = campaign.getCategory();
-                Campaign.CampaignCategory category;
 
-                // Logic giống CampaignAdapter
                 if (categoryStr != null) {
-                    category = Campaign.CampaignCategory.valueOf(categoryStr);
-                } else {
-                    category = campaign.getCategoryEnum();
+                    // Kiểm tra trực tiếp với enum value (EDUCATION, ENVIRONMENT, etc.)
+                    if (categoryStr.equals(selectedCategory)) {
+                        shouldInclude = true;
+                    }
+                    // Kiểm tra với display name (Giáo dục, Môi trường, etc.)
+                    else {
+                        try {
+                            Campaign.CampaignCategory categoryEnum = Campaign.CampaignCategory.valueOf(selectedCategory);
+                            if (categoryStr.equals(categoryEnum.getDisplayName())) {
+                                shouldInclude = true;
+                            }
+                        } catch (Exception e) {
+                            // Nếu selectedCategory không phải enum value, thử so sánh trực tiếp
+                            if (categoryStr.equals(selectedCategory)) {
+                                shouldInclude = true;
+                            }
+                        }
+                    }
                 }
 
-                // So sánh với category được chọn
-                if (category != null && category.name().equals(selectedCategory)) {
-                    filteredCampaigns.add(campaign);
-                    android.util.Log.d("FILTER_DEBUG", "Added campaign: " + campaign.getName() + " with category: " + category.name());
+                // Fallback: kiểm tra với getCategoryEnum()
+                if (!shouldInclude) {
+                    Campaign.CampaignCategory categoryEnum = campaign.getCategoryEnum();
+                    if (categoryEnum != null && categoryEnum.name().equals(selectedCategory)) {
+                        shouldInclude = true;
+                    }
                 }
+
             } catch (Exception e) {
-                // Fallback: so sánh string thô
+                // Fallback cuối cùng: so sánh string thô
                 String cat = campaign.getCategory();
                 if (selectedCategory.equals(cat)) {
-                    filteredCampaigns.add(campaign);
-                    android.util.Log.d("FILTER_DEBUG", "Added campaign (fallback): " + campaign.getName() + " with category: " + cat);
+                    shouldInclude = true;
                 }
+            }
+
+            if (shouldInclude) {
+                filteredCampaigns.add(campaign);
+                android.util.Log.d("FILTER_DEBUG", "Added campaign: " + campaign.getName() + " with category: " + campaign.getCategory());
             }
         }
 
@@ -276,6 +299,7 @@ public class frm_volunteer_home extends Fragment {
         adapter.updateData(filteredCampaigns);
         updateCampaignCount(filteredCampaigns.size());
     }
+
 
 
     // Chip được chọn: nền cam, chữ trắng

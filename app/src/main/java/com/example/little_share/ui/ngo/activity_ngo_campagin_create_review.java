@@ -274,7 +274,8 @@ public class activity_ngo_campagin_create_review extends AppCompatActivity {
         Campaign campaign = new Campaign();
         campaign.setName(campaignName);
         campaign.setDescription(campaignDescription);
-        campaign.setCategory(category);
+        Campaign.CampaignCategory categoryEnum = Campaign.getCategoryFromDisplayName(category);
+        campaign.setCategoryCampaign(categoryEnum);
         campaign.setLocation(location);
         campaign.setSpecificLocation(specificLocation);
         campaign.setRequirements(yeuCau);
