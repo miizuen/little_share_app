@@ -33,13 +33,12 @@ public class activity_volunteer_role_selection extends AppCompatActivity {
     private RecyclerView recyclerRoles;
     private TextView tvCampaignName;
     private ImageButton btnBack;
-
     private VolunteerRoleAdapter adapter;
     private List<CampaignRole> roleList = new ArrayList<>();
     private FirebaseFirestore db;
-
     private Campaign campaign;
     private String campaignId;
+    private String selectedShiftId;
     private String campaignName;
 
     @Override
@@ -82,8 +81,7 @@ public class activity_volunteer_role_selection extends AppCompatActivity {
 
 
     private void setupRecyclerView() {
-        adapter = new VolunteerRoleAdapter(this, roleList, role -> {
-            // Xử lý khi click đăng ký vai trò
+        adapter = new VolunteerRoleAdapter(this, roleList, campaignId, selectedShiftId, role -> {
             registerForRole(role);
         });
 
@@ -91,39 +89,49 @@ public class activity_volunteer_role_selection extends AppCompatActivity {
         recyclerRoles.setAdapter(adapter);
     }
 
-private void loadRoles() {
-    if (campaignId == null || campaignId.isEmpty()) {
-        Toast.makeText(this, "Không tìm thấy thông tin chiến dịch", Toast.LENGTH_SHORT).show();
-        return;
+    private void loadRoles() {
+        if (campaignId == null || campaignId.isEmpty()) {
+            Toast.makeText(this, "Không tìm thấy thông tin chiến dịch", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        Log.d(TAG, "Querying roles for campaignId: " + campaignId);
+
+        db.collection("campaign_roles")
+                .whereEqualTo("campaignId", campaignId)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    roleList.clear();
+                    Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " roles from Firebase");
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        CampaignRole role = doc.toObject(CampaignRole.class);
+                        role.setId(doc.getId());
+
+                        String shiftId = doc.getString("shiftId");
+                        if (shiftId != null) {
+                            role.setShiftId(shiftId);
+                            Log.d(TAG, "Role: " + role.getRoleName()
+                                    + ", shiftId: " + shiftId
+                                    + ", maxVol: " + role.getMaxVolunteers());
+                        } else {
+                            Log.d(TAG, "Role: " + role.getRoleName()
+                                    + " (no shiftId), maxVol: " + role.getMaxVolunteers());
+                        }
+
+                        roleList.add(role);
+                    }
+                    adapter.notifyDataSetChanged();
+
+                    if (roleList.isEmpty()) {
+                        Toast.makeText(this, "Chiến dịch này chưa có vai trò", Toast.LENGTH_SHORT).show();
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error: " + e.getMessage());
+                    Toast.makeText(this, "Lỗi tải vai trò", Toast.LENGTH_SHORT).show();
+                });
     }
-
-    Log.d(TAG, "Querying roles for campaignId: " + campaignId);
-
-    // LUÔN query từ Firebase để lấy dữ liệu mới nhất (có maxVolunteers)
-    db.collection("campaign_roles")
-            .whereEqualTo("campaignId", campaignId)
-            .get()
-            .addOnSuccessListener(queryDocumentSnapshots -> {
-                roleList.clear();
-                Log.d(TAG, "Found " + queryDocumentSnapshots.size() + " roles from Firebase");
-                
-                for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
-                    CampaignRole role = doc.toObject(CampaignRole.class);
-                    role.setId(doc.getId());
-                    roleList.add(role);
-                    Log.d(TAG, "Role: " + role.getRoleName() + ", maxVol: " + role.getMaxVolunteers());
-                }
-                adapter.notifyDataSetChanged();
-
-                if (roleList.isEmpty()) {
-                    Toast.makeText(this, "Chiến dịch này chưa có vai trò", Toast.LENGTH_SHORT).show();
-                }
-            })
-            .addOnFailureListener(e -> {
-                Log.e(TAG, "Error: " + e.getMessage());
-                Toast.makeText(this, "Lỗi tải vai trò", Toast.LENGTH_SHORT).show();
-            });
-}
 
     private void registerForRole(CampaignRole role) {
         // Kiểm tra slot trước khi chuyển sang đăng ký
@@ -133,14 +141,44 @@ private void loadRoles() {
     // THÊM METHOD: Kiểm tra slot trước khi đăng ký
     private void checkRoleSlotAndProceed(CampaignRole role) {
         android.util.Log.d("ROLE_SLOT", "Checking slot for role: " + role.getRoleName());
+        android.util.Log.d("ROLE_SLOT", "Campaign ID: " + campaignId);
+        android.util.Log.d("ROLE_SLOT", "Selected Shift ID: " + selectedShiftId);
 
-        // Query số lượng đã đăng ký cho vai trò này
-        db.collection("volunteer_registrations")
-                .whereEqualTo("roleId", role.getId())
-                .whereEqualTo("status", "approved")
-                .get()
+        // SỬ DỤNG CÙNG LOGIC VỚI ADAPTER
+        com.google.firebase.firestore.Query query = db.collection("volunteer_registrations")
+                .whereEqualTo("campaignId", campaignId)
+                .whereEqualTo("roleId", role.getId());
+
+        // Thêm shiftId nếu có
+        if (selectedShiftId != null && !selectedShiftId.isEmpty()) {
+            query = query.whereEqualTo("shiftId", selectedShiftId);
+        }
+
+        query.get()
                 .addOnSuccessListener(snapshots -> {
-                    int currentCount = snapshots.size();
+                    // Đếm giống như trong adapter
+                    int approved = 0;
+                    int pending = 0;
+                    int completed = 0;
+
+                    for (com.google.firebase.firestore.QueryDocumentSnapshot doc : snapshots) {
+                        String status = doc.getString("status");
+                        if (status != null) {
+                            switch (status.toLowerCase()) {
+                                case "approved":
+                                    approved++;
+                                    break;
+                                case "pending":
+                                    pending++;
+                                    break;
+                                case "completed":
+                                    completed++;
+                                    break;
+                            }
+                        }
+                    }
+
+                    int currentCount = approved + pending + completed;
                     int maxCount = role.getMaxVolunteers();
 
                     android.util.Log.d("ROLE_SLOT", "Current: " + currentCount + ", Max: " + maxCount);
@@ -158,6 +196,7 @@ private void loadRoles() {
                     Toast.makeText(this, "Lỗi kiểm tra thông tin vai trò", Toast.LENGTH_SHORT).show();
                 });
     }
+
 
     // THÊM METHOD: Hiển thị dialog khi vai trò đã đầy
     private void showRoleFullDialog(CampaignRole role, int current, int max) {

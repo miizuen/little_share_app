@@ -234,40 +234,77 @@ public class activity_volunteer_detail_calendar extends AppCompatActivity {
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
 
+        android.util.Log.d("CANCEL_DEBUG", "=== CANCELLING REGISTRATION ===");
+        android.util.Log.d("CANCEL_DEBUG", "Registration ID: " + registration.getId());
+        android.util.Log.d("CANCEL_DEBUG", "Campaign ID: " + registration.getCampaignId());
+        android.util.Log.d("CANCEL_DEBUG", "Shift ID: " + registration.getShiftId());
+
         // Bước 1: Update status thành cancelled
         db.collection("volunteer_registrations")
                 .document(registration.getId())
                 .update("status", "cancelled")
                 .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("CANCEL_DEBUG", "✓ Status updated to cancelled");
+
                     // Bước 2: Giảm currentVolunteers của campaign
                     decrementCampaignVolunteers(db);
+
+                    // ===== THÊM BƯỚC 3: Giảm currentVolunteers của shift =====
+                    decrementShiftVolunteers(db);
                 })
                 .addOnFailureListener(e -> {
+                    android.util.Log.e("CANCEL_DEBUG", "✗ Failed to update status: " + e.getMessage());
                     btnCancel.setEnabled(true);
                     btnCancel.setText("Hủy tham gia");
                     Toast.makeText(this, "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                 });
     }
 
+    private void decrementShiftVolunteers(FirebaseFirestore db) {
+        String shiftId = registration.getShiftId();
+        if (shiftId == null || shiftId.isEmpty()) {
+            android.util.Log.w("CANCEL_DEBUG", "Shift ID is null, skipping decrement");
+            finishCancellation();
+            return;
+        }
+
+        android.util.Log.d("CANCEL_DEBUG", "Decrementing shift volunteers for shift: " + shiftId);
+
+        db.collection("shifts")
+                .document(shiftId)
+                .update("currentVolunteers", com.google.firebase.firestore.FieldValue.increment(-1))
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("CANCEL_DEBUG", "✓ Shift volunteers decremented");
+                    finishCancellation();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("CANCEL_DEBUG", "✗ Failed to decrement shift: " + e.getMessage());
+                    // Vẫn hoàn tất hủy dù không giảm được số lượng
+                    finishCancellation();
+                });
+    }
+
+
+
     // Giảm số lượng tình nguyện viên của campaign
     private void decrementCampaignVolunteers(FirebaseFirestore db) {
         String campaignId = registration.getCampaignId();
         if (campaignId == null || campaignId.isEmpty()) {
+            android.util.Log.w("CANCEL_DEBUG", "Campaign ID is null, skipping decrement");
             finishCancellation();
             return;
         }
+
+        android.util.Log.d("CANCEL_DEBUG", "Decrementing campaign volunteers...");
 
         db.collection("campaigns")
                 .document(campaignId)
                 .update("currentVolunteers", com.google.firebase.firestore.FieldValue.increment(-1))
                 .addOnSuccessListener(aVoid -> {
-                    android.util.Log.d("CANCEL_DEBUG", "Campaign volunteers decremented");
-                    finishCancellation();
+                    android.util.Log.d("CANCEL_DEBUG", "✓ Campaign volunteers decremented");
                 })
                 .addOnFailureListener(e -> {
-                    android.util.Log.e("CANCEL_DEBUG", "Failed to decrement: " + e.getMessage());
-                    // Vẫn hoàn tất hủy dù không giảm được số lượng
-                    finishCancellation();
+                    android.util.Log.e("CANCEL_DEBUG", "✗ Failed to decrement campaign: " + e.getMessage());
                 });
     }
 
