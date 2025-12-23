@@ -2,6 +2,7 @@ package com.example.little_share.ui.volunteer;
 
 import android.os.Bundle;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
@@ -543,6 +544,11 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     chip.setChipBackgroundColorResource(R.color.primary_orange);
                     chip.setTextColor(getResources().getColor(android.R.color.white));
                     selectedDate = (String) chip.getTag();
+
+                    // THÊM: Reset shift selection khi chọn ngày mới
+                    selectedShift = null;
+                    resetAllShifts();
+
                     updateSummary();
                 } else {
                     chip.setChipBackgroundColorResource(R.color.gray_light);
@@ -554,6 +560,7 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
             calendar.add(Calendar.DAY_OF_MONTH, 1);
         }
     }
+
 
     private void loadShifts() {
         if (campaignId == null) {
@@ -577,45 +584,111 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                     android.util.Log.e("LoadShifts", "Error loading shifts: " + e.getMessage());
                 });
     }
-
     private void displayShifts() {
-        RadioGroup radioGroupShifts = findViewById(R.id.radioGroupShifts);
-        radioGroupShifts.removeAllViews();
+        LinearLayout containerShifts = findViewById(R.id.containerShifts);
+        containerShifts.removeAllViews();
 
         if (shiftList.isEmpty()) {
             TextView noShiftText = new TextView(this);
             noShiftText.setText("Chưa có ca làm việc nào");
             noShiftText.setPadding(16, 16, 16, 16);
             noShiftText.setTextSize(16);
-            radioGroupShifts.addView(noShiftText);
+            noShiftText.setGravity(android.view.Gravity.CENTER);
+            noShiftText.setTextColor(getResources().getColor(android.R.color.darker_gray));
+            containerShifts.addView(noShiftText);
             return;
         }
 
-        for (Shift shift : shiftList) {
-            RadioButton radioButton = new RadioButton(this);
-            radioButton.setId(View.generateViewId());
-            radioButton.setText(shift.getShiftName() + " (" + shift.getTimeRange() + ") - Còn "
-                    + (shift.getMaxVolunteers() - shift.getCurrentVolunteers()) + " chỗ");
-            radioButton.setTag(shift);
-            radioButton.setPadding(16, 32, 16, 32);
-            radioButton.setTextSize(15);
+        for (int i = 0; i < shiftList.size(); i++) {
+            Shift shift = shiftList.get(i);
 
-            if (shift.isFull()) {
-                radioButton.setEnabled(false);
-                radioButton.setText(shift.getShiftName() + " (" + shift.getTimeRange() + ") - Đã đủ người");
+            // Sử dụng layout item_shift hiện có
+            View shiftView = getLayoutInflater().inflate(R.layout.item_shift, containerShifts, false);
+
+            // Tìm các view
+            CardView cardShift = (CardView) shiftView;
+            ImageView ivIcon = shiftView.findViewById(R.id.ivIcon);
+            TextView tvTime = shiftView.findViewById(R.id.tvTime);
+            TextView tvSlots = shiftView.findViewById(R.id.tvSlots);
+
+            // Set dữ liệu
+            tvTime.setText(shift.getTimeRange());
+
+            // Tính số chỗ trống
+            int currentVolunteers = shift.getCurrentVolunteers();
+            int maxVolunteers = shift.getMaxVolunteers();
+            int availableSlots = maxVolunteers - currentVolunteers;
+
+            if (availableSlots <= 0) {
+                tvSlots.setText("Đã đủ người");
+                tvSlots.setTextColor(getResources().getColor(android.R.color.holo_red_dark));
+                cardShift.setEnabled(false);
+                cardShift.setAlpha(0.5f);
+                if (ivIcon != null) {
+                    ivIcon.setColorFilter(getResources().getColor(android.R.color.darker_gray));
+                }
+            } else {
+                tvSlots.setText("Còn " + availableSlots + "/" + maxVolunteers + " chỗ");
+                tvSlots.setTextColor(getResources().getColor(R.color.text_secondary));
+                cardShift.setEnabled(true);
+                cardShift.setAlpha(1.0f);
+                if (ivIcon != null) {
+                    ivIcon.setImageResource(R.drawable.ic_journey);
+                    ivIcon.setColorFilter(getResources().getColor(R.color.text_secondary));
+                }
             }
 
-            radioGroupShifts.addView(radioButton);
+            // Set tag để lưu shift object
+            shiftView.setTag(shift);
+
+            // Xử lý click
+            if (availableSlots > 0) {
+                cardShift.setOnClickListener(v -> selectShift(shiftView, shift));
+            }
+
+            // Thêm vào container
+            containerShifts.addView(shiftView);
+        }
+    }
+
+
+
+    private void selectShift(View clickedView, Shift shift) {
+        // Reset tất cả các shift về trạng thái không được chọn
+        LinearLayout containerShifts = findViewById(R.id.containerShifts);
+        for (int i = 0; i < containerShifts.getChildCount(); i++) {
+            View childView = containerShifts.getChildAt(i);
+            CardView cardShift = (CardView) childView;
+            ImageView ivIcon = childView.findViewById(R.id.ivIcon);
+
+            // Reset về trạng thái không được chọn
+            cardShift.setCardBackgroundColor(getResources().getColor(R.color.gray_light));
+            if (ivIcon != null) {
+                ivIcon.setColorFilter(getResources().getColor(R.color.text_secondary));
+            }
         }
 
-        radioGroupShifts.setOnCheckedChangeListener((group, checkedId) -> {
-            RadioButton selected = findViewById(checkedId);
-            if (selected != null) {
-                selectedShift = (Shift) selected.getTag();
-                updateSummary();
-            }
-        });
+        // Set trạng thái được chọn cho item được click
+        CardView clickedCard = (CardView) clickedView;
+        ImageView clickedIcon = clickedView.findViewById(R.id.ivIcon);
+
+        clickedCard.setCardBackgroundColor(getResources().getColor(android.R.color.white));
+        // Tạo hiệu ứng viền bằng cách thay đổi elevation
+        clickedCard.setCardElevation(8f);
+
+        if (clickedIcon != null) {
+            clickedIcon.setColorFilter(getResources().getColor(R.color.primary_orange));
+        }
+
+        // Lưu shift được chọn
+        selectedShift = shift;
+
+        // Cập nhật summary
+        updateSummary();
+
+        android.util.Log.d("ShiftSelection", "Selected shift: " + shift.getShiftName() + " (" + shift.getTimeRange() + ")");
     }
+
 
     private void updateSummary() {
         if (role != null) {
@@ -628,12 +701,17 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
 
         if (selectedDate != null) {
             tvSummaryDate.setText(selectedDate);
+        } else {
+            tvSummaryDate.setText("-");
         }
 
         if (selectedShift != null) {
             tvSummaryShift.setText(selectedShift.getShiftName() + " (" + selectedShift.getTimeRange() + ")");
+        } else {
+            tvSummaryShift.setText("-");
         }
     }
+
     private void sendRegistrationNotificationToOrg(String orgId) {
         NotificationRepository notificationRepo = new NotificationRepository();
         notificationRepo.notifyNGONewRegistrationWithUserLookup(
@@ -644,6 +722,24 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                 selectedShift.getShiftName(),
                 selectedDate
         );
+    }
+    private void resetAllShifts() {
+        LinearLayout containerShifts = findViewById(R.id.containerShifts);
+        if (containerShifts == null) return;
+
+        for (int i = 0; i < containerShifts.getChildCount(); i++) {
+            View childView = containerShifts.getChildAt(i);
+            CardView cardShift = (CardView) childView;
+            ImageView ivIcon = childView.findViewById(R.id.ivIcon);
+
+            // Reset về trạng thái không được chọn
+            cardShift.setCardBackgroundColor(getResources().getColor(R.color.gray_light));
+            cardShift.setCardElevation(0f); // Reset elevation
+
+            if (ivIcon != null) {
+                ivIcon.setColorFilter(getResources().getColor(R.color.text_secondary));
+            }
+        }
     }
 
 }
