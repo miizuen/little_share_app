@@ -615,7 +615,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
 
     private void calculateRoleSlots(Shift shift, TextView tvSlots, CardView cardShift, ImageView ivIcon) {
         if (role == null) {
-            // Nếu không có vai trò cụ thể, hiển thị tổng số chỗ
             int availableSlots = shift.getMaxVolunteers() - shift.getCurrentVolunteers();
             displaySlotInfo(availableSlots, shift.getCurrentVolunteers(), shift.getMaxVolunteers(),
                     tvSlots, cardShift, ivIcon);
@@ -632,21 +631,20 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
         android.util.Log.d("ROLE_SLOTS", "Role Name: " + role.getRoleName());
         android.util.Log.d("ROLE_SLOTS", "Role Max Volunteers: " + role.getMaxVolunteers());
 
-        // Query để đếm số người đã đăng ký vai trò này trong ca này
         db.collection("volunteer_registrations")
                 .whereEqualTo("campaignId", campaignId)
                 .whereEqualTo("shiftId", shiftId)
                 .whereEqualTo("roleId", roleId)
-                .get() // Bỏ filter status để debug
+                .get()
                 .addOnSuccessListener(querySnapshot -> {
                     android.util.Log.d("ROLE_SLOTS", "=== QUERY RESULTS ===");
                     android.util.Log.d("ROLE_SLOTS", "Total documents found: " + querySnapshot.size());
 
                     int approvedCount = 0;
                     int pendingCount = 0;
+                    int completedCount = 0;
                     int otherCount = 0;
 
-                    // Debug từng document
                     for (com.google.firebase.firestore.DocumentSnapshot doc : querySnapshot.getDocuments()) {
                         String status = doc.getString("status");
                         String userName = doc.getString("userName");
@@ -665,27 +663,30 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                             approvedCount++;
                         } else if ("pending".equals(status)) {
                             pendingCount++;
+                        } else if ("completed".equals(status)) {  // ✅ THÊM
+                            completedCount++;
                         } else {
                             otherCount++;
                         }
                     }
 
-                    int currentRegistrations = approvedCount + pendingCount; // Chỉ đếm approved và pending
+                    // ✅ SỬA: Thêm completedCount vào tổng
+                    int currentRegistrations = approvedCount + pendingCount + completedCount;
                     int maxForRole = role.getMaxVolunteers();
                     int availableForRole = maxForRole - currentRegistrations;
 
                     android.util.Log.d("ROLE_SLOTS", "=== FINAL CALCULATION ===");
                     android.util.Log.d("ROLE_SLOTS", "Approved: " + approvedCount);
                     android.util.Log.d("ROLE_SLOTS", "Pending: " + pendingCount);
+                    android.util.Log.d("ROLE_SLOTS", "Completed: " + completedCount);  // ✅ THÊM LOG
                     android.util.Log.d("ROLE_SLOTS", "Other status: " + otherCount);
-                    android.util.Log.d("ROLE_SLOTS", "Current registrations (approved + pending): " + currentRegistrations);
+                    android.util.Log.d("ROLE_SLOTS", "Current registrations (approved + pending + completed): " + currentRegistrations);
                     android.util.Log.d("ROLE_SLOTS", "Max for role: " + maxForRole);
                     android.util.Log.d("ROLE_SLOTS", "Available: " + availableForRole);
 
                     displaySlotInfo(availableForRole, currentRegistrations, maxForRole,
                             tvSlots, cardShift, ivIcon);
 
-                    // Set click listener dựa trên availability
                     if (availableForRole > 0) {
                         cardShift.setOnClickListener(v -> selectShift((View) cardShift, shift));
                     } else {
@@ -695,7 +696,6 @@ public class activity_volunteer_role_registration extends AppCompatActivity {
                 .addOnFailureListener(e -> {
                     android.util.Log.e("ROLE_SLOTS", "Error calculating role slots: " + e.getMessage());
                     e.printStackTrace();
-                    // Fallback: hiển thị như có chỗ
                     displaySlotInfo(1, 0, role.getMaxVolunteers(), tvSlots, cardShift, ivIcon);
                     cardShift.setOnClickListener(v -> selectShift((View) cardShift, shift));
                 });

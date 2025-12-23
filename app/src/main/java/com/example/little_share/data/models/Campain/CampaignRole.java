@@ -10,6 +10,8 @@ public class CampaignRole implements Serializable {
     @DocumentId
     private String id;
     private String campaignId;
+    private String shiftId;
+
     private String roleName;
     private String description;
     private int maxVolunteers;
@@ -34,6 +36,9 @@ public class CampaignRole implements Serializable {
     public String getCampaignId() { return campaignId; }
 
     public void setCampaignId(String campaignId) { this.campaignId = campaignId; }
+
+    public String getShiftId() { return shiftId; }
+    public void setShiftId(String shiftId) { this.shiftId = shiftId; }
 
     public String getRoleName() { return roleName; }
 

@@ -810,7 +810,7 @@ public class CampaignRepository {
 
     // THÊM METHOD MỚI CHO ĐIỂM DANH
     public void confirmAttendance(String registrationId, String userId, String campaignId,
-            OnAttendanceListener listener) {
+                                  OnAttendanceListener listener) {
 
         android.util.Log.d("ATTENDANCE", "=== CONFIRMING ATTENDANCE ===");
 
@@ -828,6 +828,7 @@ public class CampaignRepository {
                     Long attendedAt = doc.getLong("attendedAt");
                     String regUserId = doc.getString("userId");
                     String regCampaignId = doc.getString("campaignId");
+                    String shiftId = doc.getString("shiftId"); // LẤY SHIFT ID
 
                     // Validate
                     if (!"approved".equals(status)) {
@@ -847,14 +848,15 @@ public class CampaignRepository {
 
                     // Bước 2: Lấy điểm từ campaign
                     getCampaignPoints(campaignId, points -> {
-                        // Bước 3: Cập nhật attendance + cộng điểm
-                        updateAttendanceAndPoints(registrationId, userId, points, listener);
+                        // Bước 3: Cập nhật attendance + cộng điểm + INCREMENT SHIFT
+                        updateAttendanceAndPoints(registrationId, userId, shiftId, points, listener);
                     });
                 })
                 .addOnFailureListener(e -> {
                     listener.onFailure("Lỗi truy vấn: " + e.getMessage());
                 });
     }
+
 
     // Method phụ: Lấy điểm từ campaign
     private void getCampaignPoints(String campaignId, OnPointsListener pointsListener) {
@@ -879,15 +881,15 @@ public class CampaignRepository {
     }
 
     // Method phụ: Cập nhật attendance và cộng điểm
-    private void updateAttendanceAndPoints(String registrationId, String userId, int points,
-            OnAttendanceListener listener) {
+    private void updateAttendanceAndPoints(String registrationId, String userId, String shiftId,
+                                           int points, OnAttendanceListener listener) {
 
         // Cập nhật registration status
         java.util.Map<String, Object> regUpdates = new java.util.HashMap<>();
-        regUpdates.put("status", "completed"); // THAY ĐỔI: completed thay vì attended
+        regUpdates.put("status", "completed");
         regUpdates.put("attendedAt", System.currentTimeMillis());
         regUpdates.put("isAttended", true);
-        regUpdates.put("pointsEarned", points); // Lưu điểm đã nhận
+        regUpdates.put("pointsEarned", points);
 
         db.collection("volunteer_registrations")
                 .document(registrationId)
@@ -898,12 +900,52 @@ public class CampaignRepository {
                     // Cộng điểm vào user
                     if (points > 0) {
                         addPointsToUser(userId, points, listener);
-                    } else {
-                        listener.onSuccess("Điểm danh thành công (0 điểm)");
                     }
+
+                    // ===== THÊM: Tăng currentVolunteers của shift =====
+                    if (shiftId != null && !shiftId.isEmpty()) {
+                        incrementShiftVolunteers(shiftId);
+                    }
+
+                    listener.onSuccess("Điểm danh thành công! Đã cộng " + points + " điểm");
                 })
                 .addOnFailureListener(e -> {
                     listener.onFailure("Lỗi cập nhật đăng ký: " + e.getMessage());
+                });
+    }
+
+    private void incrementShiftVolunteers(String shiftId) {
+        android.util.Log.d("SHIFT_UPDATE", "Incrementing volunteers for shift: " + shiftId);
+
+        db.collection("shifts")
+                .document(shiftId)
+                .update("currentVolunteers", com.google.firebase.firestore.FieldValue.increment(1))
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("SHIFT_UPDATE", "✓ Shift currentVolunteers incremented");
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("SHIFT_UPDATE", "✗ Failed to increment shift: " + e.getMessage());
+                });
+    }
+
+    public void decrementShiftVolunteers(String shiftId, OnSimpleCallback callback) {
+        if (shiftId == null || shiftId.isEmpty()) {
+            if (callback != null) callback.onComplete();
+            return;
+        }
+
+        android.util.Log.d("SHIFT_UPDATE", "Decrementing volunteers for shift: " + shiftId);
+
+        db.collection("shifts")
+                .document(shiftId)
+                .update("currentVolunteers", com.google.firebase.firestore.FieldValue.increment(-1))
+                .addOnSuccessListener(aVoid -> {
+                    android.util.Log.d("SHIFT_UPDATE", "✓ Shift currentVolunteers decremented");
+                    if (callback != null) callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    android.util.Log.e("SHIFT_UPDATE", "✗ Failed to decrement shift: " + e.getMessage());
+                    if (callback != null) callback.onComplete();
                 });
     }
 
@@ -1132,6 +1174,10 @@ public class CampaignRepository {
             e.printStackTrace();
             return false; // Nếu có lỗi parse, coi như chưa hết hạn
         }
+    }
+
+    public interface OnSimpleCallback {
+        void onComplete();
     }
 
 }
