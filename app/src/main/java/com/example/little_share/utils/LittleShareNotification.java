@@ -51,6 +51,7 @@ public class LittleShareNotification {
     public void showNotificationWithSound(String title, String message) {
         // Tạo intent
         Intent intent = new Intent(context, activity_volunteer_main.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
         PendingIntent pendingIntent = PendingIntent.getActivity(
                 context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
         );
@@ -58,20 +59,28 @@ public class LittleShareNotification {
         // Custom sound cho notification
         Uri soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + R.raw.little_share_sound);
 
-        // Tạo notification
+        // Tạo notification với đầy đủ thông tin
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_notification)
                 .setContentTitle(title)
                 .setContentText(message)
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setCategory(NotificationCompat.CATEGORY_MESSAGE)
                 .setContentIntent(pendingIntent)
                 .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_LIGHTS)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
                 .setSound(soundUri)
                 .setVibrate(new long[]{0, 250, 250, 250});
 
         // Hiển thị notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-        manager.notify((int) System.currentTimeMillis(), builder.build());
+        if (manager != null) {
+            int notificationId = (int) System.currentTimeMillis();
+            manager.notify(notificationId, builder.build());
+            android.util.Log.d("LittleShare", "Notification displayed with ID: " + notificationId);
+        }
 
         // Play custom sound (backup nếu notification sound không work)
         playCustomSound();

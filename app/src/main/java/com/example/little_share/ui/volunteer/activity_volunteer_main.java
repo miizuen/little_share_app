@@ -1,11 +1,9 @@
 package com.example.little_share.ui.volunteer;
 
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
@@ -21,11 +19,16 @@ import com.google.android.material.navigation.NavigationBarView;
 
 public class activity_volunteer_main extends AppCompatActivity {
     BottomNavigationView bottomNavigationView;
+    private static final int NOTIFICATION_PERMISSION_CODE = 100;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_volunteer_main);
+
+        // Request notification permission trước
+        requestNotificationPermission();
 
         bottomNavigationView = findViewById(R.id.bottomNavigation);
 
@@ -66,11 +69,37 @@ public class activity_volunteer_main extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        
+
         // Test notification sau 3 giây
         testNotification();
     }
-    
+
+    private void requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            if (checkSelfPermission(android.Manifest.permission.POST_NOTIFICATIONS)
+                    != PackageManager.PERMISSION_GRANTED) {
+                requestPermissions(
+                        new String[]{android.Manifest.permission.POST_NOTIFICATIONS},
+                        NOTIFICATION_PERMISSION_CODE
+                );
+            }
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        if (requestCode == NOTIFICATION_PERMISSION_CODE) {
+            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                android.util.Log.d("VolunteerMain", "Notification permission granted");
+            } else {
+                android.util.Log.d("VolunteerMain", "Notification permission denied");
+                // Có thể hiển thị dialog giải thích tại sao cần permission
+            }
+        }
+    }
+
     private void testNotification() {
         new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(() -> {
             android.util.Log.d("VolunteerMain", "Testing notification...");
@@ -85,5 +114,9 @@ public class activity_volunteer_main extends AppCompatActivity {
                 .commit();
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        // Clean up resources nếu cần
+    }
 }
