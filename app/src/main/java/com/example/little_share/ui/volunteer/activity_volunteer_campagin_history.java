@@ -112,6 +112,7 @@ public class activity_volunteer_campagin_history extends AppCompatActivity
         
         db.collection(collectionName)
                 .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("status", "completed")
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     Log.d(TAG, "Collection '" + collectionName + "': " + snapshots.size() + " documents");
@@ -148,6 +149,7 @@ public class activity_volunteer_campagin_history extends AppCompatActivity
         
         db.collection(collectionName)
                 .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("status", "completed")  // Chỉ lấy chiến dịch đã hoàn thành
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error loading from " + collectionName, error);
