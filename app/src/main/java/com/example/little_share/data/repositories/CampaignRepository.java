@@ -252,10 +252,18 @@ public class CampaignRepository {
                         for (QueryDocumentSnapshot doc : snapshots) {
                             Campaign campaign = doc.toObject(Campaign.class);
                             campaign.setId(doc.getId()); // Set document ID
-                            campaigns.add(campaign);
+
+                            // KIỂM TRA CHIẾN DỊCH ĐÃ KẾT THÚC
+                            Object endDate = doc.get("endDate");
+                            if (!isCampaignExpired(endDate)) {
+                                // Chỉ thêm chiến dịch chưa kết thúc
+                                campaigns.add(campaign);
+                            } else {
+                                Log.d(TAG, "Campaign expired, not showing: " + campaign.getName());
+                            }
                         }
                         liveData.setValue(campaigns);
-                        Log.d(TAG, "Loaded " + campaigns.size() + " campaigns");
+                        Log.d(TAG, "Loaded " + campaigns.size() + " active campaigns");
                     } else {
                         liveData.setValue(new ArrayList<>());
                     }
@@ -263,6 +271,7 @@ public class CampaignRepository {
 
         return liveData;
     }
+
 
     public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
@@ -282,7 +291,15 @@ public class CampaignRepository {
                         for (QueryDocumentSnapshot doc : snapshots) {
                             Campaign campaign = doc.toObject(Campaign.class);
                             campaign.setId(doc.getId()); // Set document ID
-                            campaigns.add(campaign);
+
+                            // KIỂM TRA CHIẾN DỊCH ĐÃ KẾT THÚC
+                            Object endDate = doc.get("endDate");
+                            if (!isCampaignExpired(endDate)) {
+                                // Chỉ thêm chiến dịch chưa kết thúc
+                                campaigns.add(campaign);
+                            } else {
+                                Log.d(TAG, "Campaign expired, not showing: " + campaign.getName());
+                            }
                         }
                         liveData.setValue(campaigns);
                     } else {
@@ -292,6 +309,7 @@ public class CampaignRepository {
 
         return liveData;
     }
+
 
     public LiveData<List<Campaign>> getCampaignsWithDonations() {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
@@ -1036,6 +1054,51 @@ public class CampaignRepository {
                 });
 
         return liveData;
+    }
+    private boolean isCampaignExpired(Object endDateObj) {
+        if (endDateObj == null) {
+            return false; // Nếu không có ngày kết thúc, coi như chưa hết hạn
+        }
+
+        try {
+            Date campaignEndDate = null;
+            Date currentDate = new Date();
+
+            // Xử lý các kiểu dữ liệu khác nhau
+            if (endDateObj instanceof String) {
+                // Nếu là String, parse theo format
+                String endDateStr = (String) endDateObj;
+                if (endDateStr.isEmpty()) {
+                    return false;
+                }
+                java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault());
+                campaignEndDate = sdf.parse(endDateStr);
+            } else if (endDateObj instanceof com.google.firebase.Timestamp) {
+                // Nếu là Firestore Timestamp
+                com.google.firebase.Timestamp timestamp = (com.google.firebase.Timestamp) endDateObj;
+                campaignEndDate = timestamp.toDate();
+            } else if (endDateObj instanceof Date) {
+                // Nếu là Date
+                campaignEndDate = (Date) endDateObj;
+            } else {
+                // Kiểu không hỗ trợ, coi như chưa hết hạn
+                Log.w(TAG, "Unsupported endDate type: " + endDateObj.getClass().getSimpleName());
+                return false;
+            }
+
+            if (campaignEndDate != null) {
+                // So sánh ngày hiện tại với ngày kết thúc
+                boolean expired = currentDate.after(campaignEndDate);
+                Log.d(TAG, "Campaign end date: " + campaignEndDate + ", current: " + currentDate + ", expired: " + expired);
+                return expired;
+            }
+
+            return false;
+        } catch (Exception e) {
+            Log.e(TAG, "Error parsing endDate: " + e.getMessage());
+            e.printStackTrace();
+            return false; // Nếu có lỗi parse, coi như chưa hết hạn
+        }
     }
 
 }
