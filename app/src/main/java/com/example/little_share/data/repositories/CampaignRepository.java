@@ -39,19 +39,20 @@ public class CampaignRepository {
 
         Log.d(TAG, "Setting up registration history listener for user: " + currentUserId);
 
-        db.collection("campaign_registrations")
+        // FIX: Đổi từ "campaign_registrations" sang "volunteer_registrations"
+        db.collection("volunteer_registrations")
                 .whereEqualTo("userId", currentUserId)
-                .orderBy("workDate", Query.Direction.DESCENDING)
+                .whereEqualTo("status", "completed") // CHỈ LẤY COMPLETED
+                .orderBy("attendedAt", Query.Direction.DESCENDING) // Sort theo thời gian điểm danh
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error getting registrations", error);
-                        // Không set empty list nếu có lỗi, giữ nguyên data cũ
                         return;
                     }
 
                     if (snapshots != null && !snapshots.isEmpty()) {
                         List<CampaignRegistration> registrations = new ArrayList<>();
-                        Log.d(TAG, "Processing " + snapshots.size() + " registration documents");
+                        Log.d(TAG, "Processing " + snapshots.size() + " completed registration documents");
 
                         for (QueryDocumentSnapshot doc : snapshots) {
                             try {
@@ -59,22 +60,21 @@ public class CampaignRepository {
                                 if (registration != null) {
                                     registration.setId(doc.getId());
                                     registrations.add(registration);
+
+                                    Log.d(TAG, "Loaded registration: " + registration.getCampaignName() +
+                                            " | Status: " + registration.getStatus() +
+                                            " | Points: " + registration.getPointsEarned());
                                 }
                             } catch (Exception e) {
                                 Log.e(TAG, "Error parsing registration document: " + doc.getId(), e);
                             }
                         }
 
-                        if (!registrations.isEmpty()) {
-                            Log.d(TAG, "Setting " + registrations.size() + " registrations to LiveData");
-                            liveData.setValue(registrations);
-                        }
+                        Log.d(TAG, "Setting " + registrations.size() + " completed registrations to LiveData");
+                        liveData.setValue(registrations);
                     } else {
-                        Log.w(TAG, "No registration documents found");
-                        // Chỉ set empty list lần đầu
-                        if (liveData.getValue() == null) {
-                            liveData.setValue(new ArrayList<>());
-                        }
+                        Log.w(TAG, "No completed registration documents found");
+                        liveData.setValue(new ArrayList<>());
                     }
                 });
 
@@ -90,28 +90,45 @@ public class CampaignRepository {
 
         Log.d(TAG, "Loading registration stats for user: " + currentUserId);
 
-        db.collection("campaign_registrations")
+        // FIX: Đổi collection name
+        db.collection("volunteer_registrations")
                 .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("status", "completed") // CHỈ ĐẾM COMPLETED
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     int totalCampaigns = snapshots.size();
                     int totalPoints = 0;
 
-                    Log.d(TAG, "Found " + totalCampaigns + " registration documents for stats");
+                    Log.d(TAG, "Found " + totalCampaigns + " completed campaigns");
+
+                    // Đếm unique campaigns
+                    java.util.Set<String> uniqueCampaignIds = new java.util.HashSet<>();
 
                     for (QueryDocumentSnapshot doc : snapshots) {
                         try {
                             CampaignRegistration registration = doc.toObject(CampaignRegistration.class);
                             if (registration != null) {
                                 totalPoints += registration.getPointsEarned();
+
+                                // Thêm campaignId vào Set để đếm unique
+                                if (registration.getCampaignId() != null) {
+                                    uniqueCampaignIds.add(registration.getCampaignId());
+                                }
+
+                                Log.d(TAG, "Campaign: " + registration.getCampaignName() +
+                                        " | Points: " + registration.getPointsEarned());
                             }
                         } catch (Exception e) {
                             Log.e(TAG, "Error parsing registration for stats: " + doc.getId(), e);
                         }
                     }
 
-                    Log.d(TAG, "Stats calculated: " + totalCampaigns + " campaigns, " + totalPoints + " points");
-                    listener.onSuccess(totalCampaigns, totalPoints);
+                    int uniqueCampaignCount = uniqueCampaignIds.size();
+
+                    Log.d(TAG, "Stats calculated: " + uniqueCampaignCount + " unique campaigns, " +
+                            totalPoints + " points (from " + totalCampaigns + " registrations)");
+
+                    listener.onSuccess(uniqueCampaignCount, totalPoints);
                 })
                 .addOnFailureListener(e -> {
                     Log.e(TAG, "Error getting registration stats", e);
@@ -738,6 +755,10 @@ public class CampaignRepository {
             listener.onFailure("Lỗi cập nhật budget: " + e.getMessage());
         });
     }
+
+
+
+
 
     public interface OnDonationSaveListener {
         void onSuccess();

@@ -2,6 +2,7 @@ package com.example.little_share.ui.sponsor;
 
 import android.os.Bundle;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,6 +28,8 @@ public class frm_campaign_detail_sponsor extends Fragment {
     private ImageView imgBanner;
     private TextView tvCampaignName, tvOrganization, tvLocation, tvDescription;
     private TextView tvSponsorAmount, tvBeneficiaries, tvDuration, tvLocation2, tvActivity;
+    private TextView tvProgressPercent;
+    private ProgressBar progressBarBudget;
     private Campaign currentCampaign;
 
     @Override
@@ -40,7 +43,7 @@ public class frm_campaign_detail_sponsor extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         initViews(view);
-        
+
         Bundle args = getArguments();
         if (args != null) {
             Campaign campaign = (Campaign) args.getSerializable("campaign_data");
@@ -48,7 +51,7 @@ public class frm_campaign_detail_sponsor extends Fragment {
                 android.util.Log.d("CAMPAIGN_DETAIL", "=== RECEIVED CAMPAIGN ===");
                 android.util.Log.d("CAMPAIGN_DETAIL", "Name: " + campaign.getName());
                 android.util.Log.d("CAMPAIGN_DETAIL", "Organization: " + campaign.getOrganizationName());
-                
+
                 displayCampaignData(campaign);
             } else {
                 android.util.Log.e("CAMPAIGN_DETAIL", "Campaign data is NULL!");
@@ -73,7 +76,11 @@ public class frm_campaign_detail_sponsor extends Fragment {
         tvDuration = view.findViewById(R.id.tvDuration);
         tvLocation2 = view.findViewById(R.id.tvLocation2);
         tvActivity = view.findViewById(R.id.tvActivity);
-        
+
+        // THÊM 2 DÒNG NÀY
+        tvProgressPercent = view.findViewById(R.id.tvProgressPercent);
+        progressBarBudget = view.findViewById(R.id.progressBarBudget);
+
         // Click listener để xem ảnh phóng to
         imgBanner.setOnClickListener(v -> {
             if (currentCampaign != null) {
@@ -101,25 +108,25 @@ public class frm_campaign_detail_sponsor extends Fragment {
 
     private void displayCampaignData(Campaign campaign) {
         android.util.Log.d("CAMPAIGN_DETAIL", "=== SETTING UI DATA ===");
-        
+
         // Lưu campaign hiện tại
         this.currentCampaign = campaign;
-        
+
         // FORCE SET campaign name - quan trọng nhất
         tvCampaignName.setText(campaign.getName());
         android.util.Log.d("CAMPAIGN_DETAIL", "Set campaign name: " + campaign.getName());
-        
+
         // Set organization
         if (campaign.getOrganizationName() != null) {
             tvOrganization.setText(campaign.getOrganizationName());
             tvLocation.setText(campaign.getOrganizationName());
         }
-        
+
         // Set location
         if (campaign.getLocation() != null) {
             tvLocation2.setText(campaign.getLocation());
         }
-        
+
         // Set description
         if (campaign.getDescription() != null) {
             tvDescription.setText(campaign.getDescription());
@@ -135,11 +142,33 @@ public class frm_campaign_detail_sponsor extends Fragment {
         // Set amounts
         tvSponsorAmount.setText(formatMoney(campaign.getCurrentBudget()));
         tvBeneficiaries.setText(String.valueOf(campaign.getMaxVolunteers()));
-        
+
         // Set activity
         tvActivity.setText(campaign.getActivities() != null ? campaign.getActivities() : "Chưa có thông tin");
 
-        // Load image - cải thiện để hiển thị đúng hình ảnh theo campaign
+        // ===== CẬP NHẬT PROGRESS BAR =====
+        int progressPercentage = campaign.getBudgetProgressPercentage();
+        android.util.Log.d("CAMPAIGN_DETAIL", "Progress: " + progressPercentage + "%");
+        android.util.Log.d("CAMPAIGN_DETAIL", "Current Budget: " + campaign.getCurrentBudget());
+        android.util.Log.d("CAMPAIGN_DETAIL", "Target Budget: " + campaign.getTargetBudget());
+
+        // Cập nhật ProgressBar
+        if (progressBarBudget != null) {
+            progressBarBudget.setProgress(progressPercentage);
+            android.util.Log.d("CAMPAIGN_DETAIL", "ProgressBar updated to: " + progressPercentage);
+        } else {
+            android.util.Log.e("CAMPAIGN_DETAIL", "ProgressBar is NULL!");
+        }
+
+        // Cập nhật TextView phần trăm
+        if (tvProgressPercent != null) {
+            tvProgressPercent.setText(progressPercentage + "%");
+            android.util.Log.d("CAMPAIGN_DETAIL", "Progress text updated to: " + progressPercentage + "%");
+        } else {
+            android.util.Log.e("CAMPAIGN_DETAIL", "tvProgressPercent is NULL!");
+        }
+
+        // Load image
         loadCampaignImage(campaign);
 
         android.util.Log.d("CAMPAIGN_DETAIL", "UI updated successfully");
@@ -150,10 +179,10 @@ public class frm_campaign_detail_sponsor extends Fragment {
         android.util.Log.d("CAMPAIGN_DETAIL", "Campaign: " + campaign.getName());
         android.util.Log.d("CAMPAIGN_DETAIL", "ImageURL: " + (campaign.getImageUrl() != null ? campaign.getImageUrl() : "NULL"));
         android.util.Log.d("CAMPAIGN_DETAIL", "Category: " + campaign.getCategory());
-        
+
         // Clear Glide cache để tránh hiển thị hình cũ
         Glide.with(this).clear(imgBanner);
-        
+
         // Chọn hình dựa trên tên campaign cụ thể TRƯỚC
         int specificImage = getSpecificImageForCampaign(campaign);
         if (specificImage != -1) {
@@ -161,11 +190,11 @@ public class frm_campaign_detail_sponsor extends Fragment {
             imgBanner.setImageResource(specificImage);
             return;
         }
-        
+
         // Nếu có URL thì load từ URL
         if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
             android.util.Log.d("CAMPAIGN_DETAIL", "Loading image from URL: " + campaign.getImageUrl());
-            
+
             Glide.with(this)
                     .load(campaign.getImageUrl())
                     .skipMemoryCache(true)
@@ -179,11 +208,11 @@ public class frm_campaign_detail_sponsor extends Fragment {
             imgBanner.setImageResource(defaultImage);
         }
     }
-    
+
     private int getSpecificImageForCampaign(Campaign campaign) {
         String campaignName = campaign.getName().toLowerCase().trim();
         android.util.Log.d("CAMPAIGN_DETAIL", "Checking specific image for: '" + campaignName + "'");
-        
+
         // Kiểm tra tên campaign cụ thể
         if (campaignName.equals("nấu ăn cho em")) {
             android.util.Log.d("CAMPAIGN_DETAIL", "Matched: Nấu ăn cho em -> img_nauanchoem");
@@ -200,15 +229,15 @@ public class frm_campaign_detail_sponsor extends Fragment {
         } else if (campaignName.contains("cứu trợ")) {
             return R.drawable.img_quyengop_dochoi;
         }
-        
+
         android.util.Log.d("CAMPAIGN_DETAIL", "No specific match found for: " + campaignName);
-        return -1; // Không có hình cụ thể
+        return -1;
     }
 
     private int getDefaultImageForCampaign(Campaign campaign) {
         String category = campaign.getCategory();
         android.util.Log.d("CAMPAIGN_DETAIL", "Getting default image for category: " + category);
-        
+
         if (category != null) {
             switch (category.toUpperCase()) {
                 case "FOOD":
@@ -221,7 +250,7 @@ public class frm_campaign_detail_sponsor extends Fragment {
                     return R.drawable.img_quyengop_dochoi;
             }
         }
-        
+
         return R.drawable.img_quyengop_dochoi;
     }
 

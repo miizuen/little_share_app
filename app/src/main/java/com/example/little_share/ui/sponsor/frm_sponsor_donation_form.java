@@ -16,13 +16,14 @@ import android.widget.Toast;
 import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 
+import java.text.DecimalFormat;
+
 public class frm_sponsor_donation_form extends Fragment {
 
     private android.widget.Button btnSponsor, btnCancel;
     private Campaign currentCampaign;
-    private EditText etAmount,etNote;
-    private TextView tvCampaignName, tvOrganizationName;
-
+    private EditText etAmount, etNote;
+    private TextView tvCampaignName, tvOrganizationName, tvRemaining;
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -38,6 +39,7 @@ public class frm_sponsor_donation_form extends Fragment {
         getCampaignDataFromBundle();
         setupClickListeners();
     }
+
     public static frm_sponsor_donation_form newInstance(String campaignId, String campaignName,
                                                         String organizationName, double targetBudget,
                                                         double currentBudget) {
@@ -64,6 +66,7 @@ public class frm_sponsor_donation_form extends Fragment {
 
         tvCampaignName = view.findViewById(R.id.tvCampaignName);
         tvOrganizationName = view.findViewById(R.id.tvOrganization);
+        tvRemaining = view.findViewById(R.id.tvRemaining);
         etAmount = view.findViewById(R.id.etAmount);
         etNote = view.findViewById(R.id.etNote);
     }
@@ -83,7 +86,6 @@ public class frm_sponsor_donation_form extends Fragment {
         }
     }
 
-
     private void displayCampaignInfo() {
         if (currentCampaign != null) {
             // Hiển thị tên chiến dịch
@@ -94,6 +96,27 @@ public class frm_sponsor_donation_form extends Fragment {
             // Hiển thị tên tổ chức
             if (tvOrganizationName != null) {
                 tvOrganizationName.setText(currentCampaign.getOrganizationName());
+            }
+
+            // Tính và hiển thị số tiền còn thiếu
+            if (tvRemaining != null) {
+                double targetBudget = currentCampaign.getTargetBudget();
+                double currentBudget = currentCampaign.getCurrentBudget();
+                double remaining = targetBudget - currentBudget;
+
+                android.util.Log.d("DONATION_FORM", "Target: " + targetBudget);
+                android.util.Log.d("DONATION_FORM", "Current: " + currentBudget);
+                android.util.Log.d("DONATION_FORM", "Remaining: " + remaining);
+
+                if (remaining > 0) {
+                    String remainingText = "💡 Chiến dịch còn cần: " + formatMoneyWithCommas(remaining) + " VNĐ";
+                    tvRemaining.setText(remainingText);
+                    tvRemaining.setVisibility(View.VISIBLE);
+                } else {
+                    tvRemaining.setText("✅ Chiến dịch đã đạt mục tiêu!");
+                    tvRemaining.setTextColor(getResources().getColor(R.color.primary_green));
+                    tvRemaining.setVisibility(View.VISIBLE);
+                }
             }
         }
     }
@@ -155,7 +178,6 @@ public class frm_sponsor_donation_form extends Fragment {
             }
         });
 
-
         btnCancel.setOnClickListener(v -> {
             android.util.Log.d("DONATION_FORM", "Cancel button clicked");
 
@@ -176,5 +198,10 @@ public class frm_sponsor_donation_form extends Fragment {
         } else {
             return String.format("%.0f VNĐ", amount);
         }
+    }
+
+    private String formatMoneyWithCommas(double amount) {
+        DecimalFormat formatter = new DecimalFormat("#,###");
+        return formatter.format(amount);
     }
 }
