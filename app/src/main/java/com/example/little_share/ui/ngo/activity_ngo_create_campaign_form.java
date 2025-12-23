@@ -128,29 +128,40 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
 
     private void setupDatePickers() {
         DatePickerDialog.OnDateSetListener startListener = (view, year, month, dayOfMonth) -> {
-            startCalendar.set(year, month, dayOfMonth);
+            startCalendar.set(Calendar.YEAR, year);
+            startCalendar.set(Calendar.MONTH, month);
+            startCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
             updateDate(etStartDate, startCalendar);
         };
 
         DatePickerDialog.OnDateSetListener endListener = (view, year, month, dayOfMonth) -> {
-            endCalendar.set(year, month, dayOfMonth);
+            endCalendar.set(Calendar.YEAR, year);
+            endCalendar.set(Calendar.MONTH, month);
+            endCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
             updateDate(etEndDate, endCalendar);
         };
 
-        etStartDate.setOnClickListener(v -> new DatePickerDialog(this, startListener,
-                startCalendar.get(Calendar.YEAR),
-                startCalendar.get(Calendar.MONTH),
-                startCalendar.get(Calendar.DAY_OF_MONTH)).show());
+        etStartDate.setOnClickListener(v -> {
+            DatePickerDialog dialog = new DatePickerDialog(this, startListener,
+                    startCalendar.get(Calendar.YEAR),
+                    startCalendar.get(Calendar.MONTH),
+                    startCalendar.get(Calendar.DAY_OF_MONTH));
+            dialog.show();
+        });
 
-        etEndDate.setOnClickListener(v -> new DatePickerDialog(this, endListener,
-                endCalendar.get(Calendar.YEAR),
-                endCalendar.get(Calendar.MONTH),
-                endCalendar.get(Calendar.DAY_OF_MONTH)).show());
+        etEndDate.setOnClickListener(v -> {
+            DatePickerDialog dialog = new DatePickerDialog(this, endListener,
+                    endCalendar.get(Calendar.YEAR),
+                    endCalendar.get(Calendar.MONTH),
+                    endCalendar.get(Calendar.DAY_OF_MONTH));
+            dialog.show();
+        });
     }
 
     private void updateDate(TextInputEditText editText, Calendar calendar) {
-        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
-        editText.setText(sdf.format(calendar.getTime()));
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        String formattedDate = sdf.format(calendar.getTime());
+        editText.setText(formattedDate);
     }
 
     private void setupImagePicker() {
@@ -210,3 +221,4 @@ public class activity_ngo_create_campaign_form extends AppCompatActivity {
         return true;
     }
 }
+
