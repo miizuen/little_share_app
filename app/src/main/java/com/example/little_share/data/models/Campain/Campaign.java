@@ -318,5 +318,14 @@ public class Campaign implements Serializable {
     public void setRoles(List<CampaignRole> roles) {
         this.roles = roles;
     }
+    public static CampaignCategory getCategoryFromDisplayName(String displayName) {
+        for (CampaignCategory category : CampaignCategory.values()) {
+            if (category.getDisplayName().equals(displayName)) {
+                return category;
+            }
+        }
+        return CampaignCategory.EDUCATION; // Default
+    }
+
 }
 
