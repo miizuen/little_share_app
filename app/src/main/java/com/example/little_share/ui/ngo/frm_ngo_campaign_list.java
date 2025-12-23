@@ -27,16 +27,18 @@ import com.example.little_share.R;
 import com.example.little_share.data.models.Campain.Campaign;
 import com.example.little_share.data.repositories.CampaignRepository;
 import com.example.little_share.ui.ngo.adapter.NGOCampaignAdapter;
+import com.example.little_share.utils.DateUtilsClass;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 
 public class frm_ngo_campaign_list extends Fragment {
 
     private RecyclerView rvCampaigns;
     private EditText etSearch;
-    private TextView chipAll, chipOngoing, chipCompleted, chipCancelled;
+    private TextView chipAll, chipOngoing, chipCompleted, chipEnded;
     private ProgressBar progressBar;
     private View layoutEmpty;
 
@@ -77,10 +79,17 @@ public class frm_ngo_campaign_list extends Fragment {
         chipAll = view.findViewById(R.id.chipAll);
         chipOngoing = view.findViewById(R.id.chipOngoing);
         chipCompleted = view.findViewById(R.id.chipCompleted);
-        chipCancelled = view.findViewById(R.id.chipCancelled);
+        chipEnded = view.findViewById(R.id.chipEnded);
         progressBar = view.findViewById(R.id.progressBar);
         layoutEmpty = view.findViewById(R.id.layoutEmpty);
+
+        // ✅ THÊM: Set text cho chip
+        chipAll.setText("Tất cả");
+        chipOngoing.setText("Đang diễn ra");
+        chipCompleted.setText("Đã kết thúc");
+        chipEnded.setText("Sắp diễn ra");  // Thay đổi text
     }
+
 
     private void setupRecyclerView() {
         rvCampaigns.setLayoutManager(new LinearLayoutManager(getContext()));
@@ -132,29 +141,31 @@ public class frm_ngo_campaign_list extends Fragment {
 
         chipOngoing.setOnClickListener(v -> {
             selectChip(chipOngoing);
-            currentFilter = "ONGOING";
+            currentFilter = "ONGOING";  // Đang diễn ra
             filterCampaigns(etSearch.getText().toString(), currentFilter);
         });
 
         chipCompleted.setOnClickListener(v -> {
             selectChip(chipCompleted);
-            currentFilter = "COMPLETED";
+            currentFilter = "COMPLETED";  // Đã kết thúc
             filterCampaigns(etSearch.getText().toString(), currentFilter);
         });
 
-        chipCancelled.setOnClickListener(v -> {
-            selectChip(chipCancelled);
-            currentFilter = "CANCELLED";
+        // ✅ SỬA: Thay chipCancelled thành chipUpcoming
+        chipEnded.setOnClickListener(v -> {
+            selectChip(chipEnded);
+            currentFilter = "UPCOMING";  // Sắp diễn ra
             filterCampaigns(etSearch.getText().toString(), currentFilter);
         });
     }
+
 
     private void selectChip(TextView selectedChip) {
         // Reset all chips
         resetChip(chipAll);
         resetChip(chipOngoing);
         resetChip(chipCompleted);
-        resetChip(chipCancelled);
+        resetChip(chipEnded);
 
         // Highlight selected chip
         selectedChip.setBackgroundResource(R.drawable.bg_chip_selected);
@@ -210,10 +221,10 @@ public class frm_ngo_campaign_list extends Fragment {
                                 campaign.getLocation().toLowerCase().contains(query));
             }
 
-            // Filter by status
+            // ✅ SỬA: Filter by status dựa trên thời gian thực
             if (!status.equals("ALL")) {
-                matchesStatus = campaign.getStatus() != null &&
-                        campaign.getStatus().equalsIgnoreCase(status);
+                String realTimeStatus = getRealTimeStatus(campaign);
+                matchesStatus = realTimeStatus.equals(status);
             }
 
             // Add if matches both filters
@@ -230,6 +241,29 @@ public class frm_ngo_campaign_list extends Fragment {
             Toast.makeText(getContext(), "Không tìm thấy chiến dịch phù hợp", Toast.LENGTH_SHORT).show();
         }
     }
+
+    // ✅ THÊM: Method tính trạng thái thời gian thực
+    private String getRealTimeStatus(Campaign campaign) {
+        if (campaign.getStartDate() == null || campaign.getEndDate() == null) {
+            return "UNKNOWN";
+        }
+
+        Date now = new Date();
+        Date startDate = DateUtilsClass.getStartOfDay(campaign.getStartDate()); // 00:00:00
+        Date endDate = DateUtilsClass.getEndOfDay(campaign.getEndDate());       // 23:59:59
+
+        if (now.before(startDate)) {
+            return "UPCOMING";      // Sắp diễn ra
+        } else if (now.after(endDate)) {
+            return "COMPLETED";     // Đã kết thúc
+        } else {
+            return "ONGOING";       // Đang diễn ra
+        }
+    }
+
+
+
+
 
     private void showLoading(boolean show) {
         if (progressBar != null) {

@@ -25,7 +25,6 @@ public class GiftRedemptionSuccessDialog extends Dialog {
         this.qrCode = qrCode;
     }
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -65,47 +64,41 @@ public class GiftRedemptionSuccessDialog extends Dialog {
         }
     }
 
-    // Phương thức lưu QR code sử dụng ImageSaver helper
+    // Phương thức lưu QR code - SỬA LẠI
     private void saveQRCode() {
         try {
             // Tạo lại bitmap QR code để đảm bảo chất lượng tốt nhất
-            Bitmap qrBitmap = QRCodeGenerator.generateQRCode(qrCode, 512);
-            
-            if (qrBitmap != null) {
-                // Tạo tên file dựa trên tên quà
-                String fileName = "QR_" + giftName.replaceAll("[^a-zA-Z0-9]", "_");
-                
-                // Sử dụng ImageSaver helper để lưu ảnh
-                ImageSaver.saveQRCodeToGallery(getContext(), qrBitmap, fileName, new ImageSaver.OnImageSavedListener() {
-                    @Override
-                    public void onSuccess(String filePath) {
-                        android.widget.Toast.makeText(getContext(), 
-                            "Đã lưu QR code vào thư viện ảnh thành công!", 
-                            android.widget.Toast.LENGTH_SHORT).show();
-                    }
+            Bitmap qrBitmap = QRCodeGenerator.generateQRCode(qrCode, 400);
 
-                    @Override
-                    public void onFailure(String error) {
-                        android.widget.Toast.makeText(getContext(), 
-                            "Lỗi khi lưu QR code: " + error, 
-                            android.widget.Toast.LENGTH_LONG).show();
-                    }
-                });
+            if (qrBitmap != null) {
+                // Tạo tên file dựa trên tên quà với timestamp
+                String fileName = "QR_" + giftName.replaceAll("[^a-zA-Z0-9]", "_") + "_" + System.currentTimeMillis() + ".png";
+                String description = "QR code để đổi quà: " + giftName;
+
+                // Sử dụng ImageSaver helper với method đúng
+                boolean success = ImageSaver.saveBitmapToGallery(getContext(), qrBitmap, fileName, description);
+
+                if (success) {
+                    android.widget.Toast.makeText(getContext(),
+                            "Đã lưu QR code vào thư viện ảnh thành công!",
+                            android.widget.Toast.LENGTH_SHORT).show();
+                } else {
+                    android.widget.Toast.makeText(getContext(),
+                            "Không thể lưu QR code. Vui lòng kiểm tra quyền truy cập.",
+                            android.widget.Toast.LENGTH_SHORT).show();
+                }
             } else {
-                android.widget.Toast.makeText(getContext(), 
-                    "Không thể tạo QR code để lưu", 
-                    android.widget.Toast.LENGTH_SHORT).show();
+                android.widget.Toast.makeText(getContext(),
+                        "Không thể tạo QR code để lưu",
+                        android.widget.Toast.LENGTH_SHORT).show();
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            android.widget.Toast.makeText(getContext(), 
-                "Lỗi không mong muốn khi lưu QR code", 
-                android.widget.Toast.LENGTH_SHORT).show();
+            android.util.Log.e("GiftRedemptionDialog", "Error saving QR code", e);
+            android.widget.Toast.makeText(getContext(),
+                    "Lỗi khi lưu QR code: " + e.getMessage(),
+                    android.widget.Toast.LENGTH_LONG).show();
         }
     }
-
-
-
 
     private void generateAndDisplayQR() {
         ImageView ivDialogQRCode = findViewById(R.id.ivDialogQRCode);

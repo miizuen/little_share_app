@@ -50,6 +50,12 @@ public class frm_ngo_home extends Fragment {
         initViews(view);
         setupQuickActions();
         loadOrganizationData();
+        
+        // Xóa dữ liệu test nếu có
+        cleanupTestData();
+        
+        // CHẠY MỘT LẦN: Xóa toàn bộ dữ liệu test trong Firebase
+        deleteAllTestDataOnce();
     }
 
     @Override
@@ -215,8 +221,7 @@ public class frm_ngo_home extends Fragment {
             if (tvTotalCampaigns != null) tvTotalCampaigns.setText("0");
             if (tvTotalSponsors != null) tvTotalSponsors.setText("0");
             if (tvTotalPoints != null) tvTotalPoints.setText("0");
-            Log.d(TAG, "Initial stats set to 0");
-        }
+                  }
     }
 
     // ✅ Số chiến dịch
@@ -243,6 +248,7 @@ public class frm_ngo_home extends Fragment {
     private void loadTotalVolunteers(String organizationId) {
         Log.d(TAG, "Loading volunteers for organizationId: " + organizationId);
 
+        // 1. Load số tình nguyện viên đã được duyệt
         db.collection("volunteer_registrations")
                 .whereEqualTo("organizationId", organizationId)
                 .whereEqualTo("status", "approved")
@@ -270,6 +276,38 @@ public class frm_ngo_home extends Fragment {
                         tvTotalVolunteers.setText(String.valueOf(totalVolunteers));
                         Log.d(TAG, "✅ Volunteer count updated: " + totalVolunteers);
                     }
+                });
+
+        // 2. Load số tình nguyện viên chờ duyệt - CHỈ DỮ LIỆU THẬT
+        db.collection("volunteer_registrations")
+                .whereEqualTo("organizationId", organizationId)
+                .whereEqualTo("status", "pending")
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error loading pending volunteers: " + error.getMessage());
+                        return;
+                    }
+
+                    java.util.Set<String> uniquePendingVolunteers = new java.util.HashSet<>();
+                    if (snapshots != null) {
+                        Log.d(TAG, "Found " + snapshots.size() + " pending registrations for org: " + organizationId);
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String userId = doc.getString("userId");
+                            String status = doc.getString("status");
+                            String docOrgId = doc.getString("organizationId");
+                            Log.d(TAG, "Pending registration - userId: " + userId + ", status: " + status + ", orgId: " + docOrgId);
+                            if (userId != null) {
+                                uniquePendingVolunteers.add(userId);
+                            }
+                        }
+                    } else {
+                        Log.d(TAG, "No pending registrations found for org: " + organizationId);
+                    }
+
+                    int totalPendingVolunteers = uniquePendingVolunteers.size();
+                    Log.d(TAG, "Real pending volunteers count: " + totalPendingVolunteers);
+
+
                 });
     }
 
@@ -527,5 +565,79 @@ public class frm_ngo_home extends Fragment {
                     .setPositiveButton("OK", null)
                     .show();
         }
+    }
+    
+    // Xóa tất cả dữ liệu test/ảo
+    private void cleanupTestData() {
+        Log.d(TAG, "Cleaning up test data...");
+        
+        // Xóa tất cả volunteer registrations có userId bắt đầu bằng "test"
+        db.collection("volunteer_registrations")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    if (snapshots != null) {
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String userId = doc.getString("userId");
+                            if (userId != null && userId.startsWith("test")) {
+                                doc.getReference().delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "✅ Deleted test registration: " + doc.getId());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "❌ Failed to delete test registration: " + e.getMessage());
+                                        });
+                            }
+                        }
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "Error loading registrations for cleanup: " + e.getMessage());
+                });
+    }
+    
+    // XÓA TOÀN BỘ DỮ LIỆU TEST - CHẠY MỘT LẦN
+    private void deleteAllTestDataOnce() {
+        Log.d(TAG, "=== DELETING ALL TEST DATA FROM FIREBASE ===");
+        
+        // Xóa tất cả documents có userId chứa "test"
+        db.collection("volunteer_registrations")
+                .get()
+                .addOnSuccessListener(snapshots -> {
+                    if (snapshots != null && !snapshots.isEmpty()) {
+                        int totalDocs = snapshots.size();
+                        int testDocs = 0;
+                        
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            String userId = doc.getString("userId");
+                            String campaignId = doc.getString("campaignId");
+                            
+                            // Xóa nếu userId hoặc campaignId chứa "test"
+                            if ((userId != null && (userId.contains("test") || userId.startsWith("test_"))) ||
+                                (campaignId != null && (campaignId.contains("test") || campaignId.startsWith("test_")))) {
+                                
+                                testDocs++;
+                                Log.d(TAG, "Deleting test doc: " + doc.getId() + " - userId: " + userId + " - campaignId: " + campaignId);
+                                
+                                doc.getReference().delete()
+                                        .addOnSuccessListener(aVoid -> {
+                                            Log.d(TAG, "✅ DELETED test document: " + doc.getId());
+                                        })
+                                        .addOnFailureListener(e -> {
+                                            Log.e(TAG, "❌ FAILED to delete test document: " + e.getMessage());
+                                        });
+                            }
+                        }
+                        
+                        Log.d(TAG, "=== CLEANUP SUMMARY ===");
+                        Log.d(TAG, "Total documents: " + totalDocs);
+                        Log.d(TAG, "Test documents deleted: " + testDocs);
+                        Log.d(TAG, "Real documents remaining: " + (totalDocs - testDocs));
+                    } else {
+                        Log.d(TAG, "No documents found in volunteer_registrations");
+                    }
+                })
+                .addOnFailureListener(e -> {
+                    Log.e(TAG, "❌ Error during cleanup: " + e.getMessage());
+                });
     }
 }
