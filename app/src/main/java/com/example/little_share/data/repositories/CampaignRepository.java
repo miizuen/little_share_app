@@ -295,39 +295,49 @@ public class CampaignRepository {
     public LiveData<List<Campaign>> getCampaignsByCategory(String category) {
         MutableLiveData<List<Campaign>> liveData = new MutableLiveData<>();
 
+        android.util.Log.d("REPO_FILTER", "Querying campaigns with category: " + category);
+
         db.collection(COLLECTION)
                 .whereEqualTo("category", category)
                 .orderBy("createdAt", Query.Direction.DESCENDING)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
-                        Log.e(TAG, "Error getting campaigns by category", error);
+                        Log.e(TAG, "Error getting campaigns by category: " + category, error);
                         liveData.setValue(new ArrayList<>());
                         return;
                     }
 
                     if (snapshots != null) {
+                        android.util.Log.d("REPO_FILTER", "Found " + snapshots.size() + " documents for category: " + category);
+
                         List<Campaign> campaigns = new ArrayList<>();
                         for (QueryDocumentSnapshot doc : snapshots) {
                             Campaign campaign = doc.toObject(Campaign.class);
-                            campaign.setId(doc.getId()); // Set document ID
+                            campaign.setId(doc.getId());
 
-                            // KIỂM TRA CHIẾN DỊCH ĐÃ KẾT THÚC
+                            // Debug thông tin campaign
+                            android.util.Log.d("REPO_FILTER", "Campaign: " + campaign.getName() + ", Category: " + campaign.getCategory());
+
+                            // KIỂM TRA CHIẾN DỊCH ĐÃ KẾT THÚC (nếu đã implement)
                             Object endDate = doc.get("endDate");
                             if (!isCampaignExpired(endDate)) {
-                                // Chỉ thêm chiến dịch chưa kết thúc
                                 campaigns.add(campaign);
                             } else {
-                                Log.d(TAG, "Campaign expired, not showing: " + campaign.getName());
+                                android.util.Log.d("REPO_FILTER", "Campaign expired: " + campaign.getName());
                             }
                         }
                         liveData.setValue(campaigns);
+                        android.util.Log.d("REPO_FILTER", "Returning " + campaigns.size() + " active campaigns for category: " + category);
                     } else {
+                        android.util.Log.w("REPO_FILTER", "No snapshots for category: " + category);
                         liveData.setValue(new ArrayList<>());
                     }
                 });
 
         return liveData;
     }
+
+
 
 
     public LiveData<List<Campaign>> getCampaignsWithDonations() {

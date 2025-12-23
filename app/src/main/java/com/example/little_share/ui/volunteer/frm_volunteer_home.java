@@ -147,13 +147,40 @@ public class frm_volunteer_home extends Fragment {
     }
 
     private void setupChips() {
-        chipAll.setOnClickListener(v -> filterByCategory("ALL"));
-        chipEducation.setOnClickListener(v -> filterByCategory("EDUCATION"));
-        chipFood.setOnClickListener(v -> filterByCategory("FOOD"));
-        chipEnvironment.setOnClickListener(v -> filterByCategory("ENVIRONMENT"));
-        chipHealth.setOnClickListener(v -> filterByCategory("HEALTH"));
-        chipUrgent.setOnClickListener(v -> filterByCategory("URGENT"));
+        // Set "Tất cả" làm mặc định
+        setSelectedChipStyle(chipAll);
+        resetChipStyle(chipEducation);
+        resetChipStyle(chipFood);
+        resetChipStyle(chipEnvironment);
+        resetChipStyle(chipHealth);
+        resetChipStyle(chipUrgent);
+
+        chipAll.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked ALL");
+            filterByCategory("ALL");
+        });
+        chipEducation.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked EDUCATION");
+            filterByCategory("EDUCATION");
+        });
+        chipFood.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked FOOD");
+            filterByCategory("FOOD");
+        });
+        chipEnvironment.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked ENVIRONMENT");
+            filterByCategory("ENVIRONMENT");
+        });
+        chipHealth.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked HEALTH");
+            filterByCategory("HEALTH");
+        });
+        chipUrgent.setOnClickListener(v -> {
+            android.util.Log.d("CHIP_CLICK", "Clicked URGENT");
+            filterByCategory("URGENT");
+        });
     }
+
 
     private void updateCampaignCount(int count) {
         tvCampaignCount.setText(count + " chiến dịch");
@@ -162,34 +189,29 @@ public class frm_volunteer_home extends Fragment {
 
 
     private void loadCampaigns() {
-        if ("ALL".equals(selectedCategory)) {
-            // Load all campaigns
-            repository.getAllCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
-                if (campaigns != null) {
-                    if (campaigns.isEmpty()) {
-                        // No data, insert mock campaigns
-                    } else {
-                        allCampaigns = new ArrayList<>(campaigns);
-                        adapter.updateData(campaigns);
-                        updateCampaignCount(campaigns.size());
-                    }
+        android.util.Log.d("LOAD_CAMPAIGNS", "Loading all campaigns");
+
+        // Chỉ load tất cả campaigns một lần
+        repository.getAllCampaigns().observe(getViewLifecycleOwner(), campaigns -> {
+            android.util.Log.d("LOAD_CAMPAIGNS", "Received " + (campaigns != null ? campaigns.size() : 0) + " campaigns");
+            if (campaigns != null) {
+                if (campaigns.isEmpty()) {
+                    android.util.Log.d("LOAD_CAMPAIGNS", "No campaigns found");
+                } else {
+                    allCampaigns = new ArrayList<>(campaigns);
+                    // Áp dụng filter hiện tại
+                    filterCampaignsByCategory(selectedCategory);
+                    android.util.Log.d("LOAD_CAMPAIGNS", "Loaded " + campaigns.size() + " campaigns, applying filter: " + selectedCategory);
                 }
-            });
-        } else {
-            // Load by category
-            repository.getCampaignsByCategory(selectedCategory)
-                    .observe(getViewLifecycleOwner(), campaigns -> {
-                        if (campaigns != null) {
-                            allCampaigns = new ArrayList<>(campaigns);
-                            adapter.updateData(campaigns);
-                            updateCampaignCount(campaigns.size());
-                        }
-                    });
-        }
+            }
+        });
     }
+
 
     private void filterByCategory(String category) {
         selectedCategory = category;
+
+        android.util.Log.d("FILTER_DEBUG", "Filtering by category: " + category);
 
         // Reset tất cả chip về màu xám
         resetChipStyle(chipAll);
@@ -209,8 +231,52 @@ public class frm_volunteer_home extends Fragment {
             case "URGENT": setSelectedChipStyle(chipUrgent); break;
         }
 
-        loadCampaigns();
+        // Lọc campaigns dựa vào logic giống CampaignAdapter
+        filterCampaignsByCategory(category);
     }
+
+    private void filterCampaignsByCategory(String selectedCategory) {
+        if ("ALL".equals(selectedCategory)) {
+            // Hiển thị tất cả campaigns
+            adapter.updateData(allCampaigns);
+            updateCampaignCount(allCampaigns.size());
+            return;
+        }
+
+        List<Campaign> filteredCampaigns = new ArrayList<>();
+
+        for (Campaign campaign : allCampaigns) {
+            try {
+                String categoryStr = campaign.getCategory();
+                Campaign.CampaignCategory category;
+
+                // Logic giống CampaignAdapter
+                if (categoryStr != null) {
+                    category = Campaign.CampaignCategory.valueOf(categoryStr);
+                } else {
+                    category = campaign.getCategoryEnum();
+                }
+
+                // So sánh với category được chọn
+                if (category != null && category.name().equals(selectedCategory)) {
+                    filteredCampaigns.add(campaign);
+                    android.util.Log.d("FILTER_DEBUG", "Added campaign: " + campaign.getName() + " with category: " + category.name());
+                }
+            } catch (Exception e) {
+                // Fallback: so sánh string thô
+                String cat = campaign.getCategory();
+                if (selectedCategory.equals(cat)) {
+                    filteredCampaigns.add(campaign);
+                    android.util.Log.d("FILTER_DEBUG", "Added campaign (fallback): " + campaign.getName() + " with category: " + cat);
+                }
+            }
+        }
+
+        android.util.Log.d("FILTER_DEBUG", "Filtered " + filteredCampaigns.size() + " campaigns for category: " + selectedCategory);
+        adapter.updateData(filteredCampaigns);
+        updateCampaignCount(filteredCampaigns.size());
+    }
+
 
     // Chip được chọn: nền cam, chữ trắng
     private void setSelectedChipStyle(Chip chip) {
@@ -234,7 +300,7 @@ public class frm_volunteer_home extends Fragment {
 
                     @Override
                     public void onDetailClick(Campaign campaign) {
-                       openCampaignDetail(campaign);
+                        openCampaignDetail(campaign);
                     }
                 });
 
