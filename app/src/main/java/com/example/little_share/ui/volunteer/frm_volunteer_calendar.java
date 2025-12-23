@@ -25,8 +25,11 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 public class frm_volunteer_calendar extends Fragment {
 
@@ -94,6 +97,7 @@ public class frm_volunteer_calendar extends Fragment {
         android.util.Log.d("CALENDAR_DEBUG", "Loading registrations for user: " + currentUserId);
         historyList = new ArrayList<>();
         registrationsList.clear();
+
         // Query registrations (bỏ orderBy để tránh lỗi index)
         db.collection("volunteer_registrations")
                 .whereEqualTo("userId", currentUserId)
@@ -125,6 +129,7 @@ public class frm_volunteer_calendar extends Fragment {
                     Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_LONG).show();
                 });
     }
+
     private void loadCampaignPointsForRegistrations(List<VolunteerRegistration> registrations) {
         if (registrations.isEmpty()) {
             Toast.makeText(getContext(), "Chưa có lịch tình nguyện nào được duyệt", Toast.LENGTH_LONG).show();
@@ -139,10 +144,13 @@ public class frm_volunteer_calendar extends Fragment {
 
         for (VolunteerRegistration reg : registrations) {
             if (reg.getCampaignId() == null || reg.getCampaignId().isEmpty()) {
-                // Nếu không có campaignId, dùng điểm mặc định
-                processRegistrationWithPoints(reg, 0);
-                loadedCount[0]++;
+                // Nếu không có campaignId, kiểm tra ngày từ registration
+                String regDate = reg.getDate(); // Giả sử đây là ngày kết thúc
+                if (!isCampaignExpired(regDate)) {
+                    processRegistrationWithPoints(reg, 0);
+                }
 
+                loadedCount[0]++;
                 if (loadedCount[0] == totalCount) {
                     finishLoadingData();
                 }
@@ -155,6 +163,7 @@ public class frm_volunteer_calendar extends Fragment {
                     .get()
                     .addOnSuccessListener(campaignDoc -> {
                         int points = 0;
+                        boolean shouldInclude = true; // Flag để quyết định có hiển thị không
 
                         if (campaignDoc.exists()) {
                             // Lấy pointsReward từ campaign
@@ -163,13 +172,22 @@ public class frm_volunteer_calendar extends Fragment {
                                 points = pointsReward.intValue();
                             }
 
-                            android.util.Log.d("CALENDAR_DEBUG", "Campaign " + reg.getCampaignName() + " has " + points + " points");
+                            // THÊM LOGIC KIỂM TRA NGÀY KẾT THÚC - SỬA LỖI
+                            Object endDate = campaignDoc.get("endDate"); // Dùng get() thay vì getString()
+                            if (isCampaignExpired(endDate)) {
+                                shouldInclude = false; // Không hiển thị chiến dịch đã kết thúc
+                                android.util.Log.d("CALENDAR_DEBUG", "Campaign expired: " + reg.getCampaignName() + " ended on " + endDate);
+                            }
+
+                            android.util.Log.d("CALENDAR_DEBUG", "Campaign " + reg.getCampaignName() + " has " + points + " points, expired: " + !shouldInclude);
                         } else {
                             android.util.Log.w("CALENDAR_DEBUG", "Campaign not found: " + reg.getCampaignId());
                         }
 
-                        // Xử lý registration với điểm đã load
-                        processRegistrationWithPoints(reg, points);
+                        // CHỈ XỬ LÝ NẾU CHIẾN DỊCH CHƯA KẾT THÚC
+                        if (shouldInclude) {
+                            processRegistrationWithPoints(reg, points);
+                        }
 
                         loadedCount[0]++;
                         if (loadedCount[0] == totalCount) {
@@ -189,6 +207,55 @@ public class frm_volunteer_calendar extends Fragment {
                     });
         }
     }
+
+
+    private boolean isCampaignExpired(Object endDateObj) {
+        if (endDateObj == null) {
+            return false; // Nếu không có ngày kết thúc, coi như chưa hết hạn
+        }
+
+        try {
+            Date campaignEndDate = null;
+            Date currentDate = new Date();
+
+            // Xử lý các kiểu dữ liệu khác nhau
+            if (endDateObj instanceof String) {
+                // Nếu là String, parse theo format
+                String endDateStr = (String) endDateObj;
+                if (endDateStr.isEmpty()) {
+                    return false;
+                }
+                SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                campaignEndDate = sdf.parse(endDateStr);
+            } else if (endDateObj instanceof com.google.firebase.Timestamp) {
+                // Nếu là Firestore Timestamp
+                com.google.firebase.Timestamp timestamp = (com.google.firebase.Timestamp) endDateObj;
+                campaignEndDate = timestamp.toDate();
+            } else if (endDateObj instanceof Date) {
+                // Nếu là Date
+                campaignEndDate = (Date) endDateObj;
+            } else {
+                // Kiểu không hỗ trợ, coi như chưa hết hạn
+                android.util.Log.w("CALENDAR_DEBUG", "Unsupported endDate type: " + endDateObj.getClass().getSimpleName());
+                return false;
+            }
+
+            if (campaignEndDate != null) {
+                // So sánh ngày hiện tại với ngày kết thúc
+                boolean expired = currentDate.after(campaignEndDate);
+                android.util.Log.d("CALENDAR_DEBUG", "Campaign end date: " + campaignEndDate + ", current: " + currentDate + ", expired: " + expired);
+                return expired;
+            }
+
+            return false;
+        } catch (Exception e) {
+            android.util.Log.e("CALENDAR_DEBUG", "Error parsing endDate: " + e.getMessage());
+            e.printStackTrace();
+            return false; // Nếu có lỗi parse, coi như chưa hết hạn
+        }
+    }
+
+
     private void processRegistrationWithPoints(VolunteerRegistration reg, int points) {
         // Set điểm vào registration
         reg.setPoints(points);
@@ -200,6 +267,7 @@ public class frm_volunteer_calendar extends Fragment {
         VolunteerHistoryModel historyModel = convertToHistoryModel(reg);
         historyList.add(historyModel);
     }
+
     private void finishLoadingData() {
         // Sắp xếp theo thời gian tạo (mới nhất trước)
         registrationsList.sort((a, b) -> {
@@ -225,7 +293,7 @@ public class frm_volunteer_calendar extends Fragment {
         android.util.Log.d("CALENDAR_DEBUG", "Finished loading " + historyList.size() + " items with points");
 
         if (historyList.isEmpty()) {
-            Toast.makeText(getContext(), "Chưa có lịch tình nguyện nào được duyệt", Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Chưa có lịch tình nguyện nào được duyệt hoặc tất cả đã kết thúc", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -237,9 +305,6 @@ public class frm_volunteer_calendar extends Fragment {
         }
         return null;
     }
-
-
-
 
     private VolunteerHistoryModel convertToHistoryModel(VolunteerRegistration reg) {
         String statusText = getStatusText(reg.getStatus());
@@ -295,9 +360,6 @@ public class frm_volunteer_calendar extends Fragment {
         );
     }
 
-
-
-
     private String getStatusText(String status) {
         if (status == null) return "Không xác định";
 
@@ -322,7 +384,6 @@ public class frm_volunteer_calendar extends Fragment {
         }
     }
 
-
     private void setupClickListeners() {
         btnBack.setOnClickListener(v -> {
             // Quay về trang chủ
@@ -334,6 +395,7 @@ public class frm_volunteer_calendar extends Fragment {
             }
         });
     }
+
     @Override
     public void onResume() {
         super.onResume();
@@ -346,4 +408,14 @@ public class frm_volunteer_calendar extends Fragment {
         loadUserRegistrations();
     }
 
+    // THÊM METHOD REFRESH CALENDAR
+    public void refreshCalendar() {
+        if (historyList != null) {
+            historyList.clear();
+        }
+        if (registrationsList != null) {
+            registrationsList.clear();
+        }
+        loadUserRegistrations();
+    }
 }
