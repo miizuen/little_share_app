@@ -189,7 +189,6 @@
                 </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
-
         <!-- Mô tả chiến dịch -->
         <androidx.cardview.widget.CardView
             android:layout_width="match_parent"
