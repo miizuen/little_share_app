@@ -64,7 +64,6 @@
         <activity
             android:name=".ui.ngo.activity_ngo_create_campagin_with_role"
             android:exported="false" />
-
         <activity
             android:name=".ui.volunteer.activity_volunteer_campagin_history"
             android:exported="false" />
@@ -180,6 +179,11 @@
         <activity
             android:name=".ui.sponsor.activity_sponsor_main"
             android:exported="false" />
+        <activity
+            android:name=".ui.activity_about_app"
+            android:exported="false"
+            android:screenOrientation="portrait" />
+
 
         <meta-data
             android:name="com.google.android.gms.version"
