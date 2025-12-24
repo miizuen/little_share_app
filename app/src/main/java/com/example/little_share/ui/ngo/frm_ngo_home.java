@@ -342,46 +342,93 @@ public class frm_ngo_home extends Fragment {
     }
 
     private void loadTotalPointsGiven(String organizationId) {
-        Log.d(TAG, "=== LOADING ALL DONATION POINTS ===");
+        Log.d(TAG, "=== LOADING TOTAL POINTS FROM DONATIONS AND VOLUNTEERS ===");
 
+        // Listener cho tổng điểm từ cả 2 nguồn
+        final int[] totalPointsArray = {0};
+        final boolean[] donationLoaded = {false};
+        final boolean[] volunteerLoaded = {false};
+
+        // 1. Tính điểm từ DONATIONS (pointsEarned)
         db.collection("donations")
+                .whereEqualTo("organizationId", organizationId)
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
                         Log.e(TAG, "Error loading donations: " + error.getMessage());
-                        if (isAdded() && tvTotalPoints != null) {
-                            tvTotalPoints.setText("0");
-                        }
+                        donationLoaded[0] = true;
+                        updatePointsDisplay(totalPointsArray[0], donationLoaded[0], volunteerLoaded[0]);
                         return;
                     }
 
-                    int totalPoints = 0;
+                    int donationPoints = 0;
                     if (snapshots != null) {
-                        Log.d(TAG, "Found " + snapshots.size() + " donations");
+                        Log.d(TAG, "Found " + snapshots.size() + " donations for this org");
 
                         for (QueryDocumentSnapshot doc : snapshots) {
-                            Integer points = doc.getLong("points") != null ?
-                                    doc.getLong("points").intValue() : 0;
+                            Integer points = doc.getLong("pointsEarned") != null ?
+                                    doc.getLong("pointsEarned").intValue() : 0;
                             String status = doc.getString("status");
-                            String userId = doc.getString("userId");
-                            String docOrgId = doc.getString("organizationId");
 
-                            Log.d(TAG, "Donation " + doc.getId() + ": " + points + " points, status: " + status + ", orgId: " + docOrgId);
+                            Log.d(TAG, "Donation " + doc.getId() + ": " + points + " points, status: " + status);
 
-                            // Tính tất cả donations có điểm và status confirmed/received
-                            if (points > 0 && ("confirmed".equals(status) || "received".equals(status))) {
-                                totalPoints += points;
+                            // Tính donations có status RECEIVED
+                            if (status != null && status.equalsIgnoreCase("RECEIVED")) {
+                                donationPoints += points;
                                 Log.d(TAG, "✅ Added " + points + " points from donation " + doc.getId());
                             }
                         }
                     }
 
-                    Log.d(TAG, "=== TOTAL POINTS CALCULATED: " + totalPoints + " ===");
-
-                    if (isAdded() && tvTotalPoints != null) {
-                        tvTotalPoints.setText(String.format("%,d", totalPoints));
-                        Log.d(TAG, "✅ Points display updated to: " + totalPoints);
-                    }
+                    Log.d(TAG, "=== DONATION POINTS: " + donationPoints + " ===");
+                    totalPointsArray[0] = donationPoints;
+                    donationLoaded[0] = true;
+                    updatePointsDisplay(totalPointsArray[0], donationLoaded[0], volunteerLoaded[0]);
                 });
+
+        // 2. Tính điểm từ VOLUNTEER REGISTRATIONS (pointsEarned)
+        db.collection("volunteer_registrations")
+                .whereEqualTo("organizationId", organizationId)
+                .addSnapshotListener((snapshots, error) -> {
+                    if (error != null) {
+                        Log.e(TAG, "Error loading volunteer registrations: " + error.getMessage());
+                        volunteerLoaded[0] = true;
+                        updatePointsDisplay(totalPointsArray[0], donationLoaded[0], volunteerLoaded[0]);
+                        return;
+                    }
+
+                    int volunteerPoints = 0;
+                    if (snapshots != null) {
+                        Log.d(TAG, "Found " + snapshots.size() + " volunteer registrations for this org");
+
+                        for (QueryDocumentSnapshot doc : snapshots) {
+                            Integer points = doc.getLong("pointsEarned") != null ?
+                                    doc.getLong("pointsEarned").intValue() : 0;
+                            String status = doc.getString("status");
+
+                            Log.d(TAG, "Volunteer reg " + doc.getId() + ": " + points + " points, status: " + status);
+
+                            // Tính registrations có status completed
+                            if (status != null && status.equalsIgnoreCase("completed")) {
+                                volunteerPoints += points;
+                                Log.d(TAG, "✅ Added " + points + " points from volunteer " + doc.getId());
+                            }
+                        }
+                    }
+
+                    Log.d(TAG, "=== VOLUNTEER POINTS: " + volunteerPoints + " ===");
+                    totalPointsArray[0] += volunteerPoints;
+                    volunteerLoaded[0] = true;
+                    updatePointsDisplay(totalPointsArray[0], donationLoaded[0], volunteerLoaded[0]);
+                });
+    }
+
+    private void updatePointsDisplay(int totalPoints, boolean donationLoaded, boolean volunteerLoaded) {
+        // Chỉ update UI khi cả 2 nguồn đã load xong
+        if (donationLoaded && volunteerLoaded && isAdded() && tvTotalPoints != null) {
+            Log.d(TAG, "=== TOTAL POINTS FROM ALL SOURCES: " + totalPoints + " ===");
+            tvTotalPoints.setText(String.format("%,d", totalPoints));
+            Log.d(TAG, "✅ Points display updated to: " + totalPoints);
+        }
     }
 
     private boolean checkCameraPermission() {
