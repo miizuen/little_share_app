@@ -175,67 +175,27 @@ public class frm_campaign_detail_sponsor extends Fragment {
     }
 
     private void loadCampaignImage(Campaign campaign) {
-        android.util.Log.d("CAMPAIGN_DETAIL", "=== LOADING IMAGE ===");
+        android.util.Log.d("CAMPAIGN_DETAIL", "=== LOADING IMAGE - SAME AS ADAPTER ===");
         android.util.Log.d("CAMPAIGN_DETAIL", "Campaign: " + campaign.getName());
         android.util.Log.d("CAMPAIGN_DETAIL", "ImageURL: " + (campaign.getImageUrl() != null ? campaign.getImageUrl() : "NULL"));
-        android.util.Log.d("CAMPAIGN_DETAIL", "Category: " + campaign.getCategory());
 
-        // Clear Glide cache để tránh hiển thị hình cũ
-        Glide.with(this).clear(imgBanner);
-
-        // Chọn hình dựa trên tên campaign cụ thể TRƯỚC
-        int specificImage = getSpecificImageForCampaign(campaign);
-        if (specificImage != -1) {
-            android.util.Log.d("CAMPAIGN_DETAIL", "Using specific image for campaign: " + campaign.getName());
-            imgBanner.setImageResource(specificImage);
-            return;
-        }
-
-        // Nếu có URL thì load từ URL
-        if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
-            android.util.Log.d("CAMPAIGN_DETAIL", "Loading image from URL: " + campaign.getImageUrl());
+        // SỬ DỤNG LOGIC GIỐNG HỆT ADAPTER SponsorCampaignNeedAdapter
+        String imageUrl = campaign.getImageUrl();
+        if(imageUrl != null && !imageUrl.isEmpty()){
+            android.util.Log.d("CAMPAIGN_DETAIL", "Loading from URL (same as adapter): " + imageUrl);
 
             Glide.with(this)
-                    .load(campaign.getImageUrl())
-                    .skipMemoryCache(true)
+                    .load(imageUrl)
                     .placeholder(R.drawable.img_quyengop_dochoi)
                     .error(R.drawable.img_quyengop_dochoi)
                     .into(imgBanner);
         } else {
-            // Không có URL, dùng hình mặc định
-            android.util.Log.d("CAMPAIGN_DETAIL", "No image URL, using default");
-            int defaultImage = getDefaultImageForCampaign(campaign);
-            imgBanner.setImageResource(defaultImage);
+            android.util.Log.d("CAMPAIGN_DETAIL", "No URL, using default (same as adapter)");
+            imgBanner.setImageResource(R.drawable.img_quyengop_dochoi);
         }
     }
 
-    private int getSpecificImageForCampaign(Campaign campaign) {
-        String campaignName = campaign.getName().toLowerCase().trim();
-        android.util.Log.d("CAMPAIGN_DETAIL", "Checking specific image for: '" + campaignName + "'");
-
-        // Kiểm tra tên campaign cụ thể
-        if (campaignName.equals("nấu ăn cho em")) {
-            android.util.Log.d("CAMPAIGN_DETAIL", "Matched: Nấu ăn cho em -> img_nauanchoem");
-            return R.drawable.img_nauanchoem;
-        } else if (campaignName.equals("abcc") || campaignName.equals("abcd")) {
-            android.util.Log.d("CAMPAIGN_DETAIL", "Matched: " + campaignName + " -> img_quyengop_dochoi");
-            return R.drawable.img_quyengop_dochoi;
-        } else if (campaignName.contains("mùa đông ấm áp")) {
-            return R.drawable.img_quyengop_dochoi;
-        } else if (campaignName.contains("trồng cây xanh")) {
-            return R.drawable.img_quyengop_dochoi;
-        } else if (campaignName.contains("khám bệnh")) {
-            return R.drawable.img_quyengop_dochoi;
-        } else if (campaignName.contains("cứu trợ")) {
-            return R.drawable.img_quyengop_dochoi;
-        }
-
-        android.util.Log.d("CAMPAIGN_DETAIL", "No specific match found for: " + campaignName);
-        return -1;
-    }
-
-    private int getDefaultImageForCampaign(Campaign campaign) {
-        String category = campaign.getCategory();
+    private int getDefaultImageForCategory(String category) {
         android.util.Log.d("CAMPAIGN_DETAIL", "Getting default image for category: " + category);
 
         if (category != null) {

@@ -50,11 +50,8 @@ public class frm_ngo_home extends Fragment {
         initViews(view);
         setupQuickActions();
         loadOrganizationData();
-        
-        // Xóa dữ liệu test nếu có
+
         cleanupTestData();
-        
-        // CHẠY MỘT LẦN: Xóa toàn bộ dữ liệu test trong Firebase
         deleteAllTestDataOnce();
     }
 
@@ -92,13 +89,10 @@ public class frm_ngo_home extends Fragment {
             btnCreateCmp.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_create_campagin.class)));
         }
         if (btnAttendance != null) {
-            btnAttendance.setOnClickListener(v -> startActivity(new Intent(getActivity(), activity_ngo_attendance.class)));
             btnAttendance.setOnClickListener(v -> {
-                // Kiểm tra quyền camera trước khi mở QR Scanner
                 if (checkCameraPermission()) {
                     showQRScanner();
                 } else {
-                    // Nếu chưa có quyền, chuyển đến activity để xin quyền
                     startActivity(new Intent(getActivity(), activity_ngo_attendance.class));
                 }
             });
@@ -221,10 +215,9 @@ public class frm_ngo_home extends Fragment {
             if (tvTotalCampaigns != null) tvTotalCampaigns.setText("0");
             if (tvTotalSponsors != null) tvTotalSponsors.setText("0");
             if (tvTotalPoints != null) tvTotalPoints.setText("0");
-                  }
+        }
     }
 
-    // ✅ Số chiến dịch
     private void loadTotalCampaigns(String organizationId) {
         db.collection("campaigns")
                 .whereEqualTo("organizationId", organizationId)
@@ -244,11 +237,9 @@ public class frm_ngo_home extends Fragment {
                 });
     }
 
-    // ✅ Số tình nguyện viên
     private void loadTotalVolunteers(String organizationId) {
         Log.d(TAG, "Loading volunteers for organizationId: " + organizationId);
 
-        // 1. Load số tình nguyện viên đã được duyệt
         db.collection("volunteer_registrations")
                 .whereEqualTo("organizationId", organizationId)
                 .whereEqualTo("status", "approved")
@@ -277,41 +268,8 @@ public class frm_ngo_home extends Fragment {
                         Log.d(TAG, "✅ Volunteer count updated: " + totalVolunteers);
                     }
                 });
-
-        // 2. Load số tình nguyện viên chờ duyệt - CHỈ DỮ LIỆU THẬT
-        db.collection("volunteer_registrations")
-                .whereEqualTo("organizationId", organizationId)
-                .whereEqualTo("status", "pending")
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Error loading pending volunteers: " + error.getMessage());
-                        return;
-                    }
-
-                    java.util.Set<String> uniquePendingVolunteers = new java.util.HashSet<>();
-                    if (snapshots != null) {
-                        Log.d(TAG, "Found " + snapshots.size() + " pending registrations for org: " + organizationId);
-                        for (QueryDocumentSnapshot doc : snapshots) {
-                            String userId = doc.getString("userId");
-                            String status = doc.getString("status");
-                            String docOrgId = doc.getString("organizationId");
-                            Log.d(TAG, "Pending registration - userId: " + userId + ", status: " + status + ", orgId: " + docOrgId);
-                            if (userId != null) {
-                                uniquePendingVolunteers.add(userId);
-                            }
-                        }
-                    } else {
-                        Log.d(TAG, "No pending registrations found for org: " + organizationId);
-                    }
-
-                    int totalPendingVolunteers = uniquePendingVolunteers.size();
-                    Log.d(TAG, "Real pending volunteers count: " + totalPendingVolunteers);
-
-
-                });
     }
 
-    // ✅ Số nhà tài trợ
     private void loadTotalSponsors(String organizationId) {
         Log.d(TAG, "Loading sponsors for organizationId: " + organizationId);
 
@@ -383,88 +341,49 @@ public class frm_ngo_home extends Fragment {
                 });
     }
 
-    // ✅ Số điểm đã tặng - Tính ước tính dựa trên volunteers và campaigns
     private void loadTotalPointsGiven(String organizationId) {
-        Log.d(TAG, "Loading total points given for organizationId: " + organizationId);
-        calculatePointsFromExistingData(organizationId);
-    }
+        Log.d(TAG, "=== LOADING ALL DONATION POINTS ===");
 
-    private void calculatePointsFromExistingData(String organizationId) {
-        final int[] volunteerPoints = {0};
-        final int[] campaignPoints = {0};
-        final boolean[] volunteerLoaded = {false};
-        final boolean[] campaignLoaded = {false};
-
-        // 1. Tính điểm từ số tình nguyện viên
-        db.collection("volunteer_registrations")
-                .whereEqualTo("organizationId", organizationId)
-                .whereEqualTo("status", "approved")
+        db.collection("donations")
                 .addSnapshotListener((snapshots, error) -> {
                     if (error != null) {
-                        Log.e(TAG, "Error loading volunteers for points: " + error.getMessage());
-                        volunteerLoaded[0] = true;
-                        updateEstimatedPoints(volunteerPoints[0], campaignPoints[0], volunteerLoaded[0], campaignLoaded[0]);
+                        Log.e(TAG, "Error loading donations: " + error.getMessage());
+                        if (isAdded() && tvTotalPoints != null) {
+                            tvTotalPoints.setText("0");
+                        }
                         return;
                     }
 
-                    java.util.Set<String> uniqueVolunteers = new java.util.HashSet<>();
+                    int totalPoints = 0;
                     if (snapshots != null) {
+                        Log.d(TAG, "Found " + snapshots.size() + " donations");
+
                         for (QueryDocumentSnapshot doc : snapshots) {
+                            Integer points = doc.getLong("points") != null ?
+                                    doc.getLong("points").intValue() : 0;
+                            String status = doc.getString("status");
                             String userId = doc.getString("userId");
-                            if (userId != null) {
-                                uniqueVolunteers.add(userId);
+                            String docOrgId = doc.getString("organizationId");
+
+                            Log.d(TAG, "Donation " + doc.getId() + ": " + points + " points, status: " + status + ", orgId: " + docOrgId);
+
+                            // Tính tất cả donations có điểm và status confirmed/received
+                            if (points > 0 && ("confirmed".equals(status) || "received".equals(status))) {
+                                totalPoints += points;
+                                Log.d(TAG, "✅ Added " + points + " points from donation " + doc.getId());
                             }
                         }
                     }
 
-                    // Mỗi volunteer được tặng trung bình 150 điểm
-                    volunteerPoints[0] = uniqueVolunteers.size() * 150;
-                    Log.d(TAG, "Estimated points from " + uniqueVolunteers.size() + " volunteers: " + volunteerPoints[0]);
+                    Log.d(TAG, "=== TOTAL POINTS CALCULATED: " + totalPoints + " ===");
 
-                    volunteerLoaded[0] = true;
-                    updateEstimatedPoints(volunteerPoints[0], campaignPoints[0], volunteerLoaded[0], campaignLoaded[0]);
-                });
-
-        // 2. Tính điểm từ số chiến dịch
-        db.collection("campaigns")
-                .whereEqualTo("organizationId", organizationId)
-                .addSnapshotListener((snapshots, error) -> {
-                    if (error != null) {
-                        Log.e(TAG, "Error loading campaigns for points: " + error.getMessage());
-                        campaignLoaded[0] = true;
-                        updateEstimatedPoints(volunteerPoints[0], campaignPoints[0], volunteerLoaded[0], campaignLoaded[0]);
-                        return;
+                    if (isAdded() && tvTotalPoints != null) {
+                        tvTotalPoints.setText(String.format("%,d", totalPoints));
+                        Log.d(TAG, "✅ Points display updated to: " + totalPoints);
                     }
-
-                    int totalCampaigns = snapshots != null ? snapshots.size() : 0;
-
-                    // Mỗi chiến dịch tặng trung bình 75 điểm
-                    campaignPoints[0] = totalCampaigns * 75;
-                    Log.d(TAG, "Estimated points from " + totalCampaigns + " campaigns: " + campaignPoints[0]);
-
-                    campaignLoaded[0] = true;
-                    updateEstimatedPoints(volunteerPoints[0], campaignPoints[0], volunteerLoaded[0], campaignLoaded[0]);
                 });
     }
 
-    private void updateEstimatedPoints(int volunteerPoints, int campaignPoints, boolean volunteerLoaded, boolean campaignLoaded) {
-        if (volunteerLoaded && campaignLoaded) {
-            int totalEstimatedPoints = volunteerPoints + campaignPoints;
-
-            Log.d(TAG, "=== ESTIMATED POINTS CALCULATION ===");
-            Log.d(TAG, "Points from volunteers: " + volunteerPoints);
-            Log.d(TAG, "Points from campaigns: " + campaignPoints);
-            Log.d(TAG, "TOTAL ESTIMATED POINTS: " + totalEstimatedPoints);
-
-            if (isAdded() && tvTotalPoints != null) {
-                tvTotalPoints.setText(String.format("%,d", totalEstimatedPoints));
-                Log.d(TAG, "✅ Estimated points display updated: " + totalEstimatedPoints);
-            }
-        }
-    }
-
-    // ===== PHƯƠNG THỨC MỚI CHO ĐIỂM DANH TRỰC TIẾP =====
-    
     private boolean checkCameraPermission() {
         return ContextCompat.checkSelfPermission(getContext(), Manifest.permission.CAMERA)
                 == PackageManager.PERMISSION_GRANTED;
@@ -510,9 +429,9 @@ public class frm_ngo_home extends Fragment {
 
     private void handleAttendanceCode(String code, boolean isScanned) {
         Log.d(TAG, "Handling attendance code: " + code + ", isScanned: " + isScanned);
-        
+
         QRCodeGenerator.QRCodeData qrData = QRCodeGenerator.parseQRCode(code);
-        
+
         if (qrData == null || !"campaign".equals(qrData.type)) {
             showErrorDialog("QR code không hợp lệ", "QR code này không phải cho điểm danh chiến dịch");
             return;
@@ -537,24 +456,23 @@ public class frm_ngo_home extends Fragment {
     }
 
     private void confirmAttendance(String registrationId, String userId, String campaignId) {
-        campaignRepository.confirmAttendance(registrationId, userId, campaignId, 
-            new CampaignRepository.OnAttendanceListener() {
-                @Override
-                public void onSuccess(String message) {
-                    if (isAdded()) {
-                        Toast.makeText(getContext(), "Điểm danh thành công!", Toast.LENGTH_SHORT).show();
-                        // Refresh stats sau khi điểm danh thành công
-                        loadOrganizationData();
+        campaignRepository.confirmAttendance(registrationId, userId, campaignId,
+                new CampaignRepository.OnAttendanceListener() {
+                    @Override
+                    public void onSuccess(String message) {
+                        if (isAdded()) {
+                            Toast.makeText(getContext(), "Điểm danh thành công!", Toast.LENGTH_SHORT).show();
+                            loadOrganizationData();
+                        }
                     }
-                }
 
-                @Override
-                public void onFailure(String error) {
-                    if (isAdded()) {
-                        showErrorDialog("Lỗi điểm danh", error);
+                    @Override
+                    public void onFailure(String error) {
+                        if (isAdded()) {
+                            showErrorDialog("Lỗi điểm danh", error);
+                        }
                     }
-                }
-            });
+                });
     }
 
     private void showErrorDialog(String title, String message) {
@@ -566,12 +484,10 @@ public class frm_ngo_home extends Fragment {
                     .show();
         }
     }
-    
-    // Xóa tất cả dữ liệu test/ảo
+
     private void cleanupTestData() {
         Log.d(TAG, "Cleaning up test data...");
-        
-        // Xóa tất cả volunteer registrations có userId bắt đầu bằng "test"
+
         db.collection("volunteer_registrations")
                 .get()
                 .addOnSuccessListener(snapshots -> {
@@ -594,30 +510,27 @@ public class frm_ngo_home extends Fragment {
                     Log.e(TAG, "Error loading registrations for cleanup: " + e.getMessage());
                 });
     }
-    
-    // XÓA TOÀN BỘ DỮ LIỆU TEST - CHẠY MỘT LẦN
+
     private void deleteAllTestDataOnce() {
         Log.d(TAG, "=== DELETING ALL TEST DATA FROM FIREBASE ===");
-        
-        // Xóa tất cả documents có userId chứa "test"
+
         db.collection("volunteer_registrations")
                 .get()
                 .addOnSuccessListener(snapshots -> {
                     if (snapshots != null && !snapshots.isEmpty()) {
                         int totalDocs = snapshots.size();
                         int testDocs = 0;
-                        
+
                         for (QueryDocumentSnapshot doc : snapshots) {
                             String userId = doc.getString("userId");
                             String campaignId = doc.getString("campaignId");
-                            
-                            // Xóa nếu userId hoặc campaignId chứa "test"
+
                             if ((userId != null && (userId.contains("test") || userId.startsWith("test_"))) ||
-                                (campaignId != null && (campaignId.contains("test") || campaignId.startsWith("test_")))) {
-                                
+                                    (campaignId != null && (campaignId.contains("test") || campaignId.startsWith("test_")))) {
+
                                 testDocs++;
                                 Log.d(TAG, "Deleting test doc: " + doc.getId() + " - userId: " + userId + " - campaignId: " + campaignId);
-                                
+
                                 doc.getReference().delete()
                                         .addOnSuccessListener(aVoid -> {
                                             Log.d(TAG, "✅ DELETED test document: " + doc.getId());
@@ -627,7 +540,7 @@ public class frm_ngo_home extends Fragment {
                                         });
                             }
                         }
-                        
+
                         Log.d(TAG, "=== CLEANUP SUMMARY ===");
                         Log.d(TAG, "Total documents: " + totalDocs);
                         Log.d(TAG, "Test documents deleted: " + testDocs);
