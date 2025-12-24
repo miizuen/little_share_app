@@ -111,27 +111,24 @@ public class SponsorCampaignHistoryAdapter extends RecyclerView.Adapter<SponsorC
     }
 
     private void loadCampaignImage(ImageView imageView, Campaign campaign) {
-        // Load specific image based on campaign name first
-        int specificImage = getSpecificImageForCampaign(campaign);
-        if (specificImage != -1) {
-            imageView.setImageResource(specificImage);
-            return;
-        }
+        Log.d("HistoryAdapter", "Loading image for: " + campaign.getName());
+        Log.d("HistoryAdapter", "ImageURL: " + campaign.getImageUrl());
 
-        // Load from URL if available
+        // SỬ DỤNG LOGIC GIỐNG HỆT CÁC ADAPTER KHÁC - ƯU TIÊN URL
         if (campaign.getImageUrl() != null && !campaign.getImageUrl().isEmpty()) {
+            Log.d("HistoryAdapter", "Loading from URL: " + campaign.getImageUrl());
             Glide.with(context)
                     .load(campaign.getImageUrl())
-                    .placeholder(getDefaultImageForCategory(campaign.getCategory()))
-                    .error(getDefaultImageForCategory(campaign.getCategory()))
+                    .placeholder(R.drawable.img_quyengop_dochoi)
+                    .error(R.drawable.img_quyengop_dochoi)
                     .centerCrop()
                     .into(imageView);
         } else {
-            // Use default image based on category
-            int defaultImage = getDefaultImageForCategory(campaign.getCategory());
-            imageView.setImageResource(defaultImage);
+            Log.d("HistoryAdapter", "No URL, using default image");
+            imageView.setImageResource(R.drawable.img_quyengop_dochoi);
         }
     }
+
 
     private int getSpecificImageForCampaign(Campaign campaign) {
         String campaignName = campaign.getName().toLowerCase().trim();

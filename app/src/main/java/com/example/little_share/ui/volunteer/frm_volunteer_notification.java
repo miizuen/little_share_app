@@ -13,27 +13,23 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
 import com.example.little_share.data.models.Notification;
 import com.example.little_share.data.models.VolunteerRegistration;
-import com.example.little_share.data.repositories.NotificationRepository;
 import com.example.little_share.ui.volunteer.adapter.NotificationAdapter;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class frm_volunteer_notification extends Fragment implements NotificationAdapter.OnNotificationClickListener {
 
     private RecyclerView rvNotification;
-    private TextView tvNumberNotify;
-    private LinearLayout markAllRead;
-
     private NotificationAdapter adapter;
-    private NotificationRepository repository;
     private FirebaseFirestore db;
 
     @Override
@@ -54,10 +50,8 @@ public class frm_volunteer_notification extends Fragment implements Notification
 
     private void initViews(View view) {
         rvNotification = view.findViewById(R.id.rvNotification);
-        tvNumberNotify = view.findViewById(R.id.tvNumberNotify);
-        markAllRead = view.findViewById(R.id.markAllRead);
 
-        repository = new NotificationRepository();
+
         db = FirebaseFirestore.getInstance();
     }
 
@@ -68,56 +62,101 @@ public class frm_volunteer_notification extends Fragment implements Notification
     }
 
     private void setupClickListeners() {
-        markAllRead.setOnClickListener(v -> showMarkAllReadDialog());
+
     }
 
     private void loadNotifications() {
-        repository.getUserNotifications().observe(getViewLifecycleOwner(), new Observer<List<Notification>>() {
-            @Override
-            public void onChanged(List<Notification> notifications) {
-                if (notifications != null) {
-                    adapter.setNotifications(notifications);
+        String currentUserId = getCurrentUserId();
 
-                    // Show empty state if needed
-                    if (notifications.isEmpty()) {
-                        showEmptyState();
+        if (currentUserId == null) {
+            showEmptyState();
+            return;
+        }
+
+        db.collection("notifications")
+                .whereEqualTo("userId", currentUserId)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+                        return;
                     }
-                }
-            }
-        });
+
+                    if (queryDocumentSnapshots != null) {
+                        List<Notification> notifications = new ArrayList<>();
+
+                        for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                            try {
+                                Notification notification = doc.toObject(Notification.class);
+                                notification.setId(doc.getId());
+                                notifications.add(notification);
+                            } catch (Exception ex) {
+                                // Skip invalid notifications
+                            }
+                        }
+
+                        adapter.setNotifications(notifications);
+
+                        if (notifications.isEmpty()) {
+                            showEmptyState();
+                        }
+                    }
+                });
     }
 
     private void observeUnreadCount() {
-        repository.getUnreadCount().observe(getViewLifecycleOwner(), new Observer<Integer>() {
-            @Override
-            public void onChanged(Integer count) {
-                tvNumberNotify.setText(String.valueOf(count));
+        String currentUserId = getCurrentUserId();
 
-                // Hide mark all read button if no unread
-                if (count == 0) {
-                    markAllRead.setVisibility(View.GONE);
-                } else {
-                    markAllRead.setVisibility(View.VISIBLE);
-                }
-            }
-        });
+        if (currentUserId == null) {
+                       return;
+        }
+
+        db.collection("notifications")
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("isRead", false)
+                .addSnapshotListener((queryDocumentSnapshots, e) -> {
+                    if (e != null) {
+
+                        return;
+                    }
+
+                    int unreadCount = queryDocumentSnapshots != null ? queryDocumentSnapshots.size() : 0;
+
+                    if (getActivity() != null) {
+                        getActivity().runOnUiThread(() -> {
+
+
+                            if (unreadCount == 0) {
+
+
+                            }
+                        });
+                    }
+                });
+    }
+
+    private String getCurrentUserId() {
+        // Firebase Auth
+        com.google.firebase.auth.FirebaseAuth auth = com.google.firebase.auth.FirebaseAuth.getInstance();
+        com.google.firebase.auth.FirebaseUser currentUser = auth.getCurrentUser();
+        if (currentUser != null) {
+            return currentUser.getUid();
+        }
+
+        // SharedPreferences user_prefs
+        android.content.SharedPreferences prefs = requireContext().getSharedPreferences("user_prefs", android.content.Context.MODE_PRIVATE);
+        String userId = prefs.getString("user_id", null);
+        if (userId != null) return userId;
+
+        // SharedPreferences login_prefs
+        android.content.SharedPreferences loginPrefs = requireContext().getSharedPreferences("login_prefs", android.content.Context.MODE_PRIVATE);
+        return loginPrefs.getString("user_id", null);
     }
 
     @Override
     public void onNotificationClick(Notification notification) {
         // Đánh dấu là đã đọc
         if (!notification.isRead()) {
-            repository.markAsRead(notification.getId(), new NotificationRepository.OnNotificationListener() {
-                @Override
-                public void onSuccess(String result) {
-                    // Notification đã được cập nhật qua LiveData
-                }
-
-                @Override
-                public void onFailure(String error) {
-                    android.util.Log.e("Notification", "Failed to mark as read: " + error);
-                }
-            });
+            markNotificationAsRead(notification.getId());
         }
 
         // Kiểm tra loại thông báo và chuyển trang tương ứng
@@ -131,10 +170,8 @@ public class frm_volunteer_notification extends Fragment implements Notification
                     Toast.makeText(getContext(), "Đăng ký bị từ chối", Toast.LENGTH_SHORT).show();
                     break;
 
-                // ===== XỬ LÝ DONATION NOTIFICATIONS =====
                 case "DONATION_PENDING":
                     Toast.makeText(getContext(), "Quyên góp của bạn đang chờ xét duyệt", Toast.LENGTH_SHORT).show();
-                    // Navigate đến lịch sử donation
                     navigateToDonationHistory();
                     break;
 
@@ -169,24 +206,28 @@ public class frm_volunteer_notification extends Fragment implements Notification
         }
     }
 
+    private void markNotificationAsRead(String notificationId) {
+        db.collection("notifications")
+                .document(notificationId)
+                .update("isRead", true);
+    }
+
     @Override
     public void onDeleteClick(Notification notification, int position) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Xóa thông báo")
                 .setMessage("Bạn có chắc muốn xóa thông báo này?")
                 .setPositiveButton("Xóa", (dialog, which) -> {
-                    repository.deleteNotification(notification.getId(), new NotificationRepository.OnNotificationListener() {
-                        @Override
-                        public void onSuccess(String result) {
-                            adapter.removeItem(position);
-                            Toast.makeText(requireContext(), "Đã xóa thông báo", Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailure(String error) {
-                            Toast.makeText(requireContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    db.collection("notifications")
+                            .document(notification.getId())
+                            .delete()
+                            .addOnSuccessListener(aVoid -> {
+                                adapter.removeItem(position);
+                                Toast.makeText(requireContext(), "Đã xóa thông báo", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
                 })
                 .setNegativeButton("Hủy", null)
                 .show();
@@ -197,38 +238,48 @@ public class frm_volunteer_notification extends Fragment implements Notification
                 .setTitle("Đánh dấu tất cả đã đọc")
                 .setMessage("Bạn có muốn đánh dấu tất cả thông báo là đã đọc?")
                 .setPositiveButton("Có", (dialog, which) -> {
-                    repository.markAllAsRead(new NotificationRepository.OnNotificationListener() {
-                        @Override
-                        public void onSuccess(String result) {
-                            Toast.makeText(requireContext(), result, Toast.LENGTH_SHORT).show();
-                        }
-
-                        @Override
-                        public void onFailure(String error) {
-                            Toast.makeText(requireContext(), "Lỗi: " + error, Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    markAllNotificationsAsRead();
                 })
                 .setNegativeButton("Không", null)
                 .show();
     }
-    private void navigateToDonationHistory() {
-        // Option 1: Nếu có Activity riêng cho donation history
-        // Intent intent = new Intent(getContext(), DonationHistoryActivity.class);
-        // startActivity(intent);
 
-        // Option 2: Nếu là fragment trong bottom nav, chuyển đến tab đó
-        // ((MainActivity) getActivity()).navigateToDonationTab();
+    private void markAllNotificationsAsRead() {
+        String currentUserId = getCurrentUserId();
 
-        // Option 3: Tạm thời toast thông báo
-        Toast.makeText(getContext(), "Đang chuyển đến lịch sử quyên góp...", Toast.LENGTH_SHORT).show();
+        if (currentUserId == null) {
+            Toast.makeText(requireContext(), "Lỗi: Không tìm thấy thông tin người dùng", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // TODO: Implement navigation based on your app structure
+        db.collection("notifications")
+                .whereEqualTo("userId", currentUserId)
+                .whereEqualTo("isRead", false)
+                .get()
+                .addOnSuccessListener(queryDocumentSnapshots -> {
+                    com.google.firebase.firestore.WriteBatch batch = db.batch();
+
+                    for (QueryDocumentSnapshot doc : queryDocumentSnapshots) {
+                        batch.update(doc.getReference(), "isRead", true);
+                    }
+
+                    batch.commit()
+                            .addOnSuccessListener(aVoid -> {
+                                Toast.makeText(requireContext(), "Đã đánh dấu tất cả thông báo là đã đọc", Toast.LENGTH_SHORT).show();
+                            })
+                            .addOnFailureListener(e -> {
+                                Toast.makeText(requireContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                            });
+                })
+                .addOnFailureListener(e -> {
+                    Toast.makeText(requireContext(), "Lỗi: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                });
     }
 
-    /**
-     * Load registration data từ Firebase và navigate
-     */
+    private void navigateToDonationHistory() {
+        Toast.makeText(getContext(), "Đang chuyển đến lịch sử quyên góp...", Toast.LENGTH_SHORT).show();
+    }
+
     private void loadRegistrationAndNavigate(String registrationId) {
         if (registrationId == null || registrationId.isEmpty()) {
             Toast.makeText(getContext(), "Không tìm thấy thông tin đăng ký", Toast.LENGTH_SHORT).show();
@@ -259,15 +310,12 @@ public class frm_volunteer_notification extends Fragment implements Notification
                 })
                 .addOnFailureListener(e -> {
                     Toast.makeText(getContext(), "Lỗi tải dữ liệu: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-                    android.util.Log.e("Notification", "Error loading registration", e);
                 });
     }
 
     private void navigateToCampaignDetail(String campaignId) {
         Toast.makeText(requireContext(), "Mở chi tiết chiến dịch: " + campaignId, Toast.LENGTH_SHORT).show();
-        // TODO: Implement navigation to campaign detail
     }
-
 
     private void showEmptyState() {
         Toast.makeText(requireContext(), "Không có thông báo nào", Toast.LENGTH_SHORT).show();
