@@ -1,4 +1,4 @@
-package com.example.little_share.adapter.volunteer;
+package com.example.little_share.ui.volunteer.adapter;
 
 import android.graphics.Color;
 import android.view.LayoutInflater;

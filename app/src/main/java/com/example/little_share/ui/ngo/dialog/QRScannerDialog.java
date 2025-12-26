@@ -31,14 +31,12 @@ import java.util.Collections;
 import java.util.List;
 
 public class QRScannerDialog extends Dialog {
-
     private DecoratedBarcodeView barcodeView;
     private FrameLayout cameraPreview;
     private LinearLayout layoutPlaceholder;
     private EditText edtManualCode;
     private AppCompatButton btnConfirm, btnCloseDialog;
     private ImageView btnClose;
-
     private OnQRScannedListener listener;
     private boolean isScanning = false;
 

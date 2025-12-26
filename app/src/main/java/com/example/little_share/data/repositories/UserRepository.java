@@ -98,7 +98,6 @@ public class UserRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
-    // Thêm method này vào UserRepository.java nếu chưa có
 
     public void getCurrentUserData(OnUserDataListener listener) {
         String userId = com.google.firebase.auth.FirebaseAuth.getInstance().getCurrentUser().getUid();

@@ -206,7 +206,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="20dp"
                     android:fontFamily="@font/baloo_da_2_bold"
-                    android:text="Đơn đổi quà"
+                    android:text="Xác nhận nhận quà"
                     android:textColor="@color/black"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -230,14 +230,6 @@
                     android:textStyle="bold" />
 
             </LinearLayout>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvDonationsPending"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false"
-                tools:listitem="@layout/item_ngo_gift_of_volunteer" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

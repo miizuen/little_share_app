@@ -15,13 +15,12 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.little_share.R;
-import com.example.little_share.adapter.volunteer.VolunteerHistoryAdapter;
+import com.example.little_share.ui.volunteer.adapter.VolunteerHistoryAdapter;
 import com.example.little_share.data.models.VolunteerRegistration;
 import com.example.little_share.data.models.volunteer.VolunteerHistoryModel;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 

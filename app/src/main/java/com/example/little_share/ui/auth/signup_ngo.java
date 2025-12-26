@@ -44,7 +44,7 @@ public class signup_ngo extends AppCompatActivity {
 
         authRepository = new AuthRepository();
         userRepository = new UserRepository();
-        organizationRepository = new OrganizationRepository(); // Thêm repository mới
+        organizationRepository = new OrganizationRepository();
 
         btnBackToRoleScreen = findViewById(R.id.btnBackToRoleScreen);
 

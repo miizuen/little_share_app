@@ -28,7 +28,6 @@ import com.google.android.material.button.MaterialButton;
 
 public class login extends AppCompatActivity {
     private static final String TAG = "LoginActivity";
-
     ImageView btnBackToLogInAndSignUpScreen;
     private AuthRepository authRepository;
     private UserRepository userRepository;
@@ -98,7 +97,7 @@ public class login extends AppCompatActivity {
             public void onSuccess(String userId) {
                 Log.d(TAG, "Firebase Auth successful for userId: " + userId);
 
-                // Lấy thông tin user đầy đủ thay vì chỉ lấy role
+                // Lấy thông tin user
                 getUserDataAndRedirect(userId);
             }
 
