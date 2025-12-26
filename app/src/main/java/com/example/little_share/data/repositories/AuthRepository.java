@@ -37,54 +37,6 @@ public class AuthRepository {
                 .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
     }
 
-    // ========== LOGOUT ===========
-    public void logout() {
-        auth.signOut();
-    }
-
-    // ========== GET CURRENT USER ===========
-    public FirebaseUser getCurrentUser() {
-        return auth.getCurrentUser();
-    }
-
-    public String getCurrentUserId() {
-        FirebaseUser user = auth.getCurrentUser();
-        return user != null ? user.getUid() : null;
-    }
-
-    // ========== RESET PASSWORD ===========
-    public void sendPasswordReset(String email, OnSimpleListener listener) {
-        auth.sendPasswordResetEmail(email)
-                .addOnSuccessListener(a -> listener.onSuccess())
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
-    }
-
-    // ========== UPDATE EMAIL ===========
-    public void updateEmail(String newEmail, OnSimpleListener listener) {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            listener.onFailure("Chưa đăng nhập");
-            return;
-        }
-
-        user.updateEmail(newEmail)
-                .addOnSuccessListener(a -> listener.onSuccess())
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
-    }
-
-    // ========== UPDATE PASSWORD ===========
-    public void updatePassword(String newPass, OnSimpleListener listener) {
-        FirebaseUser user = auth.getCurrentUser();
-        if (user == null) {
-            listener.onFailure("Chưa đăng nhập");
-            return;
-        }
-
-        user.updatePassword(newPass)
-                .addOnSuccessListener(a -> listener.onSuccess())
-                .addOnFailureListener(e -> listener.onFailure(e.getMessage()));
-    }
-
     // ========== DELETE AUTH ACCOUNT ===========
     public void deleteAccount(OnSimpleListener listener) {
         FirebaseUser user = auth.getCurrentUser();

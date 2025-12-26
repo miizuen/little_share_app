@@ -146,9 +146,6 @@
             android:name=".ui.ngo.activity_ngo_main"
             android:exported="false" />
         <activity
-            android:name=".ui.ProfileSponsorActivity"
-            android:exported="false" />
-        <activity
             android:name=".ui.volunteer.activity_volunteer_main"
             android:exported="false" />
         <activity
@@ -173,7 +170,6 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

@@ -4,6 +4,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -28,6 +29,7 @@ public class activity_volunteer_edit_profile extends AppCompatActivity {
 
     private ImageView btnBack, ivAvatar, btnEditAvatar;
     private EditText etName, etEmail, etPhone, etAddress;
+    private TextView tvUserName, tvUserEmail;
     private MaterialButton btnUpdateProfile;
     private UserRepository userRepo;
     private String currentUserId;
@@ -57,6 +59,8 @@ public class activity_volunteer_edit_profile extends AppCompatActivity {
             btnBack = findViewById(R.id.btnBack);
             ivAvatar = findViewById(R.id.ivAvatar);
             btnEditAvatar = findViewById(R.id.btnEditAvatar);
+            tvUserEmail = findViewById(R.id.tvUserEmail);
+            tvUserName = findViewById(R.id.tvUserName);
             etName = findViewById(R.id.etName);
             etEmail = findViewById(R.id.etEmail);
             etPhone = findViewById(R.id.etPhone);
@@ -135,6 +139,14 @@ public class activity_volunteer_edit_profile extends AppCompatActivity {
                 if (user == null) return;
 
                 try {
+                    if(tvUserName != null){
+                        tvUserName.setText(user.getFullName());
+                    }
+
+                    if(tvUserEmail != null){
+                        tvUserEmail.setText(user.getEmail());
+                    }
+
                     if (etName != null) {
                         etName.setText(user.getFullName());
                     }

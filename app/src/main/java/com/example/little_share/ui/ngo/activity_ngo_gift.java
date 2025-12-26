@@ -49,10 +49,6 @@ public class activity_ngo_gift extends AppCompatActivity {
     private TextView btnQRGift;
     private GiftRepository giftRepository;
     private GiftAdapter adapter;
-
-
-
-
     private Uri selectedImageUri = null;
     private ImageView currentPreviewImageView = null;
 

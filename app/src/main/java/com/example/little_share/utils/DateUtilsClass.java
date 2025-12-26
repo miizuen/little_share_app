@@ -65,10 +65,6 @@ public class DateUtilsClass {
         }
     }
 
-    /**
-     * Get relative time string (2 giờ trước, 1 ngày trước...)
-     * Sử dụng Android's DateUtils
-     */
     public static CharSequence getRelativeTimeSpanString(Date date) {
         if (date == null) return "Không rõ";
 

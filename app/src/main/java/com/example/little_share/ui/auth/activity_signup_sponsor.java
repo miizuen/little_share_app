@@ -136,7 +136,6 @@ public class activity_signup_sponsor extends AppCompatActivity {
                 new SponsorRepository.OnCreateSponsorListener() {
                     @Override
                     public void onSuccess(String sponsorId) {
-                        // Bước 3: Tạo User document với sponsorId
                         createUserDocument(userId, fullName, email, phone, address, sponsorId);
                     }
 

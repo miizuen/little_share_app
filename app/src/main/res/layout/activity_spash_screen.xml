@@ -39,22 +39,6 @@
         app:layout_constraintTop_toBottomOf="@id/imageView2" />
 
     <!-- SLOGAN -->
-    <TextView
-        android:id="@+id/textView2"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="40dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="40dp"
-        android:fontFamily="@font/baloo_da_2_bold"
-        android:gravity="center"
-        android:lineSpacingExtra="6dp"
-        android:text="“Let’s share good vibes!”\nBắt đầu hành trình sẻ chia 🥰\n“Together, we care 🌍\nCùng làm điều tử tế nào 🤲\nTap to make a change 💓”"
-        android:textColor="#555555"
-        android:textSize="20sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/textView" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnWelcome"
